@@ -10,4 +10,4 @@ There are four main features of this library
 
 Note: This repository requires bazel, poetry and a C++ compiler in order to function. Please read the poetry documentation for how to install/use this package.
 
-Further documentation is a TODO item.
+Further documentation will be coming soon.
