@@ -1,0 +1,99 @@
+from __future__ import annotations
+
+import argparse
+import bisect
+import os
+
+from .extension.timeline import (
+    ObservationWithValue,
+    TimelineReader,
+    Patient,
+    PatientDay,
+)
+
+__all__ = ["ObservationWithValue", "TimelineReader", "Patient", "PatientDay"]
+
+
+def inspect_timelines() -> None:
+    parser = argparse.ArgumentParser(
+        description="A tool for inspecting a STRIDE dump"
+    )
+
+    parser.add_argument(
+        "--patient_id",
+        type=str,
+        help="Pull a particular patient_id from a STRIDE dump",
+    )
+
+    parser.add_argument(
+        "--extract_dir",
+        type=str,
+        help="Path of extract dir; overrides env var STRIDE_ML_EXTRACT_DIR",
+        default=os.environ.get("EHR_ML_EXTRACT_DIR", None),
+    )
+
+    parser.add_argument(
+        "--extract_file",
+        type=str,
+        default="extract.db",
+        help="Name of extract file relative to extract_dir",
+    )
+
+    args = parser.parse_args()
+
+    source_file = os.path.join(args.extract_dir, args.extract_file)
+    timelines = TimelineReader(source_file)
+    if args.patient_id is not None:
+        patient_id = int(args.patient_id)
+    else:
+        patient_id = timelines.get_patient_ids()[0]
+
+    location = bisect.bisect_left(timelines.get_patient_ids(), patient_id)
+    original_patient_id = timelines.get_original_patient_ids()[location]
+
+    if timelines.get_patient_ids()[location] != patient_id:
+        print("Could not locate patient ?", patient_id)
+        exit(-1)
+
+    patient = timelines.get_patient(patient_id)
+
+    print(f"Patient: {patient.patient_id}, (aka {original_patient_id})")
+
+    def obs_with_value_to_str(obs_with_value: ObservationWithValue) -> str:
+        code_text = timelines.get_dictionary().get_word(obs_with_value.code)
+        if obs_with_value.is_text:
+            value_text = timelines.get_value_dictionary().get_word(
+                obs_with_value.text_value
+            )
+            return f'{code_text}-"{value_text}"'
+        else:
+            return f"{code_text}-{obs_with_value.numeric_value}"
+
+    for i, day in enumerate(patient.days):
+        print(f"----Day {i}----")
+        print(day.date)
+        print(day.age)
+        print(
+            "{"
+            + ", ".join(
+                sorted(
+                    [
+                        str(timelines.get_dictionary().get_word(a))
+                        for a in day.observations
+                    ]
+                )
+            )
+            + "}"
+        )
+        print(
+            "{"
+            + ", ".join(
+                sorted(
+                    [
+                        obs_with_value_to_str(a)
+                        for a in day.observations_with_values
+                    ]
+                )
+            )
+            + "}"
+        )
