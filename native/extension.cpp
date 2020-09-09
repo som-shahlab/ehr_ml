@@ -7,8 +7,8 @@
 #include "timeline_extension.h"
 
 PYBIND11_MODULE(extension, m) {
-  register_timeline_extension(m);
-  register_index_extension(m);
-  register_ontology_extension(m);
-  register_patient2vec_extension(m);
+    register_timeline_extension(m);
+    register_index_extension(m);
+    register_ontology_extension(m);
+    register_patient2vec_extension(m);
 }

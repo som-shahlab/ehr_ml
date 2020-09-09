@@ -299,91 +299,86 @@ def train_model_func(args, rank, size):
         print(f"Code dropout is {code_dropout}")
         print(f"Day dropout is {day_dropout}")
 
-        with torch.autograd.profiler.profile(use_cuda=True) as prof:
-            print("Profiling")
-            with dataset.BatchIterator(
-                loaded_data,
-                final_transformation,
-                is_val=False,
-                batch_size=config["batch_size"],
-                seed=random.randint(0, 100000),
-                day_dropout=day_dropout,
-                code_dropout=code_dropout,
-            ) as batches:
-                for i, batch in enumerate(batches):
+        with dataset.BatchIterator(
+            loaded_data,
+            final_transformation,
+            is_val=False,
+            batch_size=config["batch_size"],
+            seed=random.randint(0, 100000),
+            day_dropout=day_dropout,
+            code_dropout=code_dropout,
+        ) as batches:
+            for i, batch in enumerate(batches):
 
-                    # for name, param in model.named_parameters():
-                    #     print(name, param.sum())
+                # for name, param in model.named_parameters():
+                #     print(name, param.sum())
 
-                    values, non_text_loss = model(batch)
-                    del values
+                values, non_text_loss = model(batch)
+                del values
 
-                    non_text_loss.backward()
+                non_text_loss.backward()
 
-                    # print(non_text_loss.item())
-                    # non_text_loss.backward()
+                # print(non_text_loss.item())
+                # non_text_loss.backward()
 
-                    # print(model.task_module.scale_and_scale_function.weight.grad.shape)
-                    # print(model.task_module.scale_and_scale_function.weight.grad)
+                # print(model.task_module.scale_and_scale_function.weight.grad.shape)
+                # print(model.task_module.scale_and_scale_function.weight.grad)
 
-                    # g = model.task_module.scale_and_scale_function.weight.grad.view(800, 5001, 2)
-                    # perm_g = g.permute((1, 0, 2))
-                    # print(perm_g.shape)
+                # g = model.task_module.scale_and_scale_function.weight.grad.view(800, 5001, 2)
+                # perm_g = g.permute((1, 0, 2))
+                # print(perm_g.shape)
 
-                    # perm_g = perm_g.reshape((5001, 800 * 2))
+                # perm_g = perm_g.reshape((5001, 800 * 2))
 
-                    # normed = torch.norm(perm_g, dim=1)
+                # normed = torch.norm(perm_g, dim=1)
 
-                    # print(normed.shape)
+                # print(normed.shape)
 
-                    # print(normed)
+                # print(normed)
 
-                    # average_norm = torch.mean(normed)
+                # average_norm = torch.mean(normed)
 
-                    # for i, val in enumerate(normed):
-                    #     print(i, val / average_norm)
+                # for i, val in enumerate(normed):
+                #     print(i, val / average_norm)
 
-                    # print(1/0)
+                # print(1/0)
 
-                    warmup = 5e3
+                warmup = 5e3
 
-                    if i < warmup:
-                        scale = (i / warmup) * (1 / math.sqrt(warmup))
-                    else:
-                        scale = 1 / math.sqrt(i)
+                if i < warmup:
+                    scale = (i / warmup) * (1 / math.sqrt(warmup))
+                else:
+                    scale = 1 / math.sqrt(i)
 
-                    for param_group in optimizer.param_groups:
-                        param_group["lr"] = scale * config["lr"]
+                for param_group in optimizer.param_groups:
+                    param_group["lr"] = scale * config["lr"]
 
-                    # for name, param in model.named_parameters():
-                    #     print(name, param.sum(), param.grad.sum() if param.grad is not None else 'No grad')
+                # for name, param in model.named_parameters():
+                #     print(name, param.sum(), param.grad.sum() if param.grad is not None else 'No grad')
 
-                    optimizer.step()
-                    optimizer.zero_grad()
+                optimizer.step()
+                optimizer.zero_grad()
 
-                    del non_text_loss
-                    del batch
+                del non_text_loss
+                del batch
 
-                    if i != 0 and i % 10 == 0:
-                        current_time = time.time()
-                        delta = current_time - last_time
-                        if i != 0:
-                            print(
-                                "Iters per second ",
-                                1000 / delta,
-                                " ",
-                                i,
-                                scale * config["lr"],
-                            )
-                        last_time = current_time
-                        print("Good")
-                        break
+                if i != 0 and i % 1000 == 0:
+                    current_time = time.time()
+                    delta = current_time - last_time
+                    if i != 0:
+                        print(
+                            "Iters per second ",
+                            1000 / delta,
+                            " ",
+                            i,
+                            scale * config["lr"],
+                        )
+                    last_time = current_time
 
-                    if i != 0 and i % 3000 == 0:
-                        yield
-                        model.train()
+                if i != 0 and i % 3000 == 0:
+                    yield
+                    model.train()
 
-        print(prof.key_averages().table())
         yield
 
     def test(sample_size: int = 100) -> Tuple[float, float]:
@@ -460,7 +455,6 @@ def train_model_func(args, rank, size):
                     best_val_loss is None or val_loss < best_val_loss
                 ):
                     best_val_loss = val_loss
-                    best_val_loss_epoch = epoch
 
                     if os.path.exists(os.path.join(model_dir, "best")):
                         os.unlink(os.path.join(model_dir, "best"))
@@ -606,11 +600,11 @@ def debug_model() -> None:
 
     model.eval()
 
-    # patient_labels = np.load('example2/treatments.npy')
-    # patient_ids = np.load('example2/patient_ids.npy')
-    # patient_indices = np.load('example2/patient_indices.npy')
+    patient_labels = np.load("control_example/treatments.npy")
+    patient_ids = np.load("control_example/patient_ids.npy")
+    patient_indices = np.load("control_example/patient_indices.npy")
 
-    # data = (patient_labels, patient_ids, patient_indices)
+    data = (patient_labels, patient_ids, patient_indices)
 
     print("starting to load")
 
@@ -618,20 +612,21 @@ def debug_model() -> None:
         os.path.join(info["extract_dir"], "extract.db"),
         os.path.join(info["extract_dir"], "ontology.db"),
         os.path.join(model_dir, "info.json"),
+        # )
+        data,
+        data,
     )
-    # data,
-    # data)
 
-    # patient_id_to_info = {}
+    patient_id_to_info = {}
 
-    # for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
-    #     patient_id_to_info[pid] = (index, i)
+    for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
+        patient_id_to_info[pid] = (index, i)
 
-    # patient_representations = np.zeros((len(patient_ids), 800))
+    patient_representations = np.zeros((len(patient_ids), 800))
 
     print("working")
-    batch_size = 1
-    # batch_size = 10000
+    # batch_size = 1
+    batch_size = 10000
 
     with dataset.BatchIterator(
         loaded_data,
@@ -644,12 +639,17 @@ def debug_model() -> None:
     ) as batches:
         for batch in batches:
 
-            # with torch.no_grad():
-            #     embeddings = model.compute_embedding_batch(batch['rnn']).cpu().numpy()
-            #     for i, patient_id in enumerate(batch['pid']):
-            #         index, target_i = patient_id_to_info[patient_id]
-            #         patient_representations[target_i, :] = embeddings[i, index, :]
-            # continue
+            with torch.no_grad():
+                embeddings = (
+                    model.compute_embedding_batch(batch["rnn"]).cpu().numpy()
+                )
+                for i, patient_id in enumerate(batch["pid"]):
+                    index, target_i = patient_id_to_info[patient_id]
+                    patient_representations[target_i, :] = embeddings[
+                        i, index, :
+                    ]
+                print("Got batch done", len(batch["pid"]))
+            continue
 
             if batch["task"][0].size()[0] == 0:
                 continue
@@ -667,7 +667,7 @@ def debug_model() -> None:
 
             original_day_indices: List[int] = batch["day_index"][0]
 
-            target_indices, target_labels, target_factors = batch["task"]
+            target_indices, target_labels, target_factors, _ = batch["task"]
             print(
                 target_indices.shape, target_labels.shape, target_factors.shape
             )
@@ -685,10 +685,16 @@ def debug_model() -> None:
                 target_label = target_labels[i].item()
                 prob = probs[i].item() * factor
 
+                def safe_log(a: float) -> float:
+                    if a == 0:
+                        return float("-inf")
+                    else:
+                        return math.log(a)
+
                 if target_label == 1:
-                    loss = math.log(prob)
+                    loss = safe_log(prob)
                 else:
-                    loss = math.log(1 - prob)
+                    loss = safe_log(1 - prob)
 
                 # print(day_offset, target_id, target_label, factor)
 
@@ -783,6 +789,9 @@ def debug_model() -> None:
                     target_sub_part = (target // 20) % 2
                     target_time_part = (target) % (20)
                     target_name = reverse_target_map[target_name_part]
+
+                    if target_name != "ICD10CM/E00-E89":
+                        continue
 
                     print(
                         target_name,
