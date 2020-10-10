@@ -285,6 +285,8 @@ cc_binary(
         "ontology_extension.h",
         "patient2vec_extension.cpp",
         "patient2vec_extension.h",
+        "clmbr_extension.h",
+        "clmbr_extension.cpp",
         "civil_day_caster.h"
     ],
     deps = [
