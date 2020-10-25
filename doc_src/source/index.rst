@@ -19,9 +19,9 @@ ehr_ml: Machine learning + EHRs
 How is :py:mod:`ehr_ml` organized?
 *********************************************
 
-Every research project has different needs and ehr_ml cannot satisfy all of them. Instead, ehr_ml is organized in a heirarchical manner such that it should be possible for every research project to use at least some part of the library. 
+ehr_ml is designed as a combination of multiple relatively independent components.
 
-The library is split into several main modules:
+The main modules are:
 
 :py:mod:`ehr_ml.timeline` 
     Contains both a common data format and utilities interacting with it.
@@ -35,8 +35,8 @@ The library is split into several main modules:
     Contains utilities for working with ontologies and mapping codes to subcodes.
 :py:mod:`ehr_ml.index` 
     Enables a user to quickly find patients who have certain codes.
-:py:mod:`ehr_ml.index` 
-    Enables a user to quickly find patients who have certain codes.
+:py:mod:`ehr_ml.clmbr` 
+    An implementation of the CLMBR EHR representation learning algorithm.
 
 ****************
 Documentation
