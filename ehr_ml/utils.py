@@ -105,12 +105,19 @@ class Dictionary(Generic[T]):
 
 
 class OnlineStatistics:
-    # From https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    """
+        A class for computing online statistics such as mean and variance.
+        From https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance.
+    """
+
     count: int
     current_mean: float
     variance: float
 
     def __init__(self, old_data: Optional[Dict[str, Any]] = None):
+        """
+            Initialize online statistics. Optionally takes the results of self.to_dict() to initialize from old data.
+        """
         if old_data is None:
             old_data = {"count": 0, "current_mean": 0, "variance": 0}
 
@@ -119,6 +126,9 @@ class OnlineStatistics:
         self.variance = old_data["variance"]
 
     def add(self, newValue: float) -> None:
+        """
+            Add an observation to the calculation.
+        """
         self.count += 1
         delta = newValue - self.current_mean
         self.current_mean += delta / self.count
@@ -126,12 +136,22 @@ class OnlineStatistics:
         self.variance += delta * delta2
 
     def mean(self) -> float:
+        """
+            Return the current mean.
+        """
         return self.current_mean
 
     def standard_deviation(self) -> float:
+        """
+            Return the current standard devation.
+        """
         return math.sqrt(self.variance / (self.count - 1))
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+            Serialize the data to a dictionary that can be encoded with JSON.
+            Feed the resulting dictionary back into the constructor of this class to extract information from it.
+        """
         return {
             "count": self.count,
             "current_mean": self.current_mean,

@@ -41,6 +41,10 @@ LabelType = Union[
 
 
 class Label:
+    """
+        An individual label on a particular patient at a particular time.
+    """
+
     __slots__ = [
         "day_index",
         "is_positive",
@@ -60,6 +64,11 @@ class Label:
         survival_value: Optional[SurvivalValue] = None,
         categorical_value: Optional[int] = None,
     ):
+        """
+            Construct a label with a day_index and a value. 
+            You must only provide a single value option.
+        """
+        
         self.day_index = day_index
         self.is_positive = is_positive
         self.numeric_value = numeric_value
@@ -156,18 +165,6 @@ class Label:
             survival_value=survival_value,
             categorical_value=stored.get("categorical_value"),
         )
-
-
-"""A label for a given patient
-
-.. py:attribute:: day_index
-
-    The index of the day within the patient which is being labeled
-
-.. py:attribute:: is_positive
-
-    True for a positive label. False for a negative label
-"""
 
 
 class Labeler(ABC):

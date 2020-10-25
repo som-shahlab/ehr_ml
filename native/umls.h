@@ -7,17 +7,15 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/substitute.h"
 
-const char* umls_path = "/labs/shahlab/projects/ethanid/2019AB/META";
-
 class UMLS {
  public:
-  UMLS() {
-    code_to_aui_map = load_code_to_aui_map();
+  UMLS(std::string umls_path) {
+    code_to_aui_map = load_code_to_aui_map(umls_path);
     for (auto& iter : code_to_aui_map) {
       aui_to_code_map.insert(std::make_pair(iter.second, iter.first));
     }
 
-    aui_to_parents_map = load_aui_to_parents_map(aui_to_code_map);
+    aui_to_parents_map = load_aui_to_parents_map(umls_path, aui_to_code_map);
   }
 
   std::optional<std::string> get_aui(const std::string& sab,
@@ -57,7 +55,7 @@ class UMLS {
   absl::flat_hash_map<std::string, std::vector<std::string>> aui_to_parents_map;
 
   absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
-  load_code_to_aui_map() {
+  load_code_to_aui_map(std::string umls_path) {
     std::string mrconso = absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
 
     std::ifstream infile(mrconso);
@@ -109,7 +107,7 @@ class UMLS {
     return result;
   }
 
-  absl::flat_hash_map<std::string, std::string> load_atc_fix_map() {
+  absl::flat_hash_map<std::string, std::string> load_atc_fix_map(std::string umls_path) {
     std::string mrconso = absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
 
     std::ifstream infile(mrconso);
@@ -157,10 +155,10 @@ class UMLS {
   }
 
   absl::flat_hash_map<std::string, std::vector<std::string>>
-  load_aui_to_parents_map(
+  load_aui_to_parents_map(std::string umls_path,
       const absl::flat_hash_map<
           std::string, std::pair<std::string, std::string>>& aui_to_code_map) {
-    auto atc_fix_map = load_atc_fix_map();
+    auto atc_fix_map = load_atc_fix_map(umls_path);
 
     std::string mrrel = absl::Substitute("$0/$1", umls_path, "MRREL.RRF");
 

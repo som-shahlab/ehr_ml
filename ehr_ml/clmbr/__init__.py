@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import pickle
 import numpy as np
@@ -21,16 +23,17 @@ import sklearn.metrics
 
 import torch
 
+from ..extension.clmbr import *
+
 from .. import timeline
 from .. import ontology
+from .. import labeler
 
 from . import dataset
 from .prediction_model import PredictionModel
 from ..featurizer import ColumnValue, Featurizer
 from ..splits import read_time_split
 from ..utils import OnlineStatistics, set_up_logging
-
-from ..extension.clmbr import *
 
 from .opt import OpenAIAdam
 
@@ -42,29 +45,21 @@ def check_dir_for_overwrite(dirname: str) -> bool:
 def create_info_program() -> None:
     parser = argparse.ArgumentParser(
         description='Precompute training data summary statistics etc for CLMBR experiments')
-    parser.add_argument('--extract_dir', 
-                        default=os.environ.get('EHR_ML_EXTRACT_DIR'),
+    parser.add_argument('--extract_dir',
                         type=str, 
-                        help='Extract dir; overrides environment var $EHR_ML_EXTRACT_DIR')
-    parser.add_argument('--extract_file', 
-                        type=str, 
-                        default='extract.db', 
-                        help='Name of extract file in --extract_dir')
-    parser.add_argument('--train_time_split', 
+                        help='Extract dir')
+    parser.add_argument('--train_end_date', 
                         type=str,
-                        default='train',
-                        help='Time split for the training set')
-    parser.add_argument('--val_time_split', 
+                        help='The end date for training')
+    parser.add_argument('--val_end_date', 
                         type=str, 
-                        default='dev', 
-                        help='Time split for the development set')
+                        help='The end date for validation')
     parser.add_argument('--min_patient_count', 
                         type=int, 
                         default=100, 
                         help='Only keep statistics on codes/terms that appear for this many patients')
     parser.add_argument('--save_dir', 
                         type=str, 
-                        default=None, 
                         help='Override dir where model is saved')
     args = parser.parse_args()
 
@@ -85,21 +80,19 @@ def create_info_program() -> None:
         exit(1)
 
     ontologies_path = os.path.join(args.extract_dir, 'ontology.db')
-    timelines_path = os.path.join(args.extract_dir, args.extract_file)
+    timelines_path = os.path.join(args.extract_dir, 'extract.db')
 
-    train_start_date, train_end_date, seed = read_time_split(args.extract_dir, 
-                                                 args.train_time_split)
-    val_start_date, val_end_date, seed = read_time_split(args.extract_dir, 
-                                                         args.val_time_split)
+    train_end_date = datetime.fromisoformat(args.train_end_date)
+    val_end_date = datetime.fromisoformat(args.val_end_date)
 
     result = json.loads(create_info(timelines_path, ontologies_path, train_end_date, val_end_date, args.min_patient_count))
     result['extract_dir'] = args.extract_dir
-    result['extract_file'] = args.extract_file
-    result['train_start_date'] = str(train_start_date)
-    result['train_end_date'] = str(train_end_date)
-    result['val_start_date'] = str(val_start_date)
-    result['val_end_date'] = str(val_end_date)
-    result['seed'] = seed
+    result['extract_file'] = 'extract.db'
+    result['train_start_date'] = datetime.date(1900, 1, 1)
+    result['train_end_date'] = train_end_date
+    result['val_start_date'] = train_end_date
+    result['val_end_date'] = args.val_end_date
+    result['seed'] = 3451235
     result['min_patient_count'] = args.min_patient_count
 
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int: 
@@ -362,6 +355,70 @@ def train_model() -> None:
 
                 torch.save(model.state_dict(),
                            os.path.join(model_dir, 'best'))
+
+
+def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
+    """
+    Featurize patients using the given model and labeler.
+    The result is a numpy array aligned with l.get_labeler_data().
+    This function will use the GPU if it is available.
+    """
+
+    config = read_config(os.path.join(model_dir, "config.json"))
+    info = read_info(os.path.join(model_dir, "info.json"))
+
+    use_cuda = torch.cuda.is_available()
+
+    model = PredictionModel(config, info, use_cuda=use_cuda).to(
+        device_from_config(use_cuda=use_cuda)
+    )
+    model_data = torch.load(os.path.join(model_dir, "best"), map_location="cpu")
+    model.load_state_dict(model_data)
+
+    final_transformation = partial(
+        PredictionModel.finalize_data,
+        config,
+        info,
+        device_from_config(use_cuda=use_cuda),
+    )
+
+    ontologies = ontology.OntologyReader(
+        os.path.join(info["extract_dir"], "ontology.db")
+    )
+    timelines = timeline.TimelineReader(
+        os.path.join(info["extract_dir"], "extract.db")
+    )
+
+    data = l.get_labeler_data()
+    
+    loaded_data = StrideDataset(
+        os.path.join(info["extract_dir"], "extract.db"),
+        os.path.join(info["extract_dir"], "ontology.db"),
+        os.path.join(model_dir, "info.json"),
+        data,
+        data,
+    )
+
+    patient_id_to_info = collections.defaultdict(dict)
+
+    for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
+        patient_id_to_info[pid][index] = i
+
+    patient_representations = np.zeros((len(data[0]), config['size']))
+
+    with dataset.BatchIterator(loaded_data, final_transformation, threshold=config['num_first'], is_val=True, batch_size=100, seed=info['seed'], day_dropout=0, code_dropout=0) as batches:
+        for batch in batches:
+             with torch.no_grad():
+                embeddings = (
+                    model.compute_embedding_batch(batch["rnn"]).cpu().numpy()
+                )
+                for i, patient_id in enumerate(batch["pid"]):
+                    for index, target_id in patient_id_to_info[patient_id].items():
+                        patient_representations[target_id, :] = embeddings[
+                            i, index, :
+                        ]
+
+    return patient_representations
 
 
 def debug_model() -> None:

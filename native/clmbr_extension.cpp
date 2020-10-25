@@ -19,6 +19,8 @@
 
 namespace py = pybind11;
 
+namespace {
+
 class OnlineStatistics {
 public:
     OnlineStatistics() {
@@ -241,11 +243,66 @@ std::string create_info(const char* timeline_path, const char* ontology_path, ab
     return result.dump();
 }
 
-class StrideDatasetIterator;
 
+std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>> create_label_map(
+    py::tuple data) {
+  auto results = convert_to_int(data[0]);
+  auto patient_ids = convert_to_int(data[1]);
+  auto patient_day_indices = convert_to_int(data[2]);
+
+  std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>> label_map;
+
+  for (size_t i = 0; i < results.size(); i++) {
+    uint32_t patient_id = patient_ids[i];
+    label_map[patient_id].push_back(
+        std::make_pair(patient_day_indices[i] + 1, (bool)results[i]));
+  }
+
+  for (auto& iter : label_map) {
+    std::sort(std::begin(iter.second), std::end(iter.second));
+  }
+
+  return label_map;
+}
+
+
+std::vector<std::pair<uint32_t, uint32_t>> create_lengths(
+    const std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>>&
+        label_map) {
+  std::vector<std::pair<uint32_t, uint32_t>> result;
+
+  for (const auto& item : label_map) {
+    uint32_t patient_id = item.first;
+    uint32_t max_index = item.second.back().first;
+    if (max_index <= 0) {
+      continue;
+    }
+    result.push_back(std::make_pair(patient_id, max_index + 1));
+  }
+
+  return result;
+}
+
+class StrideDatasetIterator;
 class StrideDataset {
 public:
     friend StrideDatasetIterator;
+
+    StrideDataset(const char* timelines_path, const char* ontology_path,
+                const char* info_path, py::tuple train_data, py::tuple val_data)
+      : StrideDataset(timelines_path, ontology_path, info_path) {
+        train_map = create_label_map(train_data);
+        train_lengths = create_lengths(train_map);
+
+        val_map = create_label_map(val_data);
+        val_lengths = create_lengths(val_map);
+
+        std::stable_sort(std::begin(train_lengths), std::end(train_lengths),
+                        [](const auto& first, const auto& second) {
+                        return first.second > second.second;
+                        });
+    }
+
 
     StrideDataset(const char* timelines_path, const char* ontology_path, const char* info_path): timelines(timelines_path, true), ontologies(ontology_path) {
         {
@@ -974,6 +1031,8 @@ void* init_numpy() {
     import_array();
     return nullptr;
 }
+}
+
 
 void register_clmbr_extension(pybind11::module& root) {
     init_numpy();

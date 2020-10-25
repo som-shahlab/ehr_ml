@@ -8,7 +8,7 @@
 const int BUFFER_SIZE = 1024 * 1024 * 10;
 
 template <typename F>
-inline void line_iter(const char* line, char delimiter, F f) {
+inline void line_iter(const char* line, char delimiter, bool quotes, F f) {
   const char* iter = line;
   int index = 0;
   const char* field_start = iter;
@@ -40,7 +40,7 @@ inline void line_iter(const char* line, char delimiter, F f) {
         f(index++, std::string_view(field_start, field_length));
         field_length = 0;
         field_start = iter;
-      } else if (next_char == '"') {
+      } else if (next_char == '"' && quotes) {
         in_quotes = true;
         field_length++;
       } else {
@@ -53,7 +53,7 @@ inline void line_iter(const char* line, char delimiter, F f) {
 template <typename F>
 inline void csv_iterator(const char* filename,
                          std::vector<std::string_view> columns, char delimiter,
-                         std::optional<int> limit, F f) {
+                         std::optional<int> limit, bool quotes, F f) {
   gzFile file = zng_gzopen(filename, "r");
   if (file == nullptr) {
     std::cout << absl::Substitute("Could not open $0 due to $1", filename,
@@ -75,7 +75,7 @@ inline void csv_iterator(const char* filename,
   }
 
   std::vector<std::string_view> all_columns;
-  line_iter(first_line, delimiter, [&](int index, std::string_view column) {
+  line_iter(first_line, delimiter, quotes, [&](int index, std::string_view column) {
     all_columns.push_back(column);
   });
 
@@ -91,8 +91,8 @@ inline void csv_iterator(const char* filename,
     }
 
     if (!found) {
-      std::cout << absl::Substitute("Could not find column $0 in file $1",
-                                    columns[i], filename)
+      std::cout << absl::Substitute("Could not find column $0 in file $1 with delimiter $2",
+                                    columns[i], filename, delimiter)
                 << std::endl;
       ;
       std::cout << absl::Substitute("Had columns: ");
@@ -113,7 +113,7 @@ inline void csv_iterator(const char* filename,
     }
 
     line_iter(
-        first_line, delimiter,
+        first_line, delimiter, quotes,
         [&index_map, &output_columns](int index, std::string_view column) {
           int desired_index = index_map[index];
           if (desired_index != -1) {

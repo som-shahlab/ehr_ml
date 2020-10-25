@@ -24,6 +24,8 @@ cmake_external(
    # However, the cmake_external dependants could use other artefacts provided by the build,
    # according to their CMake script
    static_libraries = ["libz-ng.a"],
+   shared_libraries = ["libz-ng.so"],
+   env_vars = { "CXXFLAGS": "-fPIC", "CFLAGS": "-fPIC"},
 )
 
 
@@ -287,9 +289,13 @@ cc_binary(
         "patient2vec_extension.h",
         "clmbr_extension.h",
         "clmbr_extension.cpp",
-        "civil_day_caster.h"
+        "civil_day_caster.h",
+        "extract_extension.cpp",
+        "extract_extension.h",
     ],
     deps = [
+        ":parse_utils",
+        ":concept",
         ":python",
         "@pybind11",
         ":reader",
@@ -298,6 +304,8 @@ cc_binary(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
         "@picosha2",
+        ":gem",
+        ":umls",
     ],
     linkstatic=1, 
     linkshared=1

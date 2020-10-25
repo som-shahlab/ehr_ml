@@ -47,8 +47,14 @@ class ConceptTable {
     iter->second.push_back(ancestor);
   }
 
-  ConceptInfo get_info(uint32_t concept_id) const {
-    return concepts.find(concept_id)->second;
+  std::optional<ConceptInfo> get_info(uint32_t concept_id) const {
+    auto iter = concepts.find(concept_id);
+
+    if (iter == std::end(concepts)) {
+      return std::nullopt;
+    }
+
+    return iter->second;
   }
 
   std::vector<ConceptRelationshipInfo> get_relationships(
@@ -101,7 +107,7 @@ ConceptTable construct_concept_table(std::string_view location) {
   std::vector<std::string_view> columns = {"concept_id", "vocabulary_id",
                                            "concept_code", "concept_class_id"};
 
-  csv_iterator(concept_file.c_str(), columns, '\t', {},
+  csv_iterator(concept_file.c_str(), columns, '\t', {}, false,
                [&result](const auto& row) {
                  uint32_t concept_id;
                  attempt_parse_or_die(row[0], concept_id);
@@ -120,7 +126,7 @@ ConceptTable construct_concept_table(std::string_view location) {
   std::vector<std::string_view> rel_columns = {"concept_id_1", "concept_id_2",
                                                "relationship_id"};
 
-  csv_iterator(concept_file_rel.c_str(), rel_columns, ',', {},
+  csv_iterator(concept_file_rel.c_str(), rel_columns, '\t', {}, false,
                [&result](const auto& row) {
                  uint32_t concept_id;
                  attempt_parse_or_die(row[0], concept_id);
@@ -140,7 +146,7 @@ ConceptTable construct_concept_table(std::string_view location) {
   std::vector<std::string_view> anc_columns = {"ancestor_concept_id",
                                                "descendant_concept_id"};
 
-  csv_iterator(concept_file_anc.c_str(), anc_columns, ',', {},
+  csv_iterator(concept_file_anc.c_str(), anc_columns, '\t', {}, false,
                [&result](const auto& row) {
                  uint32_t ancestor_concept_id;
                  attempt_parse_or_die(row[0], ancestor_concept_id);

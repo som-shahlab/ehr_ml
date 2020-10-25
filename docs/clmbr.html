@@ -1,0 +1,282 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ehr_ml.clmbr &mdash; ehr_ml  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ehr_ml.index" href="m-index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ehr_ml
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Components:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="timeline.html">ehr_ml.timeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="labeler.html">ehr_ml.labeler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="featurizer.html">ehr_ml.featurizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">ehr_ml.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ontology.html">ehr_ml.ontology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="m-index.html">ehr_ml.index</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ehr_ml.clmbr</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#language-model-training">Language Model Training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#language-model-feature-extraction">Language Model Feature Extraction</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ehr_ml</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>ehr_ml.clmbr</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/clmbr.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ehr-ml-clmbr">
+<h1>ehr_ml.clmbr<a class="headerlink" href="#ehr-ml-clmbr" title="Permalink to this headline">¶</a></h1>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">ehr_ml.clmbr</span></code> is an implementation of the CLMBR representation learning algorithm (see <a class="reference external" href="https://arxiv.org/abs/2001.05295">https://arxiv.org/abs/2001.05295</a>).
+It consists of components for both training a language model and extraction representations from that language model.</p>
+<div class="section" id="language-model-training">
+<h2>Language Model Training<a class="headerlink" href="#language-model-training" title="Permalink to this headline">¶</a></h2>
+<p>There are two programs contained within ehr_ml that are necessary for training a CLMBR language model.</p>
+<p>clmbr_create_info</p>
+<p>clmbr_create_info is a command line program for preprocessing the dataset before training.
+clmbr_create_info is responsible for two very important hyperparameters, the time splits and the minimum patient feature count.
+CLMBR operates under a time split assumption such that training data, validation data and test data come from different times.
+Everything before the train_end_date is training. Everything between train_end_date and val_end_date is for validation.
+Everything past the val_end_date is assumed to be the test set and is not touched by CLMBR, either for internal validation or training.</p>
+<p>The second major hyperparameter is the minimum patient count. This controls how many patients are required to have a feature before it is used in the model.</p>
+<dl class="simple">
+<dt>clmbr_create_info takes the following parameters:</dt><dd><ul class="simple">
+<li><p>extract_dir: The extract directory</p></li>
+<li><p>train_end_date: The end date of the train split</p></li>
+<li><p>val_end_date: The end date of the validation split</p></li>
+<li><p>min_patient_count: The minimum patient count for each feature</p></li>
+<li><p>save_dir: The name of the output directory</p></li>
+</ul>
+</dd>
+</dl>
+<p>clmbr_train_model</p>
+<p>clmbr_train_model is a command line program responsible for model training. It controls most of the hyperameters for the model architecture.
+Please see our paper for the fine details on these hyperameters. We recommend leaving most parameters unspecified as the defaults.</p>
+<dl class="simple">
+<dt>clmbr_train_model takes the following parameters:</dt><dd><ul class="simple">
+<li><p>model_dir: The location to store the model</p></li>
+<li><p>info_dir: The info directory</p></li>
+<li><p>lr: The learning rate</p></li>
+<li><p>size: The primary embedding size</p></li>
+<li><p>use_gru: Whether to use a GRU or a transformer</p></li>
+<li><p>no_tied_weights: A flag to disable tied weights</p></li>
+<li><p>gru_layers: How many GRU layers to use</p></li>
+<li><p>gru_hidden_size: The size of the GRU hidden layers</p></li>
+<li><p>dropout: Internal dropout within the model</p></li>
+<li><p>l2: The L2 regularization</p></li>
+<li><p>batch_size: The batch size</p></li>
+<li><p>no_cuda: Force disable CUDA</p></li>
+<li><p>code_dropout: Dropout codes at the input layer</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="language-model-feature-extraction">
+<h2>Language Model Feature Extraction<a class="headerlink" href="#language-model-feature-extraction" title="Permalink to this headline">¶</a></h2>
+<p>Once a language model is trained, it is then possible to extract features for use in other tasks.</p>
+<p>The function featurize_patients provides code that performs this tasks</p>
+<dl class="py function">
+<dt id="ehr_ml.clmbr.featurize_patients">
+<code class="sig-prename descclassname">ehr_ml.clmbr.</code><code class="sig-name descname">featurize_patients</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">l</span><span class="p">:</span> <span class="n">labeler.SavedLabeler</span></em><span class="sig-paren">)</span> &#x2192; np.array<a class="headerlink" href="#ehr_ml.clmbr.featurize_patients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Featurize patients using the given model and labeler.
+The result is a numpy array aligned with l.get_labeler_data().
+This function will use the GPU if it is available.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="m-index.html" class="btn btn-neutral float-left" title="ehr_ml.index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Ethan Steinberg
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
