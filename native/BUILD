@@ -20,13 +20,13 @@ cmake_external(
     },
     lib_source = "@source_zlib_ng//:all",
 
-    # We are selecting the resulting static library to be passed in C/C++ provider
-    # as the result of the build;
-    # However, the cmake_external dependants could use other artefacts provided by the build,
-    # according to their CMake script
-    
-    shared_libraries = ["libz.so"],
-    static_libraries = ["libz.a"],
+   # We are selecting the resulting static library to be passed in C/C++ provider
+   # as the result of the build;
+   # However, the cmake_external dependants could use other artefacts provided by the build,
+   # according to their CMake script
+   static_libraries = ["libz.a"],
+   shared_libraries = ["libz.so"],
+   env_vars = { "CXXFLAGS": "-fPIC", "CFLAGS": "-fPIC"},
 )
 
 cmake_external(
@@ -447,9 +447,15 @@ cc_binary(
         "ontology_extension.h",
         "patient2vec_extension.cpp",
         "patient2vec_extension.h",
-        "civil_day_caster.h"
+        "clmbr_extension.h",
+        "clmbr_extension.cpp",
+        "civil_day_caster.h",
+#        "extract_extension.cpp",
+#        "extract_extension.h",
     ],
     deps = [
+        ":parse_utils",
+        ":concept",
         ":python",
         "@pybind11",
         ":reader",
@@ -459,6 +465,8 @@ cc_binary(
         "@com_google_absl//absl/container:flat_hash_set",
         "@picosha2",
         ":flatmap",
+        ":gem",
+        ":umls",
     ],
     linkstatic=1, 
     linkshared=1

@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ehr_ml.labeler &mdash; ehr_ml  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ehr_ml.featurizer" href="featurizer.html" />
+    <link rel="prev" title="ehr_ml.timeline" href="timeline.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ehr_ml
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Components:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="timeline.html">ehr_ml.timeline</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ehr_ml.labeler</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#definition-of-a-labeler">Definition Of A Labeler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#provided-labeler-utilities">Provided Labeler Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#provided-labelers">Provided Labelers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="featurizer.html">ehr_ml.featurizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">ehr_ml.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ontology.html">ehr_ml.ontology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="m-index.html">ehr_ml.index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clmbr.html">ehr_ml.clmbr</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ehr_ml</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>ehr_ml.labeler</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/labeler.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ehr-ml-labeler">
+<h1>ehr_ml.labeler<a class="headerlink" href="#ehr-ml-labeler" title="Permalink to this headline">¶</a></h1>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">stride_ml.labeler</span></code> is a module for defining labeling functions.</p>
+<div class="section" id="definition-of-a-labeler">
+<h2>Definition Of A Labeler<a class="headerlink" href="#definition-of-a-labeler" title="Permalink to this headline">¶</a></h2>
+<p><code class="xref py py-mod docutils literal notranslate"><span class="pre">stride_ml.labeler</span></code> works on the assumption that there may be multiple or zero labels per patient.</p>
+<p>Each label is defined by <code class="xref py py-class docutils literal notranslate"><span class="pre">Label</span></code> to consist of a day offset and a label as defined by <code class="xref py py-class docutils literal notranslate"><span class="pre">Label</span></code>.
+Labels can be either time to event labels, numeric labels, categorical or binary labels.</p>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Label</span></code> provides the primary interface for specifying labeling functions as code that takes in timelines and returns lists of labels.</p>
+<dl class="py class">
+<dt id="ehr_ml.labeler.Label">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">Label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">day_index</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">is_positive</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>bool<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">numeric_value</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">survival_value</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>ehr_ml.labeler.SurvivalValue<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">categorical_value</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>An individual label on a particular patient at a particular time.</p>
+<p>Construct a label with a day_index and a value. 
+You must only provide a single value option.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.Labeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">Labeler</code><a class="headerlink" href="#ehr_ml.labeler.Labeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>An interface for labeling functions</p>
+<dl class="py method">
+<dt id="ehr_ml.labeler.Labeler.get_all_patient_ids">
+<code class="sig-name descname">get_all_patient_ids</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>Set<span class="p">[</span>int<span class="p">]</span><span class="p">]</span><a class="headerlink" href="#ehr_ml.labeler.Labeler.get_all_patient_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper method that takes the output of get_possible_patient_ids and combines the True and False classes
+into a single set.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None if the patients ids are not known otherwise a set of patient ids which are labeled.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ehr_ml.labeler.Labeler.get_labeler_type">
+<em class="property">abstract </em><code class="sig-name descname">get_labeler_type</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>Literal<span class="p">[</span>binary<span class="p">]</span><span class="p">, </span>Literal<span class="p">[</span>numeric<span class="p">]</span><span class="p">, </span>Literal<span class="p">[</span>survival<span class="p">]</span><span class="p">, </span>Literal<span class="p">[</span>categorical<span class="p">]</span><span class="p">]</span><a class="headerlink" href="#ehr_ml.labeler.Labeler.get_labeler_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return what type of labels this labeler returns. See the Label class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ehr_ml.labeler.Labeler.get_possible_patient_ids">
+<code class="sig-name descname">get_possible_patient_ids</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Mapping<span class="p">[</span>bool<span class="p">, </span>Optional<span class="p">[</span>Set<span class="p">[</span>int<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="headerlink" href="#ehr_ml.labeler.Labeler.get_possible_patient_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the possible patient ids for each class for this labeler. This method should only be
+provided if the labeler knows in advance the patients which are labeled with what label.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None if the patient ids are not known otherwise a map where each label maps to the set of patient
+ids for that label.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="ehr_ml.labeler.Labeler.label">
+<em class="property">abstract </em><code class="sig-name descname">label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">patient</span><span class="p">:</span> <span class="n">ehr_ml.extension.timeline.Patient</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#ehr_ml.labeler.Label" title="ehr_ml.labeler.Label">ehr_ml.labeler.Label</a><span class="p">]</span><a class="headerlink" href="#ehr_ml.labeler.Labeler.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Label the provided patient.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>patient: A patient timeline struct</p>
+</dd>
+<dt>Returns:</dt><dd><p>A list of <a class="reference internal" href="#ehr_ml.labeler.Label" title="ehr_ml.labeler.Label"><code class="xref py py-class docutils literal notranslate"><span class="pre">Label</span></code></a> containing every label for the patient</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="provided-labeler-utilities">
+<h2>Provided Labeler Utilities<a class="headerlink" href="#provided-labeler-utilities" title="Permalink to this headline">¶</a></h2>
+<p><cite>ehr_ml</cite> provides some utility classes to assist with building labelers.</p>
+<dl class="py class">
+<dt id="ehr_ml.labeler.SavedLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">SavedLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fp</span><span class="p">:</span> <span class="n">TextIO</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.SavedLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for loading and saving labeled examples</p>
+<p>Initialize the saved labeler from a file object</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.FixedTimeHorizonEventLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">FixedTimeHorizonEventLabeler</code><a class="headerlink" href="#ehr_ml.labeler.FixedTimeHorizonEventLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fixed time horizon labeler enables you to label events that occur within a particular time horizon.</p>
+<p>No labels are generated if the patient record is “censored” before the end of the horizon</p>
+<dl class="simple">
+<dt>You are required to implement two methods:</dt><dd><p>get_event_ages for specifying the times of the events
+get_time_horizon for specifying the length of time to use for the time horizon</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.InfiniteTimeHorizonEventLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">InfiniteTimeHorizonEventLabeler</code><a class="headerlink" href="#ehr_ml.labeler.InfiniteTimeHorizonEventLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>An infinite time horizon labeler enables you to label patients that have an event at any time in the future.</p>
+<p>You are required to implement get_first_event_age for specifying the time of the first event</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.RandomSelectionLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">RandomSelectionLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sublabeler</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ehr_ml.labeler.Labeler" title="ehr_ml.labeler.Labeler">ehr_ml.labeler.Labeler</a></span></em>, <em class="sig-param"><span class="n">random_seed</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.RandomSelectionLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A labeler which enables you to randomly select one label per patient by using a random seed.</p>
+<p>Initialize the RandomSelectionLabeler</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>sublabeler: A Labeler to use for the initial labeling
+random_seed: A random 64-bit integer seed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.YearHistoryRequiredLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">YearHistoryRequiredLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sublabeler</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ehr_ml.labeler.Labeler" title="ehr_ml.labeler.Labeler">ehr_ml.labeler.Labeler</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.YearHistoryRequiredLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>A composite labeler which enables you to require at least one year of history for every label.</p>
+<p>Initialize the YearHistoryRequiredLabeler</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>sublabeler: A Labeler to use for the initial labeling</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.CodeLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">CodeLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">code</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.CodeLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Labels for a given code in a fixed time horizon</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.PredictionAfterDateLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">PredictionAfterDateLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sublabeler</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ehr_ml.labeler.Labeler" title="ehr_ml.labeler.Labeler">ehr_ml.labeler.Labeler</a></span></em>, <em class="sig-param"><span class="n">start_date</span><span class="p">:</span> <span class="n">datetime.date</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.PredictionAfterDateLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter a sublabeler to require that each label occurs within at or after a given date</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.PatientSubsetLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">PatientSubsetLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sublabeler</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#ehr_ml.labeler.Labeler" title="ehr_ml.labeler.Labeler">ehr_ml.labeler.Labeler</a></span></em>, <em class="sig-param"><span class="n">patients_to_label</span><span class="p">:</span> <span class="n">Iterable<span class="p">[</span>int<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.PatientSubsetLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter a sublabeler to only label certain patients</p>
+</dd></dl>
+
+</div>
+<div class="section" id="provided-labelers">
+<h2>Provided Labelers<a class="headerlink" href="#provided-labelers" title="Permalink to this headline">¶</a></h2>
+<p><cite>ehr_ml</cite> also contains some prebuilt labelers for common use.</p>
+<dl class="py class">
+<dt id="ehr_ml.labeler.MortalityLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">MortalityLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timelines</span><span class="p">:</span> <span class="n">ehr_ml.extension.timeline.TimelineReader</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.MortalityLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The mortality task is defined as predicting whether or not an
+patient will die within the next 3 months.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.OpioidOverdoseLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">OpioidOverdoseLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ontologies</span><span class="p">:</span> <span class="n">ehr_ml.extension.ontology.OntologyReader</span></em>, <em class="sig-param"><span class="n">ind</span><span class="p">:</span> <span class="n">ehr_ml.extension.index.Index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.OpioidOverdoseLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The opioid overdose labeler predicts whether or not an opioid overdose will occur in the next 3 months
+It is conditioned on the patient being prescribed opioids.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.LupusDiseaseLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">LupusDiseaseLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ontologies</span><span class="p">:</span> <span class="n">ehr_ml.extension.ontology.OntologyReader</span></em>, <em class="sig-param"><span class="n">ind</span><span class="p">:</span> <span class="n">ehr_ml.extension.index.Index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.LupusDiseaseLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO-document</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="ehr_ml.labeler.InpatientMortalityLabeler">
+<em class="property">class </em><code class="sig-prename descclassname">ehr_ml.labeler.</code><code class="sig-name descname">InpatientMortalityLabeler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timelines</span><span class="p">:</span> <span class="n">ehr_ml.extension.timeline.TimelineReader</span></em>, <em class="sig-param"><span class="n">ind</span><span class="p">:</span> <span class="n">ehr_ml.extension.index.Index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.labeler.InpatientMortalityLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>The inpatient labeler predicts whether or not a patient will die within the current admission.
+The prediction time is before the day of admission.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="featurizer.html" class="btn btn-neutral float-right" title="ehr_ml.featurizer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="timeline.html" class="btn btn-neutral float-left" title="ehr_ml.timeline" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Ethan Steinberg
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -16,32 +16,24 @@ __all__ = ["ObservationWithValue", "TimelineReader", "Patient", "PatientDay"]
 
 def inspect_timelines() -> None:
     parser = argparse.ArgumentParser(
-        description="A tool for inspecting a STRIDE dump"
+        description="A tool for inspecting an ehr_ml extract"
     )
 
     parser.add_argument(
-        "--patient_id",
+        "extract_dir",
         type=str,
-        help="Pull a particular patient_id from a STRIDE dump",
+        help="Path of the folder to the ehr_ml extraction",
     )
 
     parser.add_argument(
-        "--extract_dir",
-        type=str,
-        help="Path of extract dir; overrides env var STRIDE_ML_EXTRACT_DIR",
-        default=os.environ.get("EHR_ML_EXTRACT_DIR", None),
-    )
-
-    parser.add_argument(
-        "--extract_file",
-        type=str,
-        default="extract.db",
-        help="Name of extract file relative to extract_dir",
+        "patient_id",
+        type=int,
+        help="The patient id to inspect",
     )
 
     args = parser.parse_args()
 
-    source_file = os.path.join(args.extract_dir, args.extract_file)
+    source_file = os.path.join(args.extract_dir, 'extract.db')
     timelines = TimelineReader(source_file)
     if args.patient_id is not None:
         patient_id = int(args.patient_id)

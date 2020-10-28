@@ -8,16 +8,15 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/substitute.h"
 
-const char* gem_location = "/labs/shahlab/projects/ethanid/ICDGEM";
-
 class GEMMapper {
    public:
-    GEMMapper() {
-        helper("2018_I9gem.txt", diag_convert_map, true);
-        helper("gem_i9pcs.txt", proc_convert_map, false);
+    GEMMapper(std::string_view gem_location) {
+        helper(gem_location, "2018_I9gem.txt", diag_convert_map, true);
+        helper(gem_location, "gem_i9pcs.txt", proc_convert_map, false);
     }
 
     void helper(
+        std::string_view gem_location,
         std::string_view path,
         absl::flat_hash_map<std::string, std::vector<std::string>>& target,
         bool diag) {

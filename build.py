@@ -71,21 +71,11 @@ class cmake_build_ext(build_ext):
                 "BAZEL_LINKOPTS": "-static-libstdc++",
             }
 
-            print(env["BAZEL_LINKLIBS"], file=sys.stderr)
-
-            print(env, file=sys.stderr)
-
             subprocess.run(
                 args=["bazel", "build", "-c", "opt", ext.target],
                 cwd=ext.sourcedir,
                 env=env,
                 check=True,
-            )
-
-            print(
-                "Trying to install on 2",
-                self.get_ext_fullpath(ext.name),
-                file=sys.stderr,
             )
 
             parent_directory = os.path.abspath(
@@ -100,15 +90,6 @@ class cmake_build_ext(build_ext):
             )
 
             os.chmod(self.get_ext_fullpath(ext.name), 0o700)
-
-            print(
-                "Trying to install on",
-                self.get_ext_fullpath(ext.name),
-                file=sys.stderr,
-            )
-
-            # print(1 / 0)
-
 
 ext_modules = [
     BazelExtension("ehr_ml.extension", "extension.so", "native"),
