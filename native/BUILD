@@ -80,6 +80,12 @@ cmake_external(
 )
 
 cc_library(
+    name = "flatmap",
+    hdrs = ["flatmap.h"],
+    deps = []
+)
+
+cc_library(
     name = "avro_utils",
     hdrs = ["avro_utils.h"],
     deps = [
@@ -405,6 +411,31 @@ cc_binary(
 )
 
 cc_binary(
+    name="featurize",
+    srcs=[
+        "featurize.cpp"
+    ],
+    deps = [
+        ":constdb",
+        ":reader",
+        ":flatmap",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
+        "@boost//:filesystem",
+        ":python",
+        ":npy",
+    ]
+)
+
+
+cc_library(
+    name="npy",
+    hdrs = [
+        "npy.hpp"
+    ],
+)
+
+cc_binary(
     name="extension.so",
     srcs = [
         "extension.cpp",
@@ -427,6 +458,7 @@ cc_binary(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
         "@picosha2",
+        ":flatmap",
     ],
     linkstatic=1, 
     linkshared=1

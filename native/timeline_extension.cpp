@@ -236,7 +236,8 @@ void register_timeline_extension(py::module& root) {
 
     py::class_<TermDictionary>(m, "TermDictionary")
         .def("map", &TermDictionary::map, py::arg("code_index"))
-        .def("get_word", &TermDictionary::get_word, py::arg("code"));
+        .def("get_word", &TermDictionary::get_word, py::arg("code"))
+        .def("get_items", &TermDictionary::decompose);
 
     py::class_<TimelineReader::TimelineReaderIterator>(m,
                                                        "TimelineReaderIterator")

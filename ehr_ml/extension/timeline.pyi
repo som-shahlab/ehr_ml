@@ -44,6 +44,9 @@ class TermDictionary:
     def get_word(self, code: int) -> Optional[str]:
         ...
 
+    def get_items(self) -> List[Tuple[str, int]]:
+        ...
+
 
 class Patient:
     patient_id: int

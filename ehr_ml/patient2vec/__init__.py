@@ -244,8 +244,8 @@ def train_model_func(args, rank, size):
         device_from_config(use_cuda=use_cuda)
     )
 
-    if False:
-        baseline = "survival_model_nested_ultra"
+    if True:
+        baseline = "large_common_factor_speed/"
         # baseline = 'survival_model_approx_a_3'
         print("Working off", baseline)
         model_data = torch.load(
@@ -600,9 +600,9 @@ def debug_model() -> None:
 
     model.eval()
 
-    patient_labels = np.load("control_example/treatments.npy")
-    patient_ids = np.load("control_example/patient_ids.npy")
-    patient_indices = np.load("control_example/patient_indices.npy")
+    patient_labels = np.load("better_example3/treatments.npy")
+    patient_ids = np.load("better_example3/patient_ids.npy")
+    patient_indices = np.load("better_example3/patient_indices.npy")
 
     data = (patient_labels, patient_ids, patient_indices)
 
@@ -612,7 +612,7 @@ def debug_model() -> None:
         os.path.join(info["extract_dir"], "extract.db"),
         os.path.join(info["extract_dir"], "ontology.db"),
         os.path.join(model_dir, "info.json"),
-        # )
+    # )
         data,
         data,
     )
@@ -810,7 +810,7 @@ def debug_model() -> None:
                     #     # print(target_name, event[0, i, target], times[0, i, target], shapes[0, i, target], scale[0, i, target], medians[0, i, target], prob_censor[target], weight[target], weight2[target], loss[0, i, target])
                     #     print(target_name, event[0, i, target], times[0, i, target], values[0, i, target, :].tolist(), loss[0, i, target])
 
-    np.save("pat_repr2.npy", patient_representations)
+    np.save("better_example3/repr.npy", patient_representations)
 
 
 def mass_featurizer(

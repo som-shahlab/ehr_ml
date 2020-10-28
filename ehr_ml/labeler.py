@@ -386,10 +386,10 @@ class YearHistoryRequiredLabeler(Labeler):
         self.sublabeler = sublabeler
 
     def label(self, patient: timeline.Patient) -> List[Label]:
-        if len(patient.days) == 0:
+        if len(patient.days) <= 1:
             return []
 
-        first_age = patient.days[0].age
+        first_age = patient.days[1].age
 
         labels = self.sublabeler.label(patient)
 
@@ -832,15 +832,25 @@ class MortalityLabeler(CodeLabeler):
         patient will die within the next 3 months.
     """
 
-    def __init__(self, timelines: timeline.TimelineReader):
-        death_code = timelines.get_dictionary().map("Death Type/OMOP generated")
-        if death_code is None:
-            raise ValueError("Could not find the death code")
+    def __init__(self, timelines: timeline.TimelineReader, ind: index.Index):
+        death_codes = set()
+        for code_str, _ in timelines.get_dictionary().get_items():
+            if code_str.startswith('Death Type/'):
+                code_id = timelines.get_dictionary().map(code_str)
+                death_codes.add((code_str, code_id))
+
+        if len(death_codes) != 1:
+            raise ValueError("Could not find a single death code " + str(death_codes))
         else:
+            death_code = list(death_codes)[0][1]
             super().__init__(code=death_code)
+            self.possible_patients = ind.get_patient_ids(death_code)
+
+    def get_possible_patient_ids(self) -> Mapping[bool, Optional[Set[int]]]:
+        return {True: self.possible_patients, False: None}
 
     def get_time_horizon(self) -> int:
-        return 90
+        return 180
 
 
 class IsMaleLabeler(Labeler):
@@ -996,9 +1006,6 @@ class LupusDiseaseLabeler(InfiniteTimeHorizonEventLabeler):
                     return day.age
 
         return None
-
-    def get_possible_patient_ids(self) -> Mapping[bool, Optional[Set[int]]]:
-        return self.possible_patients
 
     def get_labeler_type(self) -> LabelType:
         return "binary"

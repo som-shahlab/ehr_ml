@@ -7,6 +7,7 @@
 #include "civil_day_caster.h"
 #include "pybind11/pybind11.h"
 #include "reader.h"
+#include "flatmap.h"
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "absl/container/flat_hash_map.h"
@@ -84,56 +85,6 @@ struct ReservoirSampler {
     size_t num_samples_seen;
     size_t next_sample;
     std::mt19937_64 rng;
-};
-
-template <typename T>
-struct FlatMap {
-   public:
-    const T* find(size_t index) const {
-        if (index < data.size()) {
-            if (data[index].has_value()) {
-                return &data[index].value();
-            } else {
-                return nullptr;
-            }
-        } else {
-            return nullptr;
-        }
-    }
-
-    T* find(size_t index) {
-        if (index < data.size()) {
-            if (data[index].has_value()) {
-                return &data[index].value();
-            } else {
-                return nullptr;
-            }
-        } else {
-            return nullptr;
-        }
-    }
-
-    T* find_or_insert(size_t index, T value) {
-        T* ptr = find(index);
-        if (ptr == nullptr) {
-            insert(index, value);
-        }
-        return find(index);
-    }
-
-    void insert(size_t index, T value) {
-        if (index >= data.size()) {
-            data.resize(index * 2 + 1);
-        }
-        data[index] = std::optional<T>(std::move(value));
-    }
-
-    size_t size() const { return data.size(); }
-
-    void clear() { data.clear(); }
-
-   private:
-    std::vector<std::optional<T>> data;
 };
 
 absl::flat_hash_set<std::string> bad_lab_values = {
