@@ -111,6 +111,8 @@ std::vector<uint32_t> compute_subwords(
             std::string parent_word = absl::Substitute(
                 "$0/$1", possib_parent_info->first, possib_parent_info->second);
 
+         
+
             code_to_parents_map[aui_code].push_back(
                 dictionary.map_or_add(parent_word));
 
@@ -155,7 +157,7 @@ int main() {
 
     auto words = dictionary.decompose();
 
-    UMLS umls;
+    UMLS umls("/share/pi/nigam/ethanid/UMLS");
 
     ConceptTable table = construct_concept_table(concept_location);
 
@@ -223,6 +225,14 @@ int main() {
         if (result == std::nullopt) {
             subwords = {ontology_dictionary.map_or_add(
                 absl::Substitute("NO_MAP/$0", word))};
+        } else if (parts[0] == "LOINC") {
+            subwords = {
+                ontology_dictionary.map_or_add(
+                    absl::Substitute("SRC/V-SRC", parts[1])), 
+                ontology_dictionary.map_or_add(
+                    absl::Substitute("SRC/V-LNC", parts[1])), 
+                ontology_dictionary.map_or_add(
+                    absl::Substitute("LNC/$0", parts[1]))};
         } else {
             subwords =
                 compute_subwords(*result, umls, aui_to_subwords_map,
@@ -234,11 +244,17 @@ int main() {
         words_with_subwords.push_back(i);
     }
 
+    auto foo = code_to_parents_map[13];
+
+    for (const auto& f : foo) {
+        std::cout<<"Got" << f << std::endl;
+    }
+
     for (auto& iter : code_to_parents_map) {
         auto& parent_codes = iter.second;
         std::sort(std::begin(parent_codes), std::end(parent_codes));
 
-        int32_t subword_as_int = iter.first;
+        int32_t subword_as_int = iter.first + 1;
         ontology_writer.add_int(-subword_as_int,
                                 (const char*)parent_codes.data(),
                                 parent_codes.size() * sizeof(uint32_t));

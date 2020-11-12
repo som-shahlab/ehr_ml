@@ -80,6 +80,7 @@ std::string create_info(const char* timeline_path, const char* ontology_path, ab
     size_t num_patients = reader.get_patient_ids().size();
 
     size_t ten_percent = num_patients / 10;
+    size_t one_percent = ten_percent / 10;
 
     size_t num_processed = 0;
 
@@ -96,8 +97,10 @@ std::string create_info(const char* timeline_path, const char* ontology_path, ab
 
         num_processed++;
 
+
         if (num_processed % ten_percent == 0) {
             std::cout<<"Processed " << (100.0 * num_processed / num_patients) << std::endl;
+            // break;
         }
 
         iter.process_patient(patient_id, [&](absl::CivilDay birth_day, uint32_t age, const std::vector<uint32_t>& observations, const std::vector<ObservationWithValue>& observations_with_values) {
@@ -665,6 +668,10 @@ public:
             std::optional<uint32_t> start_age;
 
             bool found = batch.iter->process_patient(patient_id, [&](absl::CivilDay birth_day, uint32_t age, const std::vector<uint32_t>& observations, const std::vector<ObservationWithValue>& observations_with_values) {
+                if (day_index > length) {
+                    return;
+                }
+                
                 if (!end_age) {
                     end_age = std::max(dates.second - birth_day, (absl::time_internal::cctz::diff_t)0);
                 }
@@ -673,9 +680,9 @@ public:
                     start_age = std::max(dates.first - birth_day, (absl::time_internal::cctz::diff_t)0);
                 }
 
-                if (age >= *end_age) {
-                    return;
-                }
+                // if (age >= *end_age) {
+                //     return;
+                // }
 
                 bool is_drop;
 
@@ -878,7 +885,7 @@ public:
             });
 
             if (day_index != length + 1) {
-                std::cout << "Day index should count up to length + 1?" << std::endl;
+                std::cout << "Day index should count up to length + 1?" << patient_id << " " << day_index << " " << length << std::endl;
                 abort();
             }
 
@@ -1052,6 +1059,7 @@ void register_clmbr_extension(pybind11::module& root) {
 
     py::class_<StrideDataset>(m, "StrideDataset")
             .def(py::init<const char*, const char*, const char*>())
+            .def(py::init<const char*, const char*, const char*, py::tuple, py::tuple>())
             .def("get_iterator", &StrideDataset::get_iterator, py::keep_alive<0, 1>())
             .def("num_train_batches", &StrideDataset::num_train_batches);
 

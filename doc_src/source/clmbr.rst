@@ -27,7 +27,7 @@ clmbr_create_info takes the following parameters:
     - val_end_date: The end date of the validation split
     - min_patient_count: The minimum patient count for each feature
     - save_dir: The name of the output directory
-
+    - banned_patient_file: A file containing a list of patient ids to exclude from the model
 
 
 clmbr_train_model

@@ -77,6 +77,7 @@ cmake_external(
     # However, the cmake_external dependants could use other artefacts provided by the build,
     # according to their CMake script
     static_libraries = ["libavro.a"],
+    binaries = ["avrocat"],
 )
 
 cc_library(

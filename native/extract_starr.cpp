@@ -184,6 +184,37 @@ class StandardConceptTableConverter : public Converter {
     std::string concept_id_field;
 };
 
+class VisitConverter : public Converter {
+ public:
+    std::string_view get_file_prefix() const override { return "visit_occurrence0"; }
+
+    std::vector<std::string_view> get_columns() const {
+        return {"visit_start_DATE", "visit_concept_id", "visit_end_DATE"};
+    }
+
+    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
+                     const std::vector<avro_value_t>& row) const {
+        std::string code = std::to_string(get_long(row[1]));
+
+        if (code == "0") {
+            return;
+        }
+
+        auto start_day = get_date(row[0]);
+        auto end_day = get_date(row[2]);
+        
+        int days = end_day - start_day;
+
+        ObservationWithValue obs;
+        obs.code = meta.dictionary.map_or_add(code);
+        obs.is_text = false;
+        obs.numeric_value = days;
+
+        patient_record.observations_with_values.push_back(
+            std::make_pair(start_day, obs.encode()));
+    }
+};
+
 class MeasurementConverter : public Converter {
    public:
     std::string_view get_file_prefix() const override { return "measurement0"; }
@@ -542,6 +573,8 @@ int main() {
     converters.push_back(std::make_shared<StandardConceptTableConverter>(
         "device_exposure", "device_exposure_start_DATE",
         "device_source_concept_id"));
+
+    converters.push_back(std::make_shared<VisitConverter>());
 
     converters.push_back(std::make_shared<MeasurementConverter>());
 

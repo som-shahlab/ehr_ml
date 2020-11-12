@@ -20,7 +20,7 @@ std::vector<std::string> normalize(
 
     std::set<std::string> good_items = {"LOINC",  "ICD10CM", "CPT4",
                                         "Gender", "HCPCS",   "Ethnicity",
-                                        "Race",   "ICD10PCS", "Condition Type"};
+                                        "Race",   "ICD10PCS", "Condition Type", "Visit", "CMS Place of Service"};
     std::set<std::string> bad_items = {"SNOMED", "NDC",   "ICD10CN",
                                        "ICD10", "ICD9ProcCN"};
 
@@ -78,9 +78,6 @@ std::vector<std::string> normalize(
         }
     } else if (info.vocabulary_id == "ICD9CM") {
         for (std::string diag : gem.map_diag(info.concept_code)) {
-            if (diag.size() > 3) {
-                diag.insert(3, ".");
-            }
             auto new_code = table.get_inverse("ICD10CM", diag);
             if (!new_code) {
                 std::cout << absl::Substitute(
@@ -94,7 +91,7 @@ std::vector<std::string> normalize(
     } else if (bad_items.find(info.vocabulary_id) != std::end(bad_items)) {
         return {};
     } else {
-        std::cout << "Could not handle " << info.vocabulary_id << " " << input_code << std::endl;
+        std::cout << "Could not handle '" << info.vocabulary_id << "' '" << input_code << "'" << std::endl;
         abort();
         // results.push_back(concept_id);
     }
@@ -144,7 +141,7 @@ class Cleaner {
 
             absl::flat_hash_map<std::string, uint32_t> lost_counts;
 
-            GEMMapper gem;
+            GEMMapper gem("/share/pi/nigam/ethanid/ICDGEM");
             absl::flat_hash_map<uint32_t, std::vector<uint32_t>> rxnorm_to_atc;
 
             uint32_t total_lost = 0;

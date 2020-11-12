@@ -36,9 +36,14 @@ int main() {
 
     uint32_t next_index = 1;
     FlatMap<uint32_t> dictionary;
+    reverse_mapper.push_back(0);
 
     uint32_t death_code =
         *extract.get_dictionary().map("Death Type/OMOP4822053");
+
+        
+    uint32_t visit_code =
+        *extract.get_dictionary().map("Visit/IP");
 
     std::cout << "Got death code " << death_code << std::endl;
 
@@ -81,7 +86,7 @@ int main() {
                       << std::endl;
         }
 
-        uint32_t first_age = 0;
+        int32_t first_age = -1;
         uint32_t count = 0;
         uint32_t death_age = 0;
         uint32_t last_age = 0;
@@ -105,6 +110,10 @@ int main() {
                 last_age = age;
             });
 
+        if (first_age == -1) {
+            continue;
+        }
+
         if (!found) {
             std::cout << absl::Substitute("Could not find patient id $0",
                                           patient_id)
@@ -112,7 +121,7 @@ int main() {
             abort();
         }
 
-        uint32_t prev_age = 0;
+        int32_t prev_age = 0;
         count = 0;
         code_counts.clear();
         found = iterator.process_patient(
@@ -120,32 +129,32 @@ int main() {
                             const std::vector<uint32_t>& observations,
                             const std::vector<ObservationWithValue>&
                                 observations_with_values) {
-                for (uint32_t obs : observations) {
-                    if (*total_counts.find(obs) > 1000) {
-                        code_counts[obs] += 1;
+
+
+                bool has_visit = false;
+
+                for (const auto& obs_with_val : observations_with_values) {
+                    if (obs_with_val.code == visit_code) {
+                        has_visit = true;
                     }
                 }
 
                 bool is_alive = (death_age == 0) || (age < death_age);
-
-                bool enough_history = (age - first_age) > 365;
                 bool is_positive = (death_age - age) < 180;
                 bool has_enough_history = (last_age - age) >= 180;
 
-                bool enough_space_between = (age - prev_age) >= 30;
+                prev_age = age;
 
-                if (enough_space_between && is_alive && enough_history && 
+                if (has_visit && is_alive && (count >= 2) &&
                     (is_positive || has_enough_history)) {
                     result_labels.push_back(is_positive);
                     patient_ids.push_back(patient_id);
-                    patient_day_indices.push_back(count);
+                    patient_day_indices.push_back(count - 1);
                     absl::CivilDay day = birth_date + age;
                     years.push_back(day.year());
 
                     data.push_back(age);
                     indices.push_back(0);
-
-                    prev_age = age;
 
                     for (const auto& item : code_counts) {
                         data.push_back(item.second);
@@ -155,12 +164,24 @@ int main() {
 
                         if (*index == next_index) {
                             next_index++;
+
+                            if (reverse_mapper.size() != *index) {
+                                std::cout<<"What? " << reverse_mapper.size() << " " << *index << std::endl;
+                                abort();
+                            }
+
                             reverse_mapper.push_back(item.first);
                         }
 
                         indices.push_back(*index);
                     }
                     indptr.push_back(indices.size());
+                }
+
+                for (uint32_t obs : observations) {
+                    if (*total_counts.find(obs) > 1000) {
+                        code_counts[obs] += 1;
+                    }
                 }
 
                 count++;
@@ -181,6 +202,8 @@ int main() {
         unsigned long shape[] = {vec.size()};
         npy::SaveArrayAsNumpy("/share/pi/nigam/ethanid/ehr_ml/r01/data/" + filename + ".npy", false, 1, shape, vec);
     };
+
+    std::cout<<"Number of labels " << result_labels.size() << std::endl; 
 
     write_vec("data", data);
     write_vec("indices", indices);

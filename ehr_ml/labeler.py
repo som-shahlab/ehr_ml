@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import collections
 import datetime
 import hashlib
 import json
 import random
+import io
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import (
@@ -452,6 +454,36 @@ class SavedLabeler(Labeler):
     def get_all_patient_ids(self) -> Optional[Set[int]]:
         return set(self.labels.keys())
 
+    @classmethod
+    def from_binary_label_data(
+        cls,
+        result_labels: np.array,
+        patient_ids: np.array,
+        patient_day_indices: np.array,
+    ) -> SavedLabeler:
+        """Create a saved labeler from binary label data."""
+        labels = []
+        all_patient_ids = []
+
+        label_dict = collections.defaultdict(list)
+
+        for label, patient_id, patient_index in zip(result_labels, patient_ids, patient_day_indices):
+            label_dict[patient_id].append(Label(day_index = int(patient_index), is_positive = bool(label)))
+
+        for patient_id in patient_ids:
+            labels.append(
+                (
+                    int(patient_id),
+                    [label.to_dict() for label in label_dict[patient_id]]
+                )
+            )
+
+        data_str = json.dumps(
+            {"labels": labels, "labeler_type": "binary"},
+        )
+        
+        return SavedLabeler(io.StringIO(data_str))
+            
     @classmethod
     def save(
         cls,

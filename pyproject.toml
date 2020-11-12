@@ -9,8 +9,9 @@ build = "build.py"
 inspect_timelines = "ehr_ml.timeline:inspect_timelines"
 ehr_ml_clean_synpuf = "ehr_ml.synpuf:clean_synpuf"
 ehr_ml_extract_omop = "ehr_ml.extract:extract_omop_program"
-clmbr_create_info = "ehr_ml.clmbr:create_info"
+clmbr_create_info = "ehr_ml.clmbr:create_info_program"
 clmbr_train_model = "ehr_ml.clmbr:train_model"
+clmbr_debug_model = "ehr_ml.clmbr:debug_model"
 patient2vec_train_model = 'ehr_ml.patient2vec:train_model'
 patient2vec_debug_model = 'ehr_ml.patient2vec:debug_model'
 

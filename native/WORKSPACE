@@ -8,11 +8,11 @@ git_repository(
     shallow_since = "1595357609 -0400",
 )
 
-git_repository(
+http_archive(
     name = "gtest",
-    remote = "https://github.com/google/googletest.git",
-    commit = "a781fe29bcf73003559a3583167fe3d647518464",
-    shallow_since = "1594836583 -0400",
+    url = "https://github.com/google/googletest/archive/release-1.10.0.zip",
+    sha256 = "94c634d499558a76fa649edb13721dce6e98fb1e7018dfaeba3cd7a083945e91",
+    strip_prefix = "googletest-release-1.10.0",
 )
 
 new_git_repository(
