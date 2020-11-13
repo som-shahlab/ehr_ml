@@ -4,10 +4,33 @@
 #include "gtest/gtest.h"
 
 class UMLSTest : public ::testing::Test {
- public:
-  UMLS umls;
+    
+   public:
+    UMLSTest() : umls("/labs/shahlab/projects/ethanid/2019AB/META") {
+
+    }
+    UMLS umls;
 };
 
 TEST_F(UMLSTest, GetAui) {
-  EXPECT_EQ(umls.get_aui("ICD10CM", "E11"), "A17825389");
+    auto code = umls.get_aui("ICD10CM", "E11");
+
+    EXPECT_EQ(code.has_value(), true);
+
+    EXPECT_EQ(*code, "A17825389");
 }
+
+// TEST_F(UMLSTest, TestCycle) {
+//     auto aui = umls.get_aui("LNC", "LP343631-0");
+
+//     std::cout<<"Help" << aui.has_value() << std::endl;
+//     std::cout<<"Blah" << aui.value() << std::endl;
+
+//     for (const auto& a : umls.get_parents(*aui)) {
+//         std::cout<<"Got parent " << a << std::endl;
+//         auto details = *umls.get_code(a);
+
+//         std::cout<<"What " << details.first << " " << details.second << std::endl;
+//     }
+
+// }

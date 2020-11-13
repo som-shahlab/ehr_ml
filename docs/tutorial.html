@@ -90,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#ontology-and-index-utilities">Ontology And Index Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#labeling">Labeling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#featurization">Featurization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clmbr-featurization">CLMBR Featurization</a></li>
 </ul>
 </li>
 </ul>
@@ -230,8 +231,8 @@ These are particular useful for phenotyping queries and feature engineering.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ehr_ml.ontology</span>
 <span class="kn">import</span> <span class="nn">ehr_ml.index</span>
 
-<span class="n">ontologies</span> <span class="o">=</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">ontology</span><span class="o">.</span><span class="n">OntologyReader</span><span class="p">(</span><span class="n">EHR_ML_EXTRACT_DIR</span> <span class="o">+</span> <span class="s2">&quot;/extract.db&quot;</span><span class="p">)</span>
-<span class="n">index</span> <span class="o">=</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">EHR_ML_EXTRACT_DIR</span> <span class="o">+</span> <span class="s2">&quot;/extract.db&quot;</span><span class="p">)</span>
+<span class="n">ontologies</span> <span class="o">=</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">ontology</span><span class="o">.</span><span class="n">OntologyReader</span><span class="p">(</span><span class="n">EHR_ML_EXTRACT_DIR</span> <span class="o">+</span> <span class="s2">&quot;/ontology.db&quot;</span><span class="p">)</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">EHR_ML_EXTRACT_DIR</span> <span class="o">+</span> <span class="s2">&quot;/index.db&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can now use the ontology class to find all Type 2 diabetes codes.</p>
@@ -269,26 +270,26 @@ The core part of a labeling function is that it takes in a patient and returns l
 </div>
 <p>Now we can start defining labelers in terms of our labeling utilites. One of the simplest utilities is the CodeLabeler class.
 The CodeLabeler class enables the definition of simple time based code labelers that predict whether something will happen in a particular amount of time.
-We can define a mortality labeler given the CodeLabeler class as follows.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MortalityLabeler</span><span class="p">(</span><span class="n">ehr_ml</span><span class="o">.</span><span class="n">labeler</span><span class="o">.</span><span class="n">CodeLabeler</span><span class="p">):</span>
+We can define a simple diabetes labeler given the CodeLabeler class as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DiabetesLabeler</span><span class="p">(</span><span class="n">ehr_ml</span><span class="o">.</span><span class="n">labeler</span><span class="o">.</span><span class="n">CodeLabeler</span><span class="p">):</span>
    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">      The mortality task is defined as predicting whether or not an</span>
-<span class="sd">      patient will die within the next 3 months.</span>
+<span class="sd">   The mortality task is defined as predicting whether or not an</span>
+<span class="sd">   patient will get a diabetes code in the next 3 months.</span>
 <span class="sd">   &quot;&quot;&quot;</span>
 
    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timelines</span><span class="p">:</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">timeline</span><span class="o">.</span><span class="n">TimelineReader</span><span class="p">):</span>
-      <span class="n">death_code</span> <span class="o">=</span> <span class="n">timelines</span><span class="o">.</span><span class="n">get_dictionary</span><span class="p">()</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="s2">&quot;Death Type/OMOP generated&quot;</span><span class="p">)</span>
-      <span class="k">if</span> <span class="n">death_code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not find the death code&quot;</span><span class="p">)</span>
+      <span class="n">diabetes_code</span> <span class="o">=</span> <span class="n">timelines</span><span class="o">.</span><span class="n">get_dictionary</span><span class="p">()</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="s2">&quot;ICD10CM/E11.9&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">diabetes_code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not find the diabetes code&quot;</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
-         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">death_code</span><span class="p">)</span>
+         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="n">diabetes_code</span><span class="p">)</span>
 
    <span class="k">def</span> <span class="nf">get_time_horizon</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
       <span class="k">return</span> <span class="mi">90</span>
 </pre></div>
 </div>
 <p>We can now use this labeler to label patients in our dataset.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">labeler</span> <span class="o">=</span> <span class="n">MortalityLabeler</span><span class="p">(</span><span class="n">timelines</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">labeler</span> <span class="o">=</span> <span class="n">DiabetesLabeler</span><span class="p">(</span><span class="n">timelines</span><span class="p">)</span>
 <span class="n">labels</span> <span class="o">=</span> <span class="n">labeler</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">timelines</span><span class="o">.</span><span class="n">get_patient</span><span class="p">(</span><span class="n">patient_ids</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
@@ -318,7 +319,42 @@ We use a labeling function in order to define the set of patients and timepoints
 <p>Finally, we can apply our featurizers to our data to obtain matrices. Note that a single patient might have multiple rows if the labeler triggers multiple times on a single patient.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">patient_ids</span><span class="p">,</span> <span class="n">day_offsets</span> <span class="o">=</span> <span class="n">featurizers</span><span class="o">.</span><span class="n">featurize</span><span class="p">(</span><span class="n">timelines</span><span class="p">,</span> <span class="n">labeler</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">patient_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">day_offsets</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">patient_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">day_offsets</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="clmbr-featurization">
+<h2>CLMBR Featurization<a class="headerlink" href="#clmbr-featurization" title="Permalink to this headline">¶</a></h2>
+<p>ehr_ml contains an implementation of CLMBR (<a class="reference external" href="https://arxiv.org/abs/2001.05295">https://arxiv.org/abs/2001.05295</a>), a representation learning technique for electronic health records.</p>
+<p>CLMBR also comes with some additional dependencies. In particular, it requires both pytorch and <a class="reference external" href="https://github.com/Lalaland/embedding_dot">https://github.com/Lalaland/embedding_dot</a>.</p>
+<p><a class="reference external" href="https://github.com/Lalaland/embedding_dot">https://github.com/Lalaland/embedding_dot</a> can be installed through the following commands:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/Lalaland/embedding_dot</span>
+<span class="go">cd embedding_dot</span>
+<span class="go">pip install -e .</span>
+</pre></div>
+</div>
+<p>First, it’s necessary to create an info directory that provides information on the patients used to train a CLMBR model.
+Note that the date parameters might need to be changed depending on your dataset.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">clmbr_create_info  --save_dir INFO_DIR --extract_dir EHR_ML_EXTRACT_DIR --train_end_date &#39;2010-01-01&#39; --val_end_date &#39;2011-01-01&#39;</span>
+</pre></div>
+</div>
+<p>Second, given an info directory it’s necessary to train a CLMBR model.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">clmbr_train_model --model_dir MODEL_DIR --info_dir INFO_DIR --lr 0.0001 --use_gru --size 800 --code_dropout 0</span>
+</pre></div>
+</div>
+<p>Finally, it is now possible to use that model to generate features.</p>
+<p>For our example, we will use the labeler defined in the previous tutorial sections.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ehr_ml.clmbr</span>
+
+<span class="c1"># We need to create a saved labeler in order to use the CLMBR API</span>
+<span class="n">ehr_ml</span><span class="o">.</span><span class="n">labeler</span><span class="o">.</span><span class="n">SavedLabeler</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">labeler</span><span class="p">,</span> <span class="n">timelines</span><span class="p">,</span> <span class="s2">&quot;tmp_labeler_saved&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;tmp_labeler_saved&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+   <span class="n">saved_labeler</span> <span class="o">=</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">labeler</span><span class="o">.</span><span class="n">SavedLabeler</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">patient_ids</span><span class="p">,</span> <span class="n">day_offsets</span> <span class="o">=</span> <span class="n">ehr_ml</span><span class="o">.</span><span class="n">clmbr</span><span class="o">.</span><span class="n">featurize_patients</span><span class="p">(</span><span class="s2">&quot;MODEL_DIR&quot;</span><span class="p">,</span> <span class="n">saved_labeler</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">patient_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">day_offsets</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>

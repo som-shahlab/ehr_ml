@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import collections
 import datetime
 import hashlib
 import json
 import random
+import io
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import (
@@ -383,10 +385,10 @@ class YearHistoryRequiredLabeler(Labeler):
         self.sublabeler = sublabeler
 
     def label(self, patient: timeline.Patient) -> List[Label]:
-        if len(patient.days) == 0:
+        if len(patient.days) <= 1:
             return []
 
-        first_age = patient.days[0].age
+        first_age = patient.days[1].age
 
         labels = self.sublabeler.label(patient)
 
@@ -452,6 +454,36 @@ class SavedLabeler(Labeler):
     def get_all_patient_ids(self) -> Optional[Set[int]]:
         return set(self.labels.keys())
 
+    @classmethod
+    def from_binary_label_data(
+        cls,
+        result_labels: np.array,
+        patient_ids: np.array,
+        patient_day_indices: np.array,
+    ) -> SavedLabeler:
+        """Create a saved labeler from binary label data."""
+        labels = []
+        all_patient_ids = []
+
+        label_dict = collections.defaultdict(list)
+
+        for label, patient_id, patient_index in zip(result_labels, patient_ids, patient_day_indices):
+            label_dict[patient_id].append(Label(day_index = int(patient_index), is_positive = bool(label)))
+
+        for patient_id in patient_ids:
+            labels.append(
+                (
+                    int(patient_id),
+                    [label.to_dict() for label in label_dict[patient_id]]
+                )
+            )
+
+        data_str = json.dumps(
+            {"labels": labels, "labeler_type": "binary"},
+        )
+        
+        return SavedLabeler(io.StringIO(data_str))
+            
     @classmethod
     def save(
         cls,
@@ -829,15 +861,25 @@ class MortalityLabeler(CodeLabeler):
         patient will die within the next 3 months.
     """
 
-    def __init__(self, timelines: timeline.TimelineReader):
-        death_code = timelines.get_dictionary().map("Death Type/OMOP generated")
-        if death_code is None:
-            raise ValueError("Could not find the death code")
+    def __init__(self, timelines: timeline.TimelineReader, ind: index.Index):
+        death_codes = set()
+        for code_str, _ in timelines.get_dictionary().get_items():
+            if code_str.startswith('Death Type/'):
+                code_id = timelines.get_dictionary().map(code_str)
+                death_codes.add((code_str, code_id))
+
+        if len(death_codes) != 1:
+            raise ValueError("Could not find a single death code " + str(death_codes))
         else:
+            death_code = list(death_codes)[0][1]
             super().__init__(code=death_code)
+            self.possible_patients = ind.get_patient_ids(death_code)
+
+    def get_possible_patient_ids(self) -> Mapping[bool, Optional[Set[int]]]:
+        return {True: self.possible_patients, False: None}
 
     def get_time_horizon(self) -> int:
-        return 90
+        return 180
 
 
 class IsMaleLabeler(Labeler):
@@ -993,9 +1035,6 @@ class LupusDiseaseLabeler(InfiniteTimeHorizonEventLabeler):
                     return day.age
 
         return None
-
-    def get_possible_patient_ids(self) -> Mapping[bool, Optional[Set[int]]]:
-        return self.possible_patients
 
     def get_labeler_type(self) -> LabelType:
         return "binary"

@@ -67,8 +67,6 @@ class cmake_build_ext(build_ext):
             source_env = dict(os.environ)
             env = {
                 **source_env,
-                "BAZEL_LINKLIBS": "-l%:libstdc++.a:-lm",
-                "BAZEL_LINKOPTS": "-static-libstdc++",
             }
 
             subprocess.run(

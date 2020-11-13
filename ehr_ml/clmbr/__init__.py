@@ -61,6 +61,9 @@ def create_info_program() -> None:
     parser.add_argument('--save_dir', 
                         type=str, 
                         help='Override dir where model is saved')
+    parser.add_argument('--banned_patient_file', 
+                        type=str, 
+                        help='A file containing a list of patients to exclude from training')
     args = parser.parse_args()
 
     if args.save_dir is None: 
@@ -82,18 +85,28 @@ def create_info_program() -> None:
     ontologies_path = os.path.join(args.extract_dir, 'ontology.db')
     timelines_path = os.path.join(args.extract_dir, 'extract.db')
 
-    train_end_date = datetime.fromisoformat(args.train_end_date)
-    val_end_date = datetime.fromisoformat(args.val_end_date)
+    train_end_date = datetime.datetime.fromisoformat(args.train_end_date)
+    val_end_date = datetime.datetime.fromisoformat(args.val_end_date)
 
     result = json.loads(create_info(timelines_path, ontologies_path, train_end_date, val_end_date, args.min_patient_count))
     result['extract_dir'] = args.extract_dir
     result['extract_file'] = 'extract.db'
-    result['train_start_date'] = datetime.date(1900, 1, 1)
-    result['train_end_date'] = train_end_date
-    result['val_start_date'] = train_end_date
+    result['train_start_date'] = '1900-01-01'
+    result['train_end_date'] = args.train_end_date
+    result['val_start_date'] = args.train_end_date
     result['val_end_date'] = args.val_end_date
     result['seed'] = 3451235
     result['min_patient_count'] = args.min_patient_count
+
+    if args.banned_patient_file:
+        with open(args.banned_patient_file) as f:
+            pids = {int(a) for a in f}
+
+            def remove_banned(a):
+                return [(p, c) for p, c in a if p not in pids]
+
+            result["train_patient_ids_with_length"] = remove_banned(result["train_patient_ids_with_length"])
+            result["val_patient_ids_with_length"] = remove_banned(result["val_patient_ids_with_length"])
 
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int: 
         return len({ item for item, count in counts.items() if count >= threshold})
@@ -210,6 +223,8 @@ def train_model() -> None:
         if info['code_counts'][code] < 10 * info['min_patient_count']:
             first_too_small_index = min(first_too_small_index, index)
 
+    print(len(info['valid_code_map']))
+
     # Create and save config dictionary
     config = {
         'batch_size': args.batch_size,
@@ -273,7 +288,7 @@ def train_model() -> None:
         last_time = time.time()
 
         code_dropout = config['code_dropout']
-        day_dropout = 0.2
+        day_dropout = config['code_dropout']
         print(f'Code dropout is {code_dropout}')
         print(f'Day dropout is {day_dropout}')
 
@@ -327,7 +342,7 @@ def train_model() -> None:
     best_val_loss = None
     best_val_loss_epoch = None
 
-    logging.info('Start training')
+    logging.info('Start training (v2)')
     with open(os.path.join(model_dir, 'losses'), 'w') as loss_file:
         for epoch in range(config['epochs_per_cycle']):
             logging.info('About to start epoch %s', epoch)
@@ -357,7 +372,7 @@ def train_model() -> None:
                            os.path.join(model_dir, 'best'))
 
 
-def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
+def featurize_patients(model_dir: str, extract_dir: str, l: labeler.SavedLabeler) -> Tuple[np.array, np.array, np.array, np.array]:
     """
     Featurize patients using the given model and labeler.
     The result is a numpy array aligned with l.get_labeler_data().
@@ -382,31 +397,26 @@ def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
         device_from_config(use_cuda=use_cuda),
     )
 
-    ontologies = ontology.OntologyReader(
-        os.path.join(info["extract_dir"], "ontology.db")
-    )
-    timelines = timeline.TimelineReader(
-        os.path.join(info["extract_dir"], "extract.db")
-    )
+    data = l.get_label_data()
 
-    data = l.get_labeler_data()
+    labels, patient_ids, patient_indices = data
     
     loaded_data = StrideDataset(
-        os.path.join(info["extract_dir"], "extract.db"),
-        os.path.join(info["extract_dir"], "ontology.db"),
+        os.path.join(extract_dir, "extract.db"),
+        os.path.join(extract_dir, "ontology.db"),
         os.path.join(model_dir, "info.json"),
         data,
         data,
     )
 
-    patient_id_to_info = collections.defaultdict(dict)
+    patient_id_to_info = defaultdict(dict)
 
     for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
         patient_id_to_info[pid][index] = i
 
     patient_representations = np.zeros((len(data[0]), config['size']))
 
-    with dataset.BatchIterator(loaded_data, final_transformation, threshold=config['num_first'], is_val=True, batch_size=100, seed=info['seed'], day_dropout=0, code_dropout=0) as batches:
+    with dataset.BatchIterator(loaded_data, final_transformation, threshold=config['num_first'], is_val=True, batch_size=10000, seed=info['seed'], day_dropout=0, code_dropout=0) as batches:
         for batch in batches:
              with torch.no_grad():
                 embeddings = (
@@ -418,7 +428,7 @@ def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
                             i, index, :
                         ]
 
-    return patient_representations
+    return patient_representations, labels, patient_ids, patient_indices
 
 
 def debug_model() -> None:

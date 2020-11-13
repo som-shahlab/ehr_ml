@@ -7,20 +7,21 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/substitute.h"
-#include "csv.h"
+#include "avro_utils.h"
+#include "boost/filesystem.hpp"
 #include "parse_utils.h"
+#include "csv.h"
 
 struct ConceptInfo {
-  std::string vocabulary_id;
-  std::string concept_code;
-  std::string concept_class_id;
+    std::string vocabulary_id;
+    std::string concept_code;
+    std::string concept_class_id;
 };
 
 struct ConceptRelationshipInfo {
-  uint32_t other_concept;
-  std::string relationship_id;
+    uint32_t other_concept;
+    std::string relationship_id;
 };
-
 class ConceptTable {
  public:
   void add_concept(uint32_t concept_id, ConceptInfo info) {
@@ -98,7 +99,12 @@ class ConceptTable {
   absl::flat_hash_map<uint32_t, std::vector<uint32_t>> ancestors;
 };
 
-ConceptTable construct_concept_table(std::string_view location) {
+bool has_prefix(std::string_view a, std::string_view b) {
+    return a.substr(0, b.size()) == b;
+}
+
+
+ConceptTable construct_concept_table_csv(std::string_view location) {
   ConceptTable result;
 
   std::string concept_file =
@@ -157,6 +163,59 @@ ConceptTable construct_concept_table(std::string_view location) {
                });
 
   return result;
+}
+
+ConceptTable construct_concept_table_avro(boost::filesystem::path root_directory) {
+    ConceptTable result;
+
+    std::vector<std::string_view> concept_columns = {
+        "concept_id", "vocabulary_id", "concept_code", "concept_class_id"};
+
+    std::vector<std::string_view> rel_columns = {"concept_id_1", "concept_id_2",
+                                                 "relationship_id"};
+
+    std::vector<std::string_view> anc_columns = {"ancestor_concept_id",
+                                                 "descendant_concept_id"};
+
+    for (const auto& subfile :
+         boost::filesystem::directory_iterator(root_directory)) {
+        std::string filename = subfile.path().filename().string();
+
+        std::string_view filename_view(filename);
+
+        if (has_prefix(filename_view, "concept0")) {
+            parse_avro_file(subfile, concept_columns,
+                            [&result](const auto& row) {
+                                uint32_t concept_id = get_long(row[0]);
+
+                                ConceptInfo info;
+                                info.vocabulary_id = get_string(row[1]);
+                                info.concept_code = get_string(row[2]);
+                                info.concept_class_id = get_string(row[3]);
+
+                                result.add_concept(concept_id, std::move(info));
+                            });
+        } else if (has_prefix(filename_view, "concept_relationship0")) {
+            parse_avro_file(subfile, rel_columns, [&result](const auto& row) {
+                uint32_t concept_id = get_long(row[0]);
+                uint32_t other_concept = get_long(row[1]);
+
+                ConceptRelationshipInfo info;
+                info.other_concept = other_concept;
+                info.relationship_id = get_string(row[2]);
+
+                result.add_relationship(concept_id, std::move(info));
+            });
+        } else if (has_prefix(filename_view, "concept_ancestor0")) {
+            parse_avro_file(subfile, anc_columns, [&result](const auto& row) {
+                uint32_t ancestor_concept_id = get_long(row[0]);
+                uint32_t descendant_concept_id = get_long(row[1]);
+                result.add_ancestor(descendant_concept_id, ancestor_concept_id);
+            });
+        }
+    }
+
+    return result;
 }
 
 #endif

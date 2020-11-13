@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <string>
+#include <iostream>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/substitute.h"

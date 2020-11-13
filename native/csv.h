@@ -3,7 +3,7 @@
 
 #define WITH_GZFILEOP
 #include "absl/strings/substitute.h"
-#include "zlib-ng.h"
+#include "zlib.h"
 
 const int BUFFER_SIZE = 1024 * 1024 * 10;
 
@@ -50,11 +50,18 @@ inline void line_iter(const char* line, char delimiter, bool quotes, F f) {
   }
 }
 
+
+template <typename F>
+inline void line_iter(const char* line, char delimiter, F f) {
+  line_iter(line, delimiter, true, f);
+}
+
+
 template <typename F>
 inline void csv_iterator(const char* filename,
                          std::vector<std::string_view> columns, char delimiter,
                          std::optional<int> limit, bool quotes, F f) {
-  gzFile file = zng_gzopen(filename, "r");
+  gzFile file = gzopen(filename, "r");
   if (file == nullptr) {
     std::cout << absl::Substitute("Could not open $0 due to $1", filename,
                                   std::strerror(errno))
@@ -63,10 +70,10 @@ inline void csv_iterator(const char* filename,
     abort();
   }
 
-  zng_gzbuffer(file, BUFFER_SIZE);
+  gzbuffer(file, BUFFER_SIZE);
 
   std::vector<char> buffer(BUFFER_SIZE);
-  char* first_line = zng_gzgets(file, buffer.data(), BUFFER_SIZE);
+  char* first_line = gzgets(file, buffer.data(), BUFFER_SIZE);
 
   if (first_line == nullptr) {
     std::cout << absl::Substitute("Could read header on $0 due to $1\n", file,
@@ -107,7 +114,7 @@ inline void csv_iterator(const char* filename,
   std::vector<std::string_view> output_columns(columns.size());
 
   while (true) {
-    char* next_line = zng_gzgets(file, buffer.data(), BUFFER_SIZE);
+    char* next_line = gzgets(file, buffer.data(), BUFFER_SIZE);
     if (next_line == nullptr) {
       break;
     }
@@ -123,6 +130,13 @@ inline void csv_iterator(const char* filename,
 
     f(output_columns);
   }
+}
+
+template <typename F>
+inline void csv_iterator(const char* filename,
+                         std::vector<std::string_view> columns, char delimiter,
+                         std::optional<int> limit, F f) {
+    csv_iterator(filename, columns, delimiter, limit, true, f);
 }
 
 #endif

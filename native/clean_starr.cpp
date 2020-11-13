@@ -1,147 +1,132 @@
 #include <iostream>
 
+#include "boost/filesystem.hpp"
+#include "concept.h"
 #include "gem.h"
 #include "reader.h"
 #include "rxnorm.h"
 #include "umls.h"
 #include "writer.h"
 
-std::vector<std::string> normalize(std::string input_code, const UMLS& umls,
-                                   const RxNorm& rxnorm, const GEMMapper& gem) {
-    std::vector<std::string_view> parts = absl::StrSplit(input_code, "/");
-
-    std::string_view type = parts[0];
-
-    if (input_code == "") {
+std::vector<std::string> normalize(
+    std::string input_code, const ConceptTable& table, const GEMMapper& gem,
+    absl::flat_hash_map<uint32_t, std::vector<uint32_t>>& rxnorm_to_atc) {
+    if (input_code == "" || input_code == "0") {
         return {};
-    } else if (type == "Product") {
-        return {input_code};
-    } else if (type == "Gender") {
-        return {input_code};
-    } else if (type == "MainProc") {
-        if (parts[1] == "00000") {
-            // Remove this junk
-            return {};
-        }
-
-        if (parts[1][0] == 'J') {
-            // J codes need special handling as they are actually medications
-            auto codes = rxnorm.get_atc_codes("HCPCS", std::string(parts[1]));
-            if (codes.size() != 0) {
-                return codes;
-            } else {
-                // Keep it even though it's a sorta BS code.
-                return {absl::Substitute("HCPCS/$0", parts[1])};
-            }
-        } else {
-            std::string candidate;
-            if (isdigit(parts[1][0])) {
-                candidate = "CPT";
-            } else {
-                candidate = "HCPCS";
-            }
-
-            if (umls.get_aui(candidate, std::string(parts[1]))) {
-                return {absl::Substitute("$0/$1", candidate, parts[1])};
-            }
-
-            // Even though we couldn't map it, we might as well just keep it.
-            // We don't really rely on the CPT hierarchy that much ...
-            return {absl::Substitute("$0/$1", candidate, parts[1])};
-        }
-    } else if (type == "Lab") {
-        if (parts[1] == "UNLOINC") {
-            return {};
-        }
-
-        if (umls.get_aui("LNC", std::string(parts[1]))) {
-            return {absl::Substitute("LNC/$0", parts[1])};
-        };
-        return {input_code};
-    } else if (type == "Drug") {
-        auto drug_codes = rxnorm.get_atc_codes("NDC", std::string(parts[1]));
-
-        if (drug_codes.size() != 0) {
-            return drug_codes;
-        }
-
-        // We might as well keep the NDC
-        return {input_code};
-    } else if (type == "Zip") {
-        return {input_code};
-    } else if (type == "Drg") {
-        return {input_code};
-    } else if (type == "Diag" || type == "Proc") {
-        std::vector<std::string> codes;
-
-        if (parts[2] == "V9999") {
-            // Get rid of this trash
-            return {};
-        }
-
-        if (parts[1] == "ICD9") {
-            // Need to be converted
-            if (type == "Diag") {
-                codes = gem.map_diag(parts[2]);
-
-                if (codes.size() == 0) {
-                    // Try to recover, add a zero (lol)
-                    codes = gem.map_diag(absl::Substitute("$00", parts[2]));
-                }
-
-                if (codes.size() == 0) {
-                    // Try to recover, add a nine (lol)
-                    codes = gem.map_diag(absl::Substitute("$09", parts[2]));
-                }
-
-                if (codes.size() == 0) {
-                    // Try to recover, add a one (lol)
-                    codes = gem.map_diag(absl::Substitute("$01", parts[2]));
-                }
-            } else {
-                codes = gem.map_proc(parts[2]);
-            }
-        } else {
-            if (type == "Diag" && parts[2].size() > 3) {
-                codes = {absl::Substitute("$0.$1", parts[2].substr(0, 3),
-                                          parts[2].substr(3))};
-            } else {
-                codes = {std::string(parts[2])};
-            }
-        }
-
-        std::string candidate;
-
-        if (type == "Diag") {
-            candidate = "ICD10CM";
-        } else {
-            candidate = "ICD10PCS";
-        }
-
-        std::vector<std::string> results;
-
-        for (const auto& code : codes) {
-            if (umls.get_aui(candidate, code)) {
-                results.push_back(absl::Substitute("$0/$1", candidate, code));
-            }
-        }
-
-        if (results.size() != 0) {
-            return results;
-        }
-
-        // Might as well keep the original if we have to ...
-        return {input_code};
-    } else {
-        std::cout << "unknown type " << type << std::endl;
-        abort();
     }
+
+    uint32_t concept_id;
+    attempt_parse_or_die(input_code, concept_id);
+
+    std::set<std::string> good_items = {"LOINC",  "ICD10CM", "CPT4",
+                                        "Gender", "HCPCS",   "Ethnicity",
+                                        "Race",   "ICD10PCS", "Condition Type", "Visit", "CMS Place of Service"};
+    std::set<std::string> bad_items = {"SNOMED", "NDC",   "ICD10CN",
+                                       "ICD10", "ICD9ProcCN"};
+
+    std::vector<uint32_t> results;
+
+    ConceptInfo info = table.get_info(concept_id);
+    if (info.vocabulary_id == "RxNorm") {
+        // Need to map NDC over to ATC to avoid painful issues
+
+        uint32_t rxnorm_code;
+        attempt_parse_or_die(info.concept_code, rxnorm_code);
+
+        auto iter = rxnorm_to_atc.find(rxnorm_code);
+        if (iter == std::end(rxnorm_to_atc)) {
+            std::vector<uint32_t> atc_codes;
+            for (const auto& ancestor : table.get_ancestors(rxnorm_code)) {
+                const auto& anc_info = table.get_info(ancestor);
+                if (anc_info.vocabulary_id == "RxNorm" ||
+                    anc_info.vocabulary_id == "RxNorm Extension") {
+                    for (const auto& relationship :
+                         table.get_relationships(ancestor)) {
+                        ConceptInfo other_info =
+                            table.get_info(relationship.other_concept);
+                        if (other_info.vocabulary_id == "ATC") {
+                            atc_codes.push_back(relationship.other_concept);
+                        }
+                    }
+                }
+            }
+
+            std::sort(std::begin(atc_codes), std::end(atc_codes));
+            atc_codes.erase(
+                std::unique(std::begin(atc_codes), std::end(atc_codes)),
+                std::end(atc_codes));
+
+            // if (atc_codes.size() == 0) {
+            //     std::cout << absl::Substitute("Could not find any atc
+            //     codes for $0\n", rxnorm_code);
+            // }
+
+            rxnorm_to_atc[rxnorm_code] = atc_codes;
+            iter = rxnorm_to_atc.find(rxnorm_code);
+        }
+
+        results = iter->second;
+    } else if (info.vocabulary_id == "ICD9Proc") {
+        for (const auto& proc : gem.map_proc(info.concept_code)) {
+            auto new_code = table.get_inverse("ICD10PCS", proc);
+            if (!new_code) {
+                std::cout << absl::Substitute(
+                    "Could not find $0 after converting $1\n", proc,
+                    info.concept_code);
+            }
+            results.push_back(*new_code);
+        }
+    } else if (info.vocabulary_id == "ICD9CM") {
+        for (std::string diag : gem.map_diag(info.concept_code)) {
+            auto new_code = table.get_inverse("ICD10CM", diag);
+            if (!new_code) {
+                std::cout << absl::Substitute(
+                    "Could not find $0 after converting $1\n", diag,
+                    info.concept_code);
+            }
+            results.push_back(*new_code);
+        }
+    } else if (good_items.find(info.vocabulary_id) != std::end(good_items)) {
+        results.push_back(concept_id);
+    } else if (bad_items.find(info.vocabulary_id) != std::end(bad_items)) {
+        return {};
+    } else {
+        std::cout << "Could not handle '" << info.vocabulary_id << "' '" << input_code << "'" << std::endl;
+        abort();
+        // results.push_back(concept_id);
+    }
+
+    std::vector<std::string> final_results;
+
+    for (const auto result : results) {
+        ConceptInfo result_info = table.get_info(result);
+
+        if (result_info.vocabulary_id == "Condition Type") {
+            std::string final = absl::Substitute("$0/$1", result_info.concept_class_id,
+                                                        result_info.concept_code);
+
+            final_results.push_back(final);
+        } else {
+            std::string final = absl::Substitute("$0/$1", result_info.vocabulary_id,
+                                                        result_info.concept_code);
+
+            final_results.push_back(final);
+        }
+
+    }
+
+    return final_results;
 }
 
 class Cleaner {
    public:
-    Cleaner(const char* path) : reader(path, false), iterator(reader.iter()) {
-        std::cout << "Loaded" << std::endl;
+    Cleaner(boost::filesystem::path concept_dir, const char* path)
+        : reader(path, false), iterator(reader.iter()) {
+        std::cout << "Loaded1" << std::endl;
+
+        ConceptTable concepts = construct_concept_table(concept_dir);
+
+        std::cout << "Got concept table " << std::endl;
 
         patient_ids = reader.get_patient_ids();
         original_patient_ids = reader.get_original_patient_ids();
@@ -156,15 +141,14 @@ class Cleaner {
 
             absl::flat_hash_map<std::string, uint32_t> lost_counts;
 
-            UMLS umls;
-            RxNorm rxnorm;
-            GEMMapper gem;
+            GEMMapper gem("/share/pi/nigam/ethanid/ICDGEM");
+            absl::flat_hash_map<uint32_t, std::vector<uint32_t>> rxnorm_to_atc;
 
             uint32_t total_lost = 0;
 
             for (const auto& entry : items) {
                 std::vector<std::string> terms =
-                    normalize(entry.first, umls, rxnorm, gem);
+                    normalize(entry.first, concepts, gem, rxnorm_to_atc);
                 if (terms.size() == 0) {
                     total_lost += entry.second;
                     lost_counts[entry.first] += entry.second;
@@ -241,7 +225,6 @@ class Cleaner {
             Metadata meta;
             meta.dictionary = final_dictionary;
             meta.value_dictionary = final_value_dictionary;
-
             return meta;
         } else {
             uint32_t patient_id = patient_ids[current_index];
@@ -307,13 +290,15 @@ class Cleaner {
 };
 
 int main() {
-    std::cout << "Hello world" << std::endl;
+    boost::filesystem::path root(
+        "/share/pi/nigam/ethanid/starr_omop_cdm5_latest_extract");
 
-    std::string_view path =
-        "/labs/shahlab/projects/ethanid/ehr_ml/native/optumTest";
+    boost::filesystem::path raw_extract = root / "raw";
 
-    std::string write_path = absl::Substitute("$0/$1", path, "clean");
-    std::string read_path = absl::Substitute("$0/$1", path, "temp");
+    boost::filesystem::path final_extract = root / "final" / "extract.db";
 
-    write_timeline(write_path.c_str(), Cleaner(read_path.c_str()));
+    boost::filesystem::path concept_location = root / "source";
+
+    write_timeline(final_extract.c_str(),
+                   Cleaner(concept_location, raw_extract.c_str()));
 }

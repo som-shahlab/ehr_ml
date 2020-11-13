@@ -172,20 +172,26 @@
 <h1>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h1>
 <p>The first step to using ehr_ml is performing an ETL between your data and the ehr_ml native format.
 ehr_ml is designed to primarily work with OMOP data, but if necessary it’s possible to write a custom ETL.</p>
-<p>In this tutorial we will go over how to perform an ETL with an OMOP formatted dataset.</p>
+<p>In this tutorial we will go over how to perform an ETL with an OMOP formatted dataset.
+As a shortcut, you can also simply use the preprocessed extract “synpuf_extract.zip” within the example folder.</p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>ehr_ml can be installed by cloning the repository and using poetry install.</p>
 <dl class="simple">
 <dt>Note that there are several main build depencies for ehr_ml:</dt><dd><ol class="arabic simple">
 <li><p>Poetry (<a class="reference external" href="https://github.com/python-poetry/poetry">https://github.com/python-poetry/poetry</a>)</p></li>
-<li><p>Bazel 2 or greater (<a class="reference external" href="https://bazel.build/">https://bazel.build/</a>)</p></li>
+<li><p>Bazel 3 or greater (<a class="reference external" href="https://bazel.build/">https://bazel.build/</a>)</p></li>
 <li><p>A C++ compiler that supports C++14</p></li>
 <li><p>CMake 3 or greater</p></li>
 </ol>
 </dd>
 </dl>
+<p>If you are using conda, the following command should install those dependencies:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda install cmake poetry bazel gxx_linux-64 -c conda-forge</span>
+</pre></div>
+</div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/som-shahlab/ehr_ml</span>
+<span class="go">cd ehr_ml</span>
 <span class="go">poetry install</span>
 </pre></div>
 </div>
@@ -208,7 +214,7 @@ ehr_ml is designed to primarily work with OMOP data, but if necessary it’s pos
 <div class="section" id="running-the-extraction">
 <h2>Running The Extraction<a class="headerlink" href="#running-the-extraction" title="Permalink to this headline">¶</a></h2>
 <p>The extractor can now be run on the properly formatted SynPUF dataset.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ehr_ml_perform_extraction FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION</span>
 </pre></div>
 </div>
 </div>

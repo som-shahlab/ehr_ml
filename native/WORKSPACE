@@ -8,11 +8,11 @@ git_repository(
     shallow_since = "1595357609 -0400",
 )
 
-git_repository(
+http_archive(
     name = "gtest",
-    remote = "https://github.com/google/googletest.git",
-    commit = "a781fe29bcf73003559a3583167fe3d647518464",
-    shallow_since = "1594836583 -0400",
+    url = "https://github.com/google/googletest/archive/release-1.10.0.zip",
+    sha256 = "94c634d499558a76fa649edb13721dce6e98fb1e7018dfaeba3cd7a083945e91",
+    strip_prefix = "googletest-release-1.10.0",
 )
 
 new_git_repository(
@@ -150,7 +150,7 @@ http_archive(
    name = "rules_foreign_cc",
    strip_prefix = "rules_foreign_cc-master",
    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
-   sha256 = "24f35729a0c6793bb5a844fb8fadaffb37ffa69e18f022ab36ec00b8f2212228"
+#   sha256 = "c823078385e9f6891f7e245be4eb319d6d74f1a3d6d5ba7392f1e382ef190651",
 )
 
 load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
@@ -178,3 +178,41 @@ http_archive(
     sha256 = "f6f4910fd033078738bd82bfba4f49219d03b17eb0794eb91efbae419f4aba10",
 )
 
+# avro source code repository
+http_archive(
+    name = "source_avro",
+    build_file_content = all_content,
+    strip_prefix = "avro-release-1.10.0",
+    urls = ["https://github.com/apache/avro/archive/release-1.10.0.tar.gz"],
+    sha256 = "50ceefe582193ef8a92a8891bac1520df778f5c260f2ba68f4c9ae41417e3777",
+)
+
+# snappy source code repository
+http_archive(
+    name = "source_snappy",
+    build_file_content = all_content,
+    strip_prefix = "snappy-1.1.8",
+    url = "https://github.com/google/snappy/archive/1.1.8.tar.gz",
+    sha256 = "16b677f07832a612b0836178db7f374e414f94657c138e6993cbfc5dcc58651f",
+)
+
+# jansson source code repository
+http_archive(
+    name = "source_jansson",
+    build_file_content = all_content,
+    strip_prefix = "jansson-2.13.1",
+    url = "https://github.com/akheron/jansson/archive/v2.13.1.tar.gz",
+    sha256 = "f22901582138e3203959c9257cf83eba9929ac41d7be4a42557213a22ebcc7a0",
+)
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "com_github_nelhage_rules_boost",
+    commit = "1e3a69bf2d5cd10c34b74f066054cd335d033d71",
+    remote = "https://github.com/nelhage/rules_boost",
+    shallow_since = "1591047380 -0700",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+boost_deps()
