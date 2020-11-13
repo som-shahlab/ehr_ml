@@ -5,6 +5,7 @@ The first step to using ehr_ml is performing an ETL between your data and the eh
 ehr_ml is designed to primarily work with OMOP data, but if necessary it's possible to write a custom ETL.
 
 In this tutorial we will go over how to perform an ETL with an OMOP formatted dataset.
+As a shortcut, you can also simply use the preprocessed extract "synpuf_extract.zip" within the example folder.
 
 *********************************************
 Installation
@@ -14,13 +15,21 @@ ehr_ml can be installed by cloning the repository and using poetry install.
 
 Note that there are several main build depencies for ehr_ml:
    1. Poetry (https://github.com/python-poetry/poetry)
-   2. Bazel 2 or greater (https://bazel.build/)
+   2. Bazel 3 or greater (https://bazel.build/)
    3. A C++ compiler that supports C++14
    4. CMake 3 or greater
+
+If you are using conda, the following command should install those dependencies:
+
+.. code-block:: console
+
+   conda install cmake poetry bazel gxx_linux-64 -c conda-forge
+
 
 .. code-block:: console
 
    git clone https://github.com/som-shahlab/ehr_ml
+   cd ehr_ml
    poetry install
 
 *********************************************
@@ -52,7 +61,7 @@ The extractor can now be run on the properly formatted SynPUF dataset.
 
 .. code-block:: console
 
-   ehr_ml_perform_extraction FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION
+   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION
 
 *********************************************
 Verifying The Extraction

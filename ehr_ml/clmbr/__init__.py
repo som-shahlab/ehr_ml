@@ -372,7 +372,7 @@ def train_model() -> None:
                            os.path.join(model_dir, 'best'))
 
 
-def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
+def featurize_patients(model_dir: str, extract_dir: str, l: labeler.SavedLabeler) -> Tuple[np.array, np.array, np.array, np.array]:
     """
     Featurize patients using the given model and labeler.
     The result is a numpy array aligned with l.get_labeler_data().
@@ -397,20 +397,13 @@ def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
         device_from_config(use_cuda=use_cuda),
     )
 
-    ontologies = ontology.OntologyReader(
-        os.path.join(info["extract_dir"], "ontology.db")
-    )
-    timelines = timeline.TimelineReader(
-        os.path.join(info["extract_dir"], "extract.db")
-    )
-
     data = l.get_label_data()
 
     labels, patient_ids, patient_indices = data
     
     loaded_data = StrideDataset(
-        os.path.join(info["extract_dir"], "extract.db"),
-        os.path.join(info["extract_dir"], "ontology.db"),
+        os.path.join(extract_dir, "extract.db"),
+        os.path.join(extract_dir, "ontology.db"),
         os.path.join(model_dir, "info.json"),
         data,
         data,
@@ -435,7 +428,7 @@ def featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array:
                             i, index, :
                         ]
 
-    return patient_representations
+    return patient_representations, labels, patient_ids, patient_indices
 
 
 def debug_model() -> None:

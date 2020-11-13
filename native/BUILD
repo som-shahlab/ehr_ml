@@ -4,7 +4,6 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 configure_make(
     name = "lzma",
 
-    shared_libraries = ["liblzma.so"],
     static_libraries = ["liblzma.a"],
     lib_source = "@source_xz//:all",
 )
@@ -17,6 +16,7 @@ cmake_external(
         "WITH_NATIVE_INSTRUCTIONS": "on",
         "WITH_GZFILEOP": "on",
         "ZLIB_COMPAT": "on",
+        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
     },
     lib_source = "@source_zlib_ng//:all",
 
@@ -25,8 +25,6 @@ cmake_external(
    # However, the cmake_external dependants could use other artefacts provided by the build,
    # according to their CMake script
    static_libraries = ["libz.a"],
-   shared_libraries = ["libz.so"],
-   env_vars = { "CXXFLAGS": "-fPIC", "CFLAGS": "-fPIC"},
 )
 
 cmake_external(
@@ -34,15 +32,21 @@ cmake_external(
     lib_source = "@source_snappy//:all",
 
     cache_entries = {
-        "BUILD_SHARED_LIBS": "on",
+        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
     },
 
-    shared_libraries = ["libsnappy.so"],
+    out_lib_dir = "lib64",
+
+    static_libraries = ["libsnappy.a"],
 )
 
 cmake_external(
     name = "jansson",
     lib_source = "@source_jansson//:all",
+
+    cache_entries = {
+        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
+    },
 
     static_libraries = ["libjansson.a"],
 )
@@ -51,6 +55,8 @@ cmake_external(
     name = "avro",
     lib_source = "@source_avro//:all",
     working_directory = "lang/c",
+
+    out_lib_dir = "lib64",
 
     cache_entries = {
         "ZLIB_LIBRARY": "$EXT_BUILD_DEPS/zlib_ng/lib/libz.so",
@@ -63,6 +69,7 @@ cmake_external(
         "JANSSON_LIBRARIES": "$EXT_BUILD_DEPS/jansson/lib/libjansson.a",
         "JANSSON_FOUND": "on",
         "CMAKE_SKIP_INSTALL_ALL_DEPENDENCY": "on",
+        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
     },
 
     deps = [
@@ -451,8 +458,8 @@ cc_binary(
         "clmbr_extension.h",
         "clmbr_extension.cpp",
         "civil_day_caster.h",
-#        "extract_extension.cpp",
-#        "extract_extension.h",
+        "extract_extension.cpp",
+        "extract_extension.h",
     ],
     deps = [
         ":parse_utils",
@@ -468,6 +475,7 @@ cc_binary(
         ":flatmap",
         ":gem",
         ":umls",
+        ":csv",
     ],
     linkstatic=1, 
     linkshared=1

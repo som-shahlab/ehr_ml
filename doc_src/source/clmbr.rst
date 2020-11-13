@@ -6,6 +6,22 @@ It consists of components for both training a language model and extraction repr
 
 
 *******************************
+Additional Dependencies
+*******************************
+
+CLMBR requires additional dependencies that are not needed for the rest of ehr_ml. In particular, it requires both pytorch and https://github.com/Lalaland/embedding_dot.
+
+https://github.com/Lalaland/embedding_dot can be installed through the following commands:
+
+
+.. code-block:: console
+
+   git clone https://github.com/Lalaland/embedding_dot
+   cd embedding_dot
+   pip install -e .
+
+
+*******************************
 Language Model Training
 *******************************
 
@@ -23,10 +39,10 @@ The second major hyperparameter is the minimum patient count. This controls how 
 
 clmbr_create_info takes the following parameters:
     - extract_dir: The extract directory
+    - save_dir: The name of the output directory
     - train_end_date: The end date of the train split
     - val_end_date: The end date of the validation split
     - min_patient_count: The minimum patient count for each feature
-    - save_dir: The name of the output directory
     - banned_patient_file: A file containing a list of patient ids to exclude from the model
 
 
@@ -58,7 +74,7 @@ Once a language model is trained, it is then possible to extract features for us
 
 The function featurize_patients provides code that performs this tasks
 
-.. py:function:: ehr_ml.clmbr.featurize_patients(model_dir: str, l: labeler.SavedLabeler) -> np.array
+.. py:function:: ehr_ml.clmbr.featurize_patients(model_dir: str, extract_dir: str, l: labeler.SavedLabeler) -> np.array
     
     Featurize patients using the given model and labeler.
     The result is a numpy array aligned with l.get_labeler_data().

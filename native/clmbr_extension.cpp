@@ -644,10 +644,6 @@ public:
 
             uint32_t length = patient_lengths.at(start_index + i).second - 1;
 
-            if (length <= 1) {
-                printf("Bad Bad %d %d \n", length, patient_id);
-            }
-
             uint32_t length_with_drop = length - days_to_drop_for_patient;
 
             batch.drop_flags.clear();

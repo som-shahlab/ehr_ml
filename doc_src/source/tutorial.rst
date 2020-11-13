@@ -84,8 +84,8 @@ First, import both the ontology and index and construct the corresponding classe
    import ehr_ml.ontology
    import ehr_ml.index
 
-   ontologies = ehr_ml.ontology.OntologyReader(EHR_ML_EXTRACT_DIR + "/extract.db")
-   index = ehr_ml.index.Index(EHR_ML_EXTRACT_DIR + "/extract.db")
+   ontologies = ehr_ml.ontology.OntologyReader(EHR_ML_EXTRACT_DIR + "/ontology.db")
+   index = ehr_ml.index.Index(EHR_ML_EXTRACT_DIR + "/index.db")
 
 We can now use the ontology class to find all Type 2 diabetes codes.
 
@@ -133,23 +133,23 @@ First, we need to import the labeling utilities.
 
 Now we can start defining labelers in terms of our labeling utilites. One of the simplest utilities is the CodeLabeler class.
 The CodeLabeler class enables the definition of simple time based code labelers that predict whether something will happen in a particular amount of time.
-We can define a mortality labeler given the CodeLabeler class as follows.
+We can define a simple diabetes labeler given the CodeLabeler class as follows.
 
 
 .. code-block:: python
 
-   class MortalityLabeler(ehr_ml.labeler.CodeLabeler):
+   class DiabetesLabeler(ehr_ml.labeler.CodeLabeler):
       """
-         The mortality task is defined as predicting whether or not an
-         patient will die within the next 3 months.
+      The mortality task is defined as predicting whether or not an
+      patient will get a diabetes code in the next 3 months.
       """
 
       def __init__(self, timelines: ehr_ml.timeline.TimelineReader):
-         death_code = timelines.get_dictionary().map("Death Type/OMOP generated")
-         if death_code is None:
-            raise ValueError("Could not find the death code")
+         diabetes_code = timelines.get_dictionary().map("ICD10CM/E11.9")
+         if diabetes_code is None:
+            raise ValueError("Could not find the diabetes code")
          else:
-            super().__init__(code=death_code)
+            super().__init__(code=diabetes_code)
 
       def get_time_horizon(self) -> int:
          return 90
@@ -158,7 +158,7 @@ We can now use this labeler to label patients in our dataset.
 
 .. code-block:: python
 
-   labeler = MortalityLabeler(timelines)
+   labeler = DiabetesLabeler(timelines)
    labels = labeler.label(timelines.get_patient(patient_ids[4]))
 
    print(labels)
@@ -199,7 +199,55 @@ Finally, we can apply our featurizers to our data to obtain matrices. Note that 
 
    features, labels, patient_ids, day_offsets = featurizers.featurize(timelines, labeler)
 
-   print(features.shape, labels.shape, patient_ids.shape, day_offsets)
+   print(features.shape, labels.shape, patient_ids.shape, day_offsets.shape)
 
 
+******************************
+CLMBR Featurization
+******************************
+
+
+ehr_ml contains an implementation of CLMBR (https://arxiv.org/abs/2001.05295), a representation learning technique for electronic health records.
+
+CLMBR also comes with some additional dependencies. In particular, it requires both pytorch and https://github.com/Lalaland/embedding_dot.
+
+https://github.com/Lalaland/embedding_dot can be installed through the following commands:
+
+.. code-block:: console
+
+   git clone https://github.com/Lalaland/embedding_dot
+   cd embedding_dot
+   pip install -e .
+
+
+First, it's necessary to create an info directory that provides information on the patients used to train a CLMBR model.
+Note that the date parameters might need to be changed depending on your dataset.
+
+.. code-block:: console
+
+   clmbr_create_info  --save_dir INFO_DIR --extract_dir EHR_ML_EXTRACT_DIR --train_end_date '2010-01-01' --val_end_date '2011-01-01' 
+
+Second, given an info directory it's necessary to train a CLMBR model.
+
+.. code-block:: console
+
+   clmbr_train_model --model_dir MODEL_DIR --info_dir INFO_DIR --lr 0.0001 --use_gru --size 800 --code_dropout 0 
+
+Finally, it is now possible to use that model to generate features.
+
+For our example, we will use the labeler defined in the previous tutorial sections.
+
+.. code-block:: python
+
+   import ehr_ml.clmbr
+
+   # We need to create a saved labeler in order to use the CLMBR API
+   ehr_ml.labeler.SavedLabeler.save(labeler, timelines, "tmp_labeler_saved")
+
+   with open("tmp_labeler_saved") as f:
+      saved_labeler = ehr_ml.labeler.SavedLabeler(f)
+
+   features, labels, patient_ids, day_offsets = ehr_ml.clmbr.featurize_patients("MODEL_DIR", saved_labeler)
+
+   print(features.shape, labels.shape, patient_ids.shape, day_offsets.shape)
 

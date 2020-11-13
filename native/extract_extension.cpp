@@ -168,7 +168,7 @@ std::vector<uint32_t> compute_subwords(
 }
 
 
-void create_ontology(std::string_view root_path, std::string umls_path, std::string cdm_location) {
+void create_ontology(std::string_view root_path, std::string umls_path, std::string cdm_location, const ConceptTable& table) {
   std::string source = absl::Substitute("$0/extract.db", root_path);
   ExtractReader extract(source.c_str(), false);
 
@@ -177,8 +177,6 @@ void create_ontology(std::string_view root_path, std::string umls_path, std::str
   auto entries = dictionary.decompose();
 
   UMLS umls(umls_path);
-
-  ConceptTable table = construct_concept_table(cdm_location);
 
   TermDictionary ontology_dictionary;
 
@@ -257,7 +255,7 @@ void create_ontology(std::string_view root_path, std::string umls_path, std::str
     auto& parent_codes = iter.second;
     std::sort(std::begin(parent_codes), std::end(parent_codes));
 
-    int32_t subword_as_int = iter.first;
+    int32_t subword_as_int = iter.first + 1;
     ontology_writer.add_int(-subword_as_int, (const char*)parent_codes.data(),
                             parent_codes.size() * sizeof(uint32_t));
   }
@@ -981,12 +979,11 @@ void merge_intermediates(
     std::string source_folder,
     std::string gem_location,
     const std::vector<std::string>& files,
-                         const std::string& target) {
+                         const std::string& target,
+                         const ConceptTable& concepts) {
   GEMMapper gem(gem_location);
 
   std::cout << absl::Substitute("Processing the concept table\n");
-
-  ConceptTable concepts = construct_concept_table(source_folder);
 
   std::cout << absl::Substitute("Starting to merge results\n");
   std::vector<ExtractReader> readers;
@@ -1210,9 +1207,12 @@ void perform_omop_extraction(std::string omop_source_dir, std::string umls_dir, 
 
   std::string target = absl::Substitute("$0/extract.db", target_directory);
 
-  merge_intermediates(omop_source_dir, gem_dir, files, target);
+  
+  ConceptTable table = construct_concept_table_csv(omop_source_dir);
+
+  merge_intermediates(omop_source_dir, gem_dir, files, target, table);
   create_index(target_directory);
-  create_ontology(target_directory, umls_dir, omop_source_dir);
+  create_ontology(target_directory, umls_dir, omop_source_dir, table);
 }
 
 

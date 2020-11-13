@@ -17,7 +17,7 @@ patient2vec_debug_model = 'ehr_ml.patient2vec:debug_model'
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "^1.19.1"
+numpy = "1.19.1"
 scipy = "^1.5.2"
 scikit-learn = "^0.23.2"
 

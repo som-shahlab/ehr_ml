@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="ontology.html">ehr_ml.ontology</a></li>
 <li class="toctree-l1"><a class="reference internal" href="m-index.html">ehr_ml.index</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">ehr_ml.clmbr</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#additional-dependencies">Additional Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#language-model-training">Language Model Training</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#language-model-feature-extraction">Language Model Feature Extraction</a></li>
 </ul>
@@ -168,6 +169,16 @@
 <h1>ehr_ml.clmbr<a class="headerlink" href="#ehr-ml-clmbr" title="Permalink to this headline">¶</a></h1>
 <p><code class="xref py py-mod docutils literal notranslate"><span class="pre">ehr_ml.clmbr</span></code> is an implementation of the CLMBR representation learning algorithm (see <a class="reference external" href="https://arxiv.org/abs/2001.05295">https://arxiv.org/abs/2001.05295</a>).
 It consists of components for both training a language model and extraction representations from that language model.</p>
+<div class="section" id="additional-dependencies">
+<h2>Additional Dependencies<a class="headerlink" href="#additional-dependencies" title="Permalink to this headline">¶</a></h2>
+<p>CLMBR requires additional dependencies that are not needed for the rest of ehr_ml. In particular, it requires both pytorch and <a class="reference external" href="https://github.com/Lalaland/embedding_dot">https://github.com/Lalaland/embedding_dot</a>.</p>
+<p><a class="reference external" href="https://github.com/Lalaland/embedding_dot">https://github.com/Lalaland/embedding_dot</a> can be installed through the following commands:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/Lalaland/embedding_dot</span>
+<span class="go">cd embedding_dot</span>
+<span class="go">pip install -e .</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="language-model-training">
 <h2>Language Model Training<a class="headerlink" href="#language-model-training" title="Permalink to this headline">¶</a></h2>
 <p>There are two programs contained within ehr_ml that are necessary for training a CLMBR language model.</p>
@@ -181,10 +192,11 @@ Everything past the val_end_date is assumed to be the test set and is not touche
 <dl class="simple">
 <dt>clmbr_create_info takes the following parameters:</dt><dd><ul class="simple">
 <li><p>extract_dir: The extract directory</p></li>
+<li><p>save_dir: The name of the output directory</p></li>
 <li><p>train_end_date: The end date of the train split</p></li>
 <li><p>val_end_date: The end date of the validation split</p></li>
 <li><p>min_patient_count: The minimum patient count for each feature</p></li>
-<li><p>save_dir: The name of the output directory</p></li>
+<li><p>banned_patient_file: A file containing a list of patient ids to exclude from the model</p></li>
 </ul>
 </dd>
 </dl>
@@ -216,7 +228,7 @@ Please see our paper for the fine details on these hyperameters. We recommend le
 <p>The function featurize_patients provides code that performs this tasks</p>
 <dl class="py function">
 <dt id="ehr_ml.clmbr.featurize_patients">
-<code class="sig-prename descclassname">ehr_ml.clmbr.</code><code class="sig-name descname">featurize_patients</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">l</span><span class="p">:</span> <span class="n">labeler.SavedLabeler</span></em><span class="sig-paren">)</span> &#x2192; np.array<a class="headerlink" href="#ehr_ml.clmbr.featurize_patients" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">ehr_ml.clmbr.</code><code class="sig-name descname">featurize_patients</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">extract_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">l</span><span class="p">:</span> <span class="n">labeler.SavedLabeler</span></em><span class="sig-paren">)</span> &#x2192; np.array<a class="headerlink" href="#ehr_ml.clmbr.featurize_patients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Featurize patients using the given model and labeler.
 The result is a numpy array aligned with l.get_labeler_data().
 This function will use the GPU if it is available.</p>
