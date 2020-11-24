@@ -33,9 +33,9 @@ cmake_external(
 
     cache_entries = {
         "CMAKE_POSITION_INDEPENDENT_CODE": "on",
+        "CMAKE_INSTALL_LIBDIR": "lib",
     },
 
-    out_lib_dir = "lib64",
 
     static_libraries = ["libsnappy.a"],
 )
@@ -46,6 +46,7 @@ cmake_external(
 
     cache_entries = {
         "CMAKE_POSITION_INDEPENDENT_CODE": "on",
+        "CMAKE_INSTALL_LIBDIR": "lib",
     },
 
     static_libraries = ["libjansson.a"],
@@ -55,8 +56,6 @@ cmake_external(
     name = "avro",
     lib_source = "@source_avro//:all",
     working_directory = "lang/c",
-
-    out_lib_dir = "lib64",
 
     cache_entries = {
         "ZLIB_LIBRARY": "$EXT_BUILD_DEPS/zlib_ng/lib/libz.so",
@@ -70,6 +69,7 @@ cmake_external(
         "JANSSON_FOUND": "on",
         "CMAKE_SKIP_INSTALL_ALL_DEPENDENCY": "on",
         "CMAKE_POSITION_INDEPENDENT_CODE": "on",
+        "CMAKE_INSTALL_LIBDIR": "lib",
     },
 
     deps = [
