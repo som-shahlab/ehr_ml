@@ -5,9 +5,9 @@
 
 #include "blockingconcurrentqueue.h"
 #include "civil_day_caster.h"
+#include "flatmap.h"
 #include "pybind11/pybind11.h"
 #include "reader.h"
-#include "flatmap.h"
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "absl/container/flat_hash_map.h"

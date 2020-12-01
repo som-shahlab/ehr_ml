@@ -185,8 +185,10 @@ class StandardConceptTableConverter : public Converter {
 };
 
 class VisitConverter : public Converter {
- public:
-    std::string_view get_file_prefix() const override { return "visit_occurrence0"; }
+   public:
+    std::string_view get_file_prefix() const override {
+        return "visit_occurrence0";
+    }
 
     std::vector<std::string_view> get_columns() const {
         return {"visit_start_DATE", "visit_concept_id", "visit_end_DATE"};
@@ -202,7 +204,7 @@ class VisitConverter : public Converter {
 
         auto start_day = get_date(row[0]);
         auto end_day = get_date(row[2]);
-        
+
         int days = end_day - start_day;
 
         ObservationWithValue obs;

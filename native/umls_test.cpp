@@ -4,11 +4,8 @@
 #include "gtest/gtest.h"
 
 class UMLSTest : public ::testing::Test {
-    
    public:
-    UMLSTest() : umls("/labs/shahlab/projects/ethanid/2019AB/META") {
-
-    }
+    UMLSTest() : umls("/labs/shahlab/projects/ethanid/2019AB/META") {}
     UMLS umls;
 };
 
@@ -30,7 +27,8 @@ TEST_F(UMLSTest, GetAui) {
 //         std::cout<<"Got parent " << a << std::endl;
 //         auto details = *umls.get_code(a);
 
-//         std::cout<<"What " << details.first << " " << details.second << std::endl;
+//         std::cout<<"What " << details.first << " " << details.second <<
+//         std::endl;
 //     }
 
 // }

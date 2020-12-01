@@ -16,8 +16,7 @@ class GEMMapper {
     }
 
     void helper(
-        std::string_view gem_location,
-        std::string_view path,
+        std::string_view gem_location, std::string_view path,
         absl::flat_hash_map<std::string, std::vector<std::string>>& target,
         bool diag) {
         std::string full_filename =

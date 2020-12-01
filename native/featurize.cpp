@@ -41,13 +41,11 @@ int main() {
     uint32_t death_code =
         *extract.get_dictionary().map("Death Type/OMOP4822053");
 
-        
-    uint32_t visit_code =
-        *extract.get_dictionary().map("Visit/IP");
+    uint32_t visit_code = *extract.get_dictionary().map("Visit/IP");
 
     std::cout << "Got death code " << death_code << std::endl;
 
-      for (uint32_t patient_id : extract.get_patient_ids()) {
+    for (uint32_t patient_id : extract.get_patient_ids()) {
         code_counts.clear();
         bool found = iterator.process_patient(
             patient_id, [&](absl::CivilDay birth_date, uint32_t age,
@@ -70,7 +68,6 @@ int main() {
             abort();
         }
     }
-
 
     uint32_t processed = 0;
     for (uint32_t patient_id : extract.get_patient_ids()) {
@@ -129,8 +126,6 @@ int main() {
                             const std::vector<uint32_t>& observations,
                             const std::vector<ObservationWithValue>&
                                 observations_with_values) {
-
-
                 bool has_visit = false;
 
                 for (const auto& obs_with_val : observations_with_values) {
@@ -166,7 +161,8 @@ int main() {
                             next_index++;
 
                             if (reverse_mapper.size() != *index) {
-                                std::cout<<"What? " << reverse_mapper.size() << " " << *index << std::endl;
+                                std::cout << "What? " << reverse_mapper.size()
+                                          << " " << *index << std::endl;
                                 abort();
                             }
 
@@ -196,14 +192,16 @@ int main() {
     }
 
     std::cout << "Saving" << std::endl;
-    std::cout<<"Num codes" << reverse_mapper.size() << std::endl;
+    std::cout << "Num codes" << reverse_mapper.size() << std::endl;
 
     auto write_vec = [](std::string filename, const auto& vec) {
         unsigned long shape[] = {vec.size()};
-        npy::SaveArrayAsNumpy("/share/pi/nigam/ethanid/ehr_ml/r01/data/" + filename + ".npy", false, 1, shape, vec);
+        npy::SaveArrayAsNumpy(
+            "/share/pi/nigam/ethanid/ehr_ml/r01/data/" + filename + ".npy",
+            false, 1, shape, vec);
     };
 
-    std::cout<<"Number of labels " << result_labels.size() << std::endl; 
+    std::cout << "Number of labels " << result_labels.size() << std::endl;
 
     write_vec("data", data);
     write_vec("indices", indices);
@@ -213,5 +211,4 @@ int main() {
     write_vec("patient_day_indices", patient_day_indices);
     write_vec("years", years);
     write_vec("reverse_mapper", reverse_mapper);
-
 }

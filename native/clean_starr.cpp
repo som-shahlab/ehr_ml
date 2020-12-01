@@ -18,11 +18,19 @@ std::vector<std::string> normalize(
     uint32_t concept_id;
     attempt_parse_or_die(input_code, concept_id);
 
-    std::set<std::string> good_items = {"LOINC",  "ICD10CM", "CPT4",
-                                        "Gender", "HCPCS",   "Ethnicity",
-                                        "Race",   "ICD10PCS", "Condition Type", "Visit", "CMS Place of Service"};
-    std::set<std::string> bad_items = {"SNOMED", "NDC",   "ICD10CN",
-                                       "ICD10", "ICD9ProcCN"};
+    std::set<std::string> good_items = {"LOINC",
+                                        "ICD10CM",
+                                        "CPT4",
+                                        "Gender",
+                                        "HCPCS",
+                                        "Ethnicity",
+                                        "Race",
+                                        "ICD10PCS",
+                                        "Condition Type",
+                                        "Visit",
+                                        "CMS Place of Service"};
+    std::set<std::string> bad_items = {"SNOMED", "NDC", "ICD10CN", "ICD10",
+                                       "ICD9ProcCN"};
 
     std::vector<uint32_t> results;
 
@@ -91,7 +99,8 @@ std::vector<std::string> normalize(
     } else if (bad_items.find(info.vocabulary_id) != std::end(bad_items)) {
         return {};
     } else {
-        std::cout << "Could not handle '" << info.vocabulary_id << "' '" << input_code << "'" << std::endl;
+        std::cout << "Could not handle '" << info.vocabulary_id << "' '"
+                  << input_code << "'" << std::endl;
         abort();
         // results.push_back(concept_id);
     }
@@ -102,17 +111,17 @@ std::vector<std::string> normalize(
         ConceptInfo result_info = table.get_info(result);
 
         if (result_info.vocabulary_id == "Condition Type") {
-            std::string final = absl::Substitute("$0/$1", result_info.concept_class_id,
-                                                        result_info.concept_code);
+            std::string final =
+                absl::Substitute("$0/$1", result_info.concept_class_id,
+                                 result_info.concept_code);
 
             final_results.push_back(final);
         } else {
-            std::string final = absl::Substitute("$0/$1", result_info.vocabulary_id,
-                                                        result_info.concept_code);
+            std::string final = absl::Substitute(
+                "$0/$1", result_info.vocabulary_id, result_info.concept_code);
 
             final_results.push_back(final);
         }
-
     }
 
     return final_results;
