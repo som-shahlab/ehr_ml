@@ -14,14 +14,13 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
 #include "atomicops.h"
-#include "lzma_utils.h"
 #include "parse_utils.h"
 #include "readerwriterqueue.h"
 #include "writer.h"
+#include "csv.h"
 
 const char* location =
-    "/labs/shahlab/datasets/truven_optum/optum/v7.1/raw/Optum_714222018/"
-    "zip5_newdata";
+    "/local-scratch/nigam/secure/optum/optum_v8_raw/zip5/";
 
 struct RawPatientRecord {
     uint64_t person_id;
@@ -89,7 +88,7 @@ class ClaimItemConverter : public Converter {
     std::string_view get_file() const { return filename; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"Patid", "Clmid", code_field, "Icd_Flag"};
+        return {"PATID", "CLMID", code_field, "ICD_FLAG"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
@@ -121,39 +120,6 @@ class ClaimItemConverter : public Converter {
     std::string category;
 };
 
-class FacilityDetailConverter : public Converter {
-   public:
-    FacilityDetailConverter(std::string f) : filename(f) {}
-
-    std::string_view get_file() const { return filename; }
-
-    std::vector<std::string_view> get_columns() const {
-        return {"Patid", "Proc_Cd", "Fst_Dt"};
-    }
-
-    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
-                     const std::vector<std::string_view>& row) const {
-        std::string_view date_str;
-        if (row[2] != "") {
-            date_str = row[2];
-        } else {
-            std::cout << "Got a facility detail with no valid date? "
-                      << filename << " " << row[0] << std::endl;
-            abort();
-        }
-
-        auto day = parse_date(date_str);
-        if (row[1] != "" && row[1] != "00000") {
-            uint32_t code = meta.dictionary.map_or_add(
-                absl::Substitute("MainProc/$0", row[1]));
-            patient_record.observations.push_back(std::make_pair(day, code));
-        }
-    }
-
-   private:
-    std::string filename;
-};
-
 class ClaimConverter : public Converter {
    public:
     ClaimConverter(std::string f) : filename(f) {}
@@ -161,7 +127,7 @@ class ClaimConverter : public Converter {
     std::string_view get_file() const { return filename; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"Patid", "Fst_Dt", "Clmid", "Ndc", "Proc_Cd", "Drg"};
+        return {"PATID", "FST_DT", "CLMID", "NDC", "PROC_CD", "DRG"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
@@ -179,7 +145,7 @@ class ClaimConverter : public Converter {
         auto claim_id = extract_claim_id(row[2]);
         patient_record.claims.push_back(std::make_pair(claim_id, day));
 
-        if (row[3] != "" && row[3] != "1" && row[3] != "UNK" && row[3] != "0") {
+        if (row[3] != "" && row[3] != "1" && row[3] != "UNK" && row[3] != "0" && row[3] != "NONE") {
             uint32_t drug =
                 meta.dictionary.map_or_add(absl::Substitute("Drug/$0", row[3]));
             patient_record.observations.push_back(std::make_pair(day, drug));
@@ -204,10 +170,10 @@ class ClaimConverter : public Converter {
 
 class DetailMemberConverter : public Converter {
    public:
-    std::string_view get_file() const { return "zip5_mbr_detail.csv.xz"; }
+    std::string_view get_file() const { return "zip5_mbr_enroll.txt.gz"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"Patid", "Eligeff", "Product", "Zipcode_5", "Yrdob", "Gdr_Cd"};
+        return {"PATID", "ELIGEFF", "PRODUCT", "ZIPCODE_5", "YRDOB", "GDR_CD"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
@@ -245,7 +211,7 @@ class RxConverter : public Converter {
     std::string_view get_file() const { return filename; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"Patid", "Fill_Dt", "Ndc"};
+        return {"PATID", "FILL_DT", "NDC"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
@@ -272,7 +238,7 @@ class LabConverter : public Converter {
     std::string_view get_file() const { return filename; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"Patid", "Fst_Dt", "Loinc_Cd", "Rslt_Nbr", "Rslt_Txt"};
+        return {"PATID", "FST_DT", "LOINC_CD", "RSLT_NBR", "RSLT_TXT"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
@@ -370,7 +336,7 @@ void run_converter(C converter, Queue& queue) {
     RawPatientRecord current_record;
     current_record.person_id = 0;
 
-    parse_xz_csv(full_filename, converter.get_columns(), [&](const auto& row) {
+    csv_iterator(full_filename.c_str(), converter.get_columns(), '|', {}, true, [&](const auto& row) {
         num_rows++;
 
         if (num_rows % 100000000 == 0) {
@@ -771,7 +737,7 @@ std::vector<std::string> glob(const std::string& pattern) {
 
 int main() {
     std::string root_directory =
-        "/labs/shahlab/projects/ethanid/ehr_ml/native/optumFinal";
+        "/share/pi/nigam/secure/optum/ehr_ml/optum_v2";
 
     int error = mkdir(root_directory.c_str(), 0700);
 
@@ -810,13 +776,10 @@ int main() {
         add(ClaimConverter(f));
     }
     for (const auto& f : globhelper("zip5_diag20*")) {
-        add(ClaimItemConverter(f, "Diag", "Diag"));
+        add(ClaimItemConverter(f, "DIAG", "Diag"));
     }
     for (const auto& f : globhelper("zip5_proc20*")) {
-        add(ClaimItemConverter(f, "Proc", "Proc"));
-    }
-    for (const auto& f : globhelper("zip5_fd20*")) {
-        add(FacilityDetailConverter(f));
+        add(ClaimItemConverter(f, "PROC", "Proc"));
     }
     for (const auto& f : globhelper("zip5_lr20*")) {
         add(LabConverter(f));

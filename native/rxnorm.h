@@ -8,7 +8,7 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/substitute.h"
 
-const char* rxnorm_path = "/labs/shahlab/projects/ethanid/rxnorm/rrf";
+const char* rxnorm_path = "/share/pi/nigam/ethanid/rxnorm/rrf";
 
 template <typename F>
 void rxnorm_util(std::string_view name, F f) {

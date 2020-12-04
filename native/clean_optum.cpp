@@ -156,9 +156,9 @@ class Cleaner {
 
             absl::flat_hash_map<std::string, uint32_t> lost_counts;
 
-            UMLS umls;
+            UMLS umls("/share/pi/nigam/ethanid/UMLS");
             RxNorm rxnorm;
-            GEMMapper gem;
+            GEMMapper gem("/share/pi/nigam/ethanid/ICDGEM");
 
             uint32_t total_lost = 0;
 
@@ -310,7 +310,7 @@ int main() {
     std::cout << "Hello world" << std::endl;
 
     std::string_view path =
-        "/labs/shahlab/projects/ethanid/ehr_ml/native/optumTest";
+       "/share/pi/nigam/secure/optum/ehr_ml/optum_v1";
 
     std::string write_path = absl::Substitute("$0/$1", path, "clean");
     std::string read_path = absl::Substitute("$0/$1", path, "temp");

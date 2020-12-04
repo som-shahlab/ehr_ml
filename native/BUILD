@@ -4,6 +4,10 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 configure_make(
     name = "lzma",
 
+    configure_env_vars = {
+        "CFLAGS": "$CFLAGS -fPIC"
+    },
+
     static_libraries = ["liblzma.a"],
     lib_source = "@source_xz//:all",
 )
@@ -58,12 +62,12 @@ cmake_external(
     working_directory = "lang/c",
 
     cache_entries = {
-        "ZLIB_LIBRARY": "$EXT_BUILD_DEPS/zlib_ng/lib/libz.so",
+        "ZLIB_LIBRARY": "$EXT_BUILD_DEPS/zlib_ng/lib/libz.a",
         "ZLIB_INCLUDE_DIR": "$EXT_BUILD_DEPS/zlib_ng/include",
         "SNAPPY_INCLUDE_DIRS": "$EXT_BUILD_DEPS/snappy/include",
-        "SNAPPY_LIBRARIES": "$EXT_BUILD_DEPS/snappy/lib/libsnappy.so",
+        "SNAPPY_LIBRARIES": "$EXT_BUILD_DEPS/snappy/lib/libsnappy.a",
         "LZMA_INCLUDE_DIRS": "$EXT_BUILD_DEPS/lzma/include",
-        "LZMA_LIBRARIES": "$EXT_BUILD_DEPS/lzma/lib/liblzma.so",
+        "LZMA_LIBRARIES": "$EXT_BUILD_DEPS/lzma/lib/liblzma.a",
         "JANSSON_INCLUDE_DIRS": "$EXT_BUILD_DEPS/jansson/include",
         "JANSSON_LIBRARIES": "$EXT_BUILD_DEPS/jansson/lib/libjansson.a",
         "JANSSON_FOUND": "on",
@@ -363,7 +367,7 @@ cc_binary(
         "extract_optum.cpp"
     ],
     deps = [
-        ":lzma_utils",    
+        ":csv",    
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
         ":writer",

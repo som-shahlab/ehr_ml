@@ -6,11 +6,11 @@
 
 int main() {
     boost::filesystem::path root(
-        "/share/pi/nigam/ethanid/starr_omop_cdm5_latest_extract");
+        "/share/pi/nigam/secure/optum/ehr_ml/optum_v1");
 
-    boost::filesystem::path final_extract = root / "final" / "extract.db";
+    boost::filesystem::path final_extract = root / "extract.db";
 
-    boost::filesystem::path final_index = root / "final" / "index.db";
+    boost::filesystem::path final_index = root / "index.db";
 
     ExtractReader extract(final_extract.c_str(), true);
     ExtractReaderIterator iterator = extract.iter();

@@ -109,7 +109,7 @@ std::vector<uint32_t> compute_zip_subwords(
 
 int main() {
     std::string root_path =
-        "/labs/shahlab/projects/ethanid/ehr_ml/native/optumTest/clean";
+        "/share/pi/nigam/secure/optum/ehr_ml/optum_v1/clean";
 
     ExtractReader extract(root_path.c_str(), false);
 
@@ -117,7 +117,7 @@ int main() {
 
     auto words = dictionary.decompose();
 
-    UMLS umls;
+    UMLS umls("/share/pi/nigam/ethanid/UMLS");
 
     TermDictionary ontology_dictionary;
 
