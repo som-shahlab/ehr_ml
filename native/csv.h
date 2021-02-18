@@ -23,10 +23,6 @@ inline void line_iter(const char* line, char delimiter, bool quotes, F f) {
             field_length++;
             if (next_char == '"') {
                 in_quotes = false;
-            } else if (next_char == '\\') {
-                // Escaping something;
-                iter++;
-                field_length++;
             }
         } else {
             if (next_char == '\n') {
@@ -58,7 +54,7 @@ inline void line_iter(const char* line, char delimiter, F f) {
 template <typename F>
 inline void csv_iterator(const char* filename,
                          std::vector<std::string_view> columns, char delimiter,
-                         std::optional<int> limit, bool quotes, F f) {
+                         std::optional<int> limit, bool quotes, bool case_sensitive, F f) {
     gzFile file = gzopen(filename, "r");
     if (file == nullptr) {
         std::cout << absl::Substitute("Could not open $0 due to $1", filename,
@@ -90,7 +86,14 @@ inline void csv_iterator(const char* filename,
     for (size_t i = 0; i < columns.size(); i++) {
         bool found = false;
         for (size_t index = 0; index < all_columns.size(); index++) {
-            if (all_columns[index] == columns[i]) {
+            bool is_same;
+            if (case_sensitive) {
+                is_same = all_columns[index] == columns[i];
+            } else {
+                is_same = absl::EqualsIgnoreCase(all_columns[index], columns[i]);
+            }
+
+            if (is_same) {
                 index_map[index] = i;
                 found = true;
             }
@@ -121,7 +124,7 @@ inline void csv_iterator(const char* filename,
         }
 
         line_iter(
-            first_line, delimiter, quotes,
+            next_line, delimiter, quotes,
             [&index_map, &output_columns](int index, std::string_view column) {
                 int desired_index = index_map[index];
                 if (desired_index != -1) {
@@ -131,6 +134,8 @@ inline void csv_iterator(const char* filename,
 
         f(output_columns);
     }
+
+    gzclose(file);
 }
 
 template <typename F>

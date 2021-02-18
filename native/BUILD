@@ -1,17 +1,6 @@
 load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
 load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
-configure_make(
-    name = "lzma",
-
-    configure_env_vars = {
-        "CFLAGS": "$CFLAGS -fPIC"
-    },
-
-    static_libraries = ["liblzma.a"],
-    lib_source = "@source_xz//:all",
-)
-
 cmake_external(
     name = "zlib_ng",
     # Values to be passed as -Dkey=value on the CMake command line;
@@ -19,6 +8,7 @@ cmake_external(
     cache_entries = {
         "WITH_NATIVE_INSTRUCTIONS": "on",
         "WITH_GZFILEOP": "on",
+        "WITH_SSE4": "off",
         "ZLIB_COMPAT": "on",
         "CMAKE_POSITION_INDEPENDENT_CODE": "on",
     },
@@ -31,66 +21,6 @@ cmake_external(
    static_libraries = ["libz.a"],
 )
 
-cmake_external(
-    name = "snappy",
-    lib_source = "@source_snappy//:all",
-
-    cache_entries = {
-        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
-        "CMAKE_INSTALL_LIBDIR": "lib",
-    },
-
-
-    static_libraries = ["libsnappy.a"],
-)
-
-cmake_external(
-    name = "jansson",
-    lib_source = "@source_jansson//:all",
-
-    cache_entries = {
-        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
-        "CMAKE_INSTALL_LIBDIR": "lib",
-    },
-
-    static_libraries = ["libjansson.a"],
-)
-
-cmake_external(
-    name = "avro",
-    lib_source = "@source_avro//:all",
-    working_directory = "lang/c",
-
-    cache_entries = {
-        "ZLIB_LIBRARY": "$EXT_BUILD_DEPS/zlib_ng/lib/libz.a",
-        "ZLIB_INCLUDE_DIR": "$EXT_BUILD_DEPS/zlib_ng/include",
-        "SNAPPY_INCLUDE_DIRS": "$EXT_BUILD_DEPS/snappy/include",
-        "SNAPPY_LIBRARIES": "$EXT_BUILD_DEPS/snappy/lib/libsnappy.a",
-        "LZMA_INCLUDE_DIRS": "$EXT_BUILD_DEPS/lzma/include",
-        "LZMA_LIBRARIES": "$EXT_BUILD_DEPS/lzma/lib/liblzma.a",
-        "JANSSON_INCLUDE_DIRS": "$EXT_BUILD_DEPS/jansson/include",
-        "JANSSON_LIBRARIES": "$EXT_BUILD_DEPS/jansson/lib/libjansson.a",
-        "JANSSON_FOUND": "on",
-        "CMAKE_SKIP_INSTALL_ALL_DEPENDENCY": "on",
-        "CMAKE_POSITION_INDEPENDENT_CODE": "on",
-        "CMAKE_INSTALL_LIBDIR": "lib",
-    },
-
-    deps = [
-        ":zlib_ng",
-        ":snappy",
-        ":lzma",
-        ":jansson",
-    ],
-
-    # We are selecting the resulting static library to be passed in C/C++ provider
-    # as the result of the build;
-    # However, the cmake_external dependants could use other artefacts provided by the build,
-    # according to their CMake script
-    static_libraries = ["libavro.a"],
-    binaries = ["avrocat"],
-)
-
 cc_library(
     name = "flatmap",
     hdrs = ["flatmap.h"],
@@ -98,37 +28,17 @@ cc_library(
 )
 
 cc_library(
-    name = "avro_utils",
-    hdrs = ["avro_utils.h"],
-    deps = [
-        ":avro", 
-        "@boost//:filesystem",
-        "@com_google_absl//absl/time",
-    ]
-)
-
-cc_binary(
-    name="sort_avro",
+    name="sort_csv",
     srcs = [
-        "sort_avro.cpp",
+        "sort_csv.cpp",
     ],
+    hdrs = ["sort_csv.h"],
     deps = [
-        ":avro",
+        ":csv",
         "@boost//:filesystem",
         "@concurrentqueue",
     ],
     linkopts = [ "-lpthread" ]
-)
-
-cc_library (
-    name="lzma_utils",
-    hdrs = [
-        "lzma_utils.h",
-    ],
-    deps = [
-        ":lzma",
-        "@com_google_absl//absl/strings",
-    ],
 )
 
 cc_library (
@@ -220,7 +130,6 @@ cc_library (
     deps = [
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
-        ":avro_utils",
         "@boost//:filesystem",
         ":parse_utils",
     ],
@@ -250,6 +159,7 @@ cc_library (
     deps = [
         ":constdb",
         ":reader",
+        "@readerwriterqueue",
     ],
 )
 
@@ -306,59 +216,6 @@ cc_binary(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
     ],
-)
-
-cc_binary(
-    name="ontology_starr",
-    srcs=[
-        "ontology_starr.cpp"
-    ],
-    deps = [
-        ":csv",
-        ":constdb",
-        ":reader",
-        ":concept",
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/strings",
-        "@boost//:filesystem",
-        ":umls",
-    ],
-)
-
-cc_binary(
-    name="extract_starr",
-    srcs=[
-        "extract_starr.cpp"
-    ],
-    deps = [  
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/strings",
-        ":writer",
-        ":parse_utils",
-        "@readerwriterqueue",
-        ":avro_utils",
-        "@boost//:filesystem",
-    ]
-)
-
-
-cc_binary(
-    name="clean_starr",
-    srcs=[
-        "clean_starr.cpp"
-    ],
-    deps = [  
-        "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/strings",
-        ":writer",
-        ":parse_utils",
-        ":avro_utils",
-        "@boost//:filesystem",
-        ":concept",
-        ":gem",
-        ":rxnorm",
-        ":umls",
-    ]
 )
 
 cc_binary(
@@ -471,6 +328,7 @@ cc_binary(
         ":python",
         "@pybind11",
         ":reader",
+        ":writer",
         ":numpy",
         "@concurrentqueue",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -480,6 +338,7 @@ cc_binary(
         ":gem",
         ":umls",
         ":csv",
+        ":sort_csv",
     ],
     linkstatic=1, 
     linkshared=1

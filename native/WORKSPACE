@@ -164,45 +164,9 @@ all_content = """filegroup(name = "all", srcs = glob(["**"]), visibility = ["//v
 http_archive(
     name = "source_zlib_ng",
     build_file_content = all_content,
-    strip_prefix = "zlib-ng-380b859ce4eb4298687e9f0c40e0750c3e1c723c",
-    urls = ["https://github.com/zlib-ng/zlib-ng/archive/380b859ce4eb4298687e9f0c40e0750c3e1c723c.zip"],
-    sha256 = "e4951beace641c47579dd8617d2b989705840f22110b8fb36ad83b1a1250b295",
-)
-
-# lzma source code repository
-http_archive(
-    name = "source_xz",
-    build_file_content = all_content,
-    strip_prefix = "xz-5.2.5",
-    urls = ["https://tukaani.org/xz/xz-5.2.5.tar.gz"],
-    sha256 = "f6f4910fd033078738bd82bfba4f49219d03b17eb0794eb91efbae419f4aba10",
-)
-
-# avro source code repository
-http_archive(
-    name = "source_avro",
-    build_file_content = all_content,
-    strip_prefix = "avro-release-1.10.0",
-    urls = ["https://github.com/apache/avro/archive/release-1.10.0.tar.gz"],
-    sha256 = "50ceefe582193ef8a92a8891bac1520df778f5c260f2ba68f4c9ae41417e3777",
-)
-
-# snappy source code repository
-http_archive(
-    name = "source_snappy",
-    build_file_content = all_content,
-    strip_prefix = "snappy-1.1.8",
-    url = "https://github.com/google/snappy/archive/1.1.8.tar.gz",
-    sha256 = "16b677f07832a612b0836178db7f374e414f94657c138e6993cbfc5dcc58651f",
-)
-
-# jansson source code repository
-http_archive(
-    name = "source_jansson",
-    build_file_content = all_content,
-    strip_prefix = "jansson-2.13.1",
-    url = "https://github.com/akheron/jansson/archive/v2.13.1.tar.gz",
-    sha256 = "f22901582138e3203959c9257cf83eba9929ac41d7be4a42557213a22ebcc7a0",
+    strip_prefix = "zlib-ng-7606b9f39a2c7701a30d06a786fb2a99334b1feb",
+    urls = ["https://github.com/zlib-ng/zlib-ng/archive/7606b9f39a2c7701a30d06a786fb2a99334b1feb.zip"],
+    sha256 = "e4e77c332959a9c6e61943696adade98ffaa64f8ee53db8e2aaba55561a2d8c5",
 )
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")

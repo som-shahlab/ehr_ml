@@ -7,9 +7,6 @@
 
 namespace py = pybind11;
 
-#include <dirent.h>
-#include <sys/stat.h>
-
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -28,6 +25,8 @@ namespace py = pybind11;
 #include "gem.h"
 #include "reader.h"
 #include "umls.h"
+#include "writer.h"
+#include "sort_csv.h"
 
 std::vector<std::string> map_terminology_type(std::string_view terminology) {
     if (terminology == "CPT4") {
@@ -197,7 +196,7 @@ void create_ontology(std::string_view root_path, std::string umls_path,
         const auto& word = entries[i].first;
         std::vector<uint32_t> subwords = {};
 
-        std::vector<absl::string_view> parts = absl::StrSplit(word, '/');
+        std::vector<std::string_view> parts = absl::StrSplit(word, '/');
 
         if (parts.size() != 2) {
             std::cout << "Got weird vocab string " << word << std::endl;
@@ -368,55 +367,25 @@ void create_index(std::string_view root_path) {
     }
 }
 
-struct PatientInfo {
-    PatientInfo(uint64_t p_id, uint32_t i, absl::CivilDay b)
-        : person_id(p_id), index(i), birth_date(b) {}
-
+struct RawPatientRecord {
     uint64_t person_id;
-    uint32_t index;
-    absl::CivilDay birth_date;
+    std::optional<absl::CivilDay> birth_date;
+    std::vector<std::pair<absl::CivilDay, uint32_t>> observations;
+    std::vector<std::pair<absl::CivilDay, std::pair<uint32_t, uint32_t>>>
+        observations_with_values;
 };
 
-absl::flat_hash_map<uint64_t, PatientInfo> get_patient_data(
-    std::string location) {
-    std::string person_file =
-        absl::Substitute("$0/$1", location, "person.csv.gz");
-
-    std::vector<std::string_view> columns = {"person_id", "year_of_birth"};
-
-    absl::flat_hash_map<uint64_t, PatientInfo> result;
-
-    int i = 0;
-
-    csv_iterator(person_file.c_str(), columns, '\t', {}, true,
-                 [&i, &result](const auto& row) {
-                     int64_t person_id;
-                     int year_of_birth;
-                     attempt_parse_or_die(row[0], person_id);
-                     attempt_parse_or_die(row[1], year_of_birth);
-
-                     absl::CivilDay birth_date(year_of_birth, 1, 1);
-
-                     result.insert(std::make_pair(
-                         person_id, PatientInfo(person_id, i++, birth_date)));
-                 });
-
-    return result;
-}
-
-class PatientRecord {
-   public:
-    uint32_t index;
-    uint64_t person_id;
-    absl::CivilDay birth_date;
-    std::vector<std::pair<uint32_t, uint32_t>> observations;
-    std::vector<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>>
-        observationsWithValues;
-};
+using QueueItem = std::variant<RawPatientRecord, Metadata>;
+using Queue = BlockingQueue<QueueItem>;
 
 absl::CivilDay parse_date(std::string_view datestr) {
     std::string_view time_column = datestr;
-    auto location = time_column.find('T');
+    auto location = time_column.find(' ');
+    if (location != std::string_view::npos) {
+        time_column = time_column.substr(0, location);
+    }
+
+    location = time_column.find('T');
     if (location != std::string_view::npos) {
         time_column = time_column.substr(0, location);
     }
@@ -439,134 +408,169 @@ absl::CivilDay parse_date(std::string_view datestr) {
 
 class Converter {
    public:
-    std::string_view get_file() const;
+    std::string_view get_file_prefix() const;
     std::vector<std::string_view> get_columns() const;
 
-    absl::CivilDay get_date(absl::CivilDay birth_date,
-                            const std::vector<std::string_view>& row) const {
-        return parse_date(row[1]);
-    }
-
-    void augment_day(TermDictionary& dictionary,
-                     TermDictionary& value_dictionary,
-                     PatientRecord& patient_record, uint32_t day_index,
+    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const;
 };
 
+template <typename C>
+void run_converter(C converter, Queue& queue, boost::filesystem::path file) {
+    Metadata meta;
+
+    size_t num_rows = 0;
+
+    RawPatientRecord current_record;
+    current_record.person_id = 0;
+
+    std::vector<std::string_view> columns = converter.get_columns();
+    columns.push_back("person_id");
+
+    csv_iterator(
+        file.c_str(), columns, ',', {}, true, false, [&](const auto& row) {
+            num_rows++;
+
+            if (num_rows % 100000000 == 0) {
+                std::cout << absl::Substitute("Processed $0 rows for $1\n",
+                                              num_rows, file.string());
+            }
+
+            uint64_t person_id;
+            attempt_parse_or_die(row[columns.size() - 1], person_id);
+
+            if (person_id != current_record.person_id) {
+                if (current_record.person_id) {
+                    queue.wait_enqueue({std::move(current_record)});
+                }
+
+                current_record = {};
+                current_record.person_id = person_id;
+            }
+
+            converter.augment_day(meta, current_record, row);
+        });
+
+    if (current_record.person_id) {
+        queue.wait_enqueue({std::move(current_record)});
+    }
+
+    std::cout << absl::Substitute("Done working on $0\n", file.string());
+
+    queue.wait_enqueue({std::move(meta)});
+}
+
 class DemographicsConverter : public Converter {
    public:
-    std::string_view get_file() const { return "person.csv.gz"; }
+    std::string_view get_file_prefix() const { return "person"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"person_id", "gender_concept_id", "race_concept_id",
-                "ethnicity_concept_id"};
+        return {"birth_DATETIME", "gender_source_concept_id",
+                "ethnicity_source_concept_id", "race_source_concept_id"};
     }
 
-    absl::CivilDay get_date(absl::CivilDay birth_date,
-                            const std::vector<std::string_view>& row) const {
-        return birth_date;
-    }
-
-    void augment_day(TermDictionary& dictionary,
-                     TermDictionary& value_dictionary,
-                     PatientRecord& patient_record, uint32_t day_index,
+    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
-        for (int i = 1; i < 4; i++) {
-            if (row[i] != "" && row[i] != "0") {
-                patient_record.observations.push_back(
-                    std::make_pair(day_index, dictionary.map_or_add(row[i])));
-            }
-        }
+        absl::CivilDay birth = parse_date(row[0]);
+        patient_record.birth_date = birth;
+
+        uint32_t gender_code = meta.dictionary.map_or_add(row[1]);
+        patient_record.observations.push_back(
+            std::make_pair(birth, gender_code));
+
+        uint32_t ethnicity_code = meta.dictionary.map_or_add(row[2]);
+        patient_record.observations.push_back(
+            std::make_pair(birth, ethnicity_code));
+
+        uint32_t race_code = meta.dictionary.map_or_add(row[3]);
+        patient_record.observations.push_back(std::make_pair(birth, race_code));
     }
 };
 
 class StandardConceptTableConverter : public Converter {
    public:
     StandardConceptTableConverter(std::string f, std::string d, std::string c)
-        : filename(f), date_field(d), concept_id_field(c) {}
+        : prefix(f), date_field(d), concept_id_field(c) {}
 
-    std::string_view get_file() const { return filename; }
+    std::string_view get_file_prefix() const { return prefix; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"person_id", date_field, concept_id_field};
+        return {date_field, concept_id_field};
     }
 
-    void augment_day(TermDictionary& dictionary,
-                     TermDictionary& value_dictionary,
-                     PatientRecord& patient_record, uint32_t day_index,
+    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
-        patient_record.observations.push_back(
-            std::make_pair(day_index, dictionary.map_or_add(row[2])));
+        patient_record.observations.push_back(std::make_pair(
+            parse_date(row[0]), meta.dictionary.map_or_add(row[1])));
     }
 
    private:
-    std::string filename;
+    std::string prefix;
     std::string date_field;
     std::string concept_id_field;
 };
 
 class VisitConverter : public Converter {
    public:
-    std::string_view get_file() const { return "visit_occurrence.csv.gz"; }
+    std::string_view get_file_prefix() const { return "visit_occurrence"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"person_id", "visit_start_date", "visit_end_date",
-                "visit_concept_id"};
+        return {"visit_start_DATE", "visit_concept_id", "visit_end_DATE"};
     }
 
-    void augment_day(TermDictionary& dictionary,
-                     TermDictionary& value_dictionary,
-                     PatientRecord& patient_record, uint32_t day_index,
+    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
-        uint32_t duration;
+        std::string_view code = row[1];
 
-        if (row[2] != "") {
-            auto start_date = parse_date(row[1]);
-            auto end_date = parse_date(row[2]);
-            duration = end_date - start_date;
-        } else {
-            duration = 0;
+        if (code == "0") {
+            return;
         }
 
-        ObservationWithValue obs;
-        obs.code = dictionary.map_or_add(row[3]);
-        obs.is_text = false;
-        obs.numeric_value = duration;
+        auto start_day = parse_date(row[0]);
+        auto end_day = parse_date(row[2]);
 
-        patient_record.observationsWithValues.push_back(
-            std::make_pair(day_index, obs.encode()));
+        int days = end_day - start_day;
+
+        ObservationWithValue obs;
+        obs.code = meta.dictionary.map_or_add(code);
+        obs.is_text = false;
+        obs.numeric_value = days;
+
+        patient_record.observations_with_values.push_back(
+            std::make_pair(start_day, obs.encode()));
     }
 };
 
 class MeasurementConverter : public Converter {
    public:
-    std::string_view get_file() const { return "measurement.csv.gz"; }
+    std::string_view get_file_prefix() const { return "measurement"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"person_id", "measurement_date",
-                "measurement_source_concept_id", "value_as_number",
+        return {"measurement_DATE", "measurement_concept_id", "value_as_number",
                 "value_source_value"};
     }
 
-    void augment_day(TermDictionary& dictionary,
-                     TermDictionary& value_dictionary,
-                     PatientRecord& patient_record, uint32_t day_index,
+    void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
-        std::string_view code = row[2];
+        std::string_view code = row[1];
         std::string_view value;
 
-        if (row[4] != "") {
-            value = row[4];
-        } else {
+        if (row[3] != "") {
             value = row[3];
+        } else if (row[2] != "") {
+            value = row[2];
+        } else {
+            value = "";
         }
+
+        auto day = parse_date(row[0]);
 
         if (value == "") {
             patient_record.observations.push_back(
-                std::make_pair(day_index, dictionary.map_or_add(code)));
+                std::make_pair(day, meta.dictionary.map_or_add(code)));
         } else {
             ObservationWithValue obs;
-            obs.code = dictionary.map_or_add(code);
+            obs.code = meta.dictionary.map_or_add(code);
 
             float numeric_value;
             bool is_valid_numeric = absl::SimpleAtof(value, &numeric_value);
@@ -576,13 +580,318 @@ class MeasurementConverter : public Converter {
                 obs.numeric_value = numeric_value;
             } else {
                 obs.is_text = true;
-                obs.text_value = value_dictionary.map_or_add(value);
+                obs.text_value = meta.value_dictionary.map_or_add(value);
             }
 
-            patient_record.observationsWithValues.push_back(
-                std::make_pair(day_index, obs.encode()));
+            patient_record.observations_with_values.push_back(
+                std::make_pair(day, obs.encode()));
         }
     }
+};
+
+template <typename C>
+std::pair<std::thread, std::shared_ptr<Queue>> generate_converter_thread(
+    const C& converter, boost::filesystem::path target) {
+    std::shared_ptr<Queue> queue =
+        std::make_shared<Queue>(10000);  // Ten thousand patient records
+    std::thread thread([converter, queue, target]() {
+        std::string thread_name = target.string();
+        thread_name = thread_name.substr(0, 15);
+        std::string name_copy(std::begin(thread_name), std::end(thread_name));
+        int error = pthread_setname_np(pthread_self(), name_copy.c_str());
+        if (error != 0) {
+            std::cout << "Could not set thread name to " << thread_name << " "
+                      << error << std::endl;
+            abort();
+        }
+        run_converter(std::move(converter), *queue, target);
+    });
+
+    return std::make_pair(std::move(thread), std::move(queue));
+}
+
+template <typename C>
+std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
+generate_converter_threads(
+    const C& converter,
+    const std::vector<boost::filesystem::path>& possible_targets) {
+    std::vector<std::pair<std::thread, std::shared_ptr<Queue>>> results;
+
+    std::vector<std::string> options = {
+        absl::Substitute("/$0/", converter.get_file_prefix()),
+        absl::Substitute("/$0.csv.gz", converter.get_file_prefix()),
+        absl::Substitute("/$00", converter.get_file_prefix()),
+    };
+
+    for (const auto& target : possible_targets) {
+        bool found = false;
+        for (const auto& option : options) {
+            if (target.string().find(option) != std::string::npos &&
+                target.string().find(".csv.gz") != std::string::npos) {
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            results.push_back(generate_converter_thread(converter, target));
+        }
+    }
+
+    return results;
+}
+
+class HeapItem {
+   public:
+    HeapItem(size_t _index, QueueItem _item)
+        : index(_index), item(std::move(_item)) {}
+
+    bool operator<(const HeapItem& second) const {
+        std::optional<uint64_t> first_person_id = get_person_id();
+        std::optional<uint64_t> second_person_id = second.get_person_id();
+
+        uint64_t limit = std::numeric_limits<uint64_t>::max();
+
+        return first_person_id.value_or(limit) >
+               second_person_id.value_or(limit);
+    }
+
+    std::optional<uint64_t> get_person_id() const {
+        return std::visit(
+            [](auto&& arg) {
+                using T = std::decay_t<decltype(arg)>;
+
+                if constexpr (std::is_same_v<T, RawPatientRecord>) {
+                    return std::optional<uint64_t>(arg.person_id);
+                } else {
+                    return std::optional<uint64_t>();
+                }
+            },
+            item);
+    }
+
+    size_t index;
+    QueueItem item;
+};
+
+class Merger {
+   public:
+    Merger(std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
+               _converter_threads)
+        : converter_threads(std::move(_converter_threads)) {
+        for (size_t i = 0; i < converter_threads.size(); i++) {
+            const auto& entry = converter_threads[i];
+            QueueItem nextItem;
+            entry.second->wait_dequeue(nextItem);
+            heap.push_back(HeapItem(i, std::move(nextItem)));
+        }
+
+        shift = 0;
+
+        while ((((size_t)1) << shift) < converter_threads.size()) {
+            shift++;
+        }
+
+        std::make_heap(std::begin(heap), std::end(heap));
+
+        if (heap.size() == 0) {
+            std::cout << "No converters in the heap?" << std::endl;
+            abort();
+        }
+    }
+
+    WriterItem operator()() {
+        while (true) {
+            std::optional<uint64_t> possible_person_id =
+                heap.front().get_person_id();
+
+            if (possible_person_id.has_value()) {
+                RawPatientRecord total_record;
+                total_record.person_id = possible_person_id.value();
+                total_record.birth_date = {};
+
+                contributing_indexes.clear();
+
+                while (heap.front().get_person_id() == possible_person_id) {
+                    std::pop_heap(std::begin(heap), std::end(heap));
+                    HeapItem& heap_item = heap.back();
+                    QueueItem& queue_item = heap_item.item;
+
+                    size_t index = heap_item.index;
+                    RawPatientRecord& record =
+                        std::get<RawPatientRecord>(queue_item);
+
+                    if (record.birth_date) {
+                        total_record.birth_date = record.birth_date;
+                    }
+
+                    auto offset = [&](uint32_t val) {
+                        return (val << shift) + index;
+                    };
+
+                    for (const auto& obs : record.observations) {
+                        total_record.observations.push_back(
+                            std::make_pair(obs.first, offset(obs.second)));
+
+                        if (obs.first < total_record.birth_date) {
+                            total_record.birth_date = obs.first;
+                        }
+                    }
+
+                    for (const auto& obs : record.observations_with_values) {
+                        ObservationWithValue obs_with_value(obs.second.first,
+                                                            obs.second.second);
+
+                        obs_with_value.code = offset(obs_with_value.code);
+
+                        if (obs_with_value.is_text) {
+                            obs_with_value.text_value =
+                                offset(obs_with_value.text_value);
+                        }
+
+                        total_record.observations_with_values.push_back(
+                            std::make_pair(obs.first, obs_with_value.encode()));
+
+                        if (obs.first < total_record.birth_date) {
+                            total_record.birth_date = obs.first;
+                        }
+                    }
+
+                    converter_threads[index].second->wait_dequeue(queue_item);
+                    contributing_indexes.push_back(index);
+
+                    std::push_heap(std::begin(heap), std::end(heap));
+                }
+
+                total_patients++;
+
+                if (!total_record.birth_date) {
+                    lost_patients++;
+
+                    if (rand() % lost_patients == 0) {
+                        std::cout
+                            << "You have a patient without a birth date?? "
+                            << total_record.person_id << " so far "
+                            << lost_patients << " out of " << total_patients
+                            << std::endl;
+                        for (const auto& c_index : contributing_indexes) {
+                            char thread_name[16];
+                            pthread_getname_np(converter_threads[c_index]
+                                                   .first.native_handle(),
+                                               thread_name,
+                                               sizeof(thread_name));
+                            std::cout << "Thread: " << thread_name << std::endl;
+                        }
+                        std::cout << std::endl;
+                    }
+
+                    continue;
+                }
+
+                if (contributing_indexes.size() == 1) {
+                    // Only got the person thread
+                    ignored_patients++;
+
+                    if (rand() % ignored_patients == 0) {
+                        std::cout << "You are ignoring a patient "
+                                  << total_record.person_id << " so far "
+                                  << ignored_patients << " out of "
+                                  << total_patients << std::endl;
+                    }
+
+                    continue;
+                } else {
+                    if (rand() % total_patients == 0) {
+                        std::cout << "You finished a patient "
+                                  << total_record.person_id << " out of "
+                                  << total_patients << std::endl;
+                    }
+                }
+
+                PatientRecord final_record;
+                final_record.person_id = total_record.person_id;
+
+                final_record.birth_date = *total_record.birth_date;
+
+                for (const auto& observ : total_record.observations) {
+                    final_record.observations.push_back(std::make_pair(
+                        observ.first - final_record.birth_date, observ.second));
+                }
+
+                for (const auto& observ :
+                     total_record.observations_with_values) {
+                    final_record.observations_with_values.push_back(
+                        std::make_pair(observ.first - final_record.birth_date,
+                                       observ.second));
+                }
+
+                return final_record;
+            } else {
+                Metadata total_metadata;
+
+                std::vector<std::pair<std::string, uint32_t>> dictionary;
+                std::vector<std::pair<std::string, uint32_t>> value_dictionary;
+
+                for (auto& heap_item : heap) {
+                    QueueItem& queue_item = heap_item.item;
+
+                    size_t index = heap_item.index;
+                    Metadata& meta = std::get<Metadata>(queue_item);
+
+                    auto offset = [&](uint32_t val) {
+                        return (val << shift) + index;
+                    };
+
+                    auto process =
+                        [&](const TermDictionary& source,
+                            std::vector<std::pair<std::string, uint32_t>>&
+                                target) {
+                            auto vals = source.decompose();
+                            size_t target_size = vals.size() << shift;
+                            target.resize(std::max(target_size, target.size()));
+
+                            for (size_t i = 0; i < vals.size(); i++) {
+                                target[offset(i)] = std::move(vals[i]);
+                            }
+                        };
+
+                    process(meta.dictionary, dictionary);
+                    process(meta.value_dictionary, value_dictionary);
+                }
+
+                total_metadata.dictionary =
+                    TermDictionary(std::move(dictionary));
+                total_metadata.value_dictionary =
+                    TermDictionary(std::move(value_dictionary));
+
+                std::cout << "Done with " << lost_patients
+                          << " lost patients and " << ignored_patients
+                          << " ignored patients out of " << total_patients
+                          << std::endl;
+
+                return total_metadata;
+            }
+        }
+    }
+
+    ~Merger() {
+        std::cout << "Joining threads" << std::endl;
+
+        for (auto& entry : converter_threads) {
+            entry.first.join();
+        }
+
+        std::cout << "Done joining" << std::endl;
+    }
+
+   private:
+    int lost_patients = 0;
+    int ignored_patients = 0;
+    int total_patients = 0;
+    size_t shift;
+    std::vector<size_t> contributing_indexes;
+    std::vector<HeapItem> heap;
+    std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
+        converter_threads;
 };
 
 std::function<std::optional<PatientRecord>()> convert_vector_to_iter(
@@ -595,250 +904,6 @@ std::function<std::optional<PatientRecord>()> convert_vector_to_iter(
             return std::optional<PatientRecord>(std::move(records[index++]));
         }
     };
-}
-
-template <typename F>
-void write_timeline(const char* filename, const TermDictionary& dictionary,
-                    const TermDictionary& value_dictionary, F get_next) {
-    std::cout << absl::Substitute("Writing to $0\n", filename);
-    ConstdbWriter writer(filename);
-
-    std::vector<uint64_t> original_ids;
-    std::vector<uint32_t> patient_ids;
-
-    std::vector<uint32_t> buffer;
-    std::vector<uint8_t> compressed_buffer;
-    std::vector<uint32_t> ages;
-
-    while (true) {
-        std::optional<PatientRecord> next_record = get_next();
-
-        if (!next_record) {
-            break;
-        }
-
-        PatientRecord& record = *next_record;
-
-        buffer.clear();
-        compressed_buffer.clear();
-        ages.clear();
-
-        if (record.person_id == 0) {
-            continue;
-        }
-
-        patient_ids.push_back(record.index);
-        original_ids.push_back(record.person_id);
-
-        buffer.push_back(record.birth_date.year());
-        buffer.push_back(record.birth_date.month());
-        buffer.push_back(record.birth_date.day());
-
-        std::sort(std::begin(record.observations),
-                  std::end(record.observations));
-        std::sort(std::begin(record.observationsWithValues),
-                  std::end(record.observationsWithValues));
-
-        record.observations.erase(std::unique(std::begin(record.observations),
-                                              std::end(record.observations)),
-                                  std::end(record.observations));
-        record.observationsWithValues.erase(
-            std::unique(std::begin(record.observationsWithValues),
-                        std::end(record.observationsWithValues)),
-            std::end(record.observationsWithValues));
-
-        for (const auto& elem : record.observations) {
-            ages.push_back(elem.first);
-        }
-        for (const auto& elem : record.observationsWithValues) {
-            ages.push_back(elem.first);
-        }
-
-        std::sort(std::begin(ages), std::end(ages));
-        ages.erase(std::unique(std::begin(ages), std::end(ages)),
-                   std::end(ages));
-
-        buffer.push_back(ages.size());
-
-        uint32_t last_age = 0;
-
-        size_t current_observation_index = 0;
-        size_t current_observation_with_values_index = 0;
-
-        for (uint32_t age : ages) {
-            uint32_t delta = age - last_age;
-            last_age = age;
-
-            buffer.push_back(delta);
-
-            size_t num_obs_index = buffer.size();
-            buffer.push_back(1 << 30);  // Use a high value to force crashes
-
-            size_t starting_observation_index = current_observation_index;
-            uint32_t last_observation = 0;
-
-            while (current_observation_index < record.observations.size() &&
-                   record.observations[current_observation_index].first ==
-                       age) {
-                uint32_t current_obs =
-                    record.observations[current_observation_index].second;
-                uint32_t delta = current_obs - last_observation;
-                last_observation = current_obs;
-                buffer.push_back(delta);
-                current_observation_index++;
-            }
-
-            buffer[num_obs_index] =
-                current_observation_index - starting_observation_index;
-
-            size_t num_obs_with_value_index = buffer.size();
-            buffer.push_back(1 << 30);  // Use a high value to force crashes
-
-            size_t starting_observation_value_index =
-                current_observation_with_values_index;
-            uint32_t last_observation_with_value = 0;
-
-            while (current_observation_with_values_index <
-                       record.observationsWithValues.size() &&
-                   record.observationsWithValues
-                           [current_observation_with_values_index]
-                               .first == age) {
-                auto [code, value] =
-                    record
-                        .observationsWithValues
-                            [current_observation_with_values_index]
-                        .second;
-                uint32_t delta = code - last_observation_with_value;
-                last_observation_with_value = code;
-                buffer.push_back(delta);
-                buffer.push_back(value);
-                current_observation_with_values_index++;
-            }
-
-            buffer[num_obs_with_value_index] =
-                current_observation_with_values_index -
-                starting_observation_value_index;
-        }
-
-        size_t max_needed_size =
-            streamvbyte_max_compressedbytes(buffer.size()) + sizeof(uint32_t);
-
-        if (compressed_buffer.size() < max_needed_size) {
-            compressed_buffer.resize(max_needed_size * 2 + 1);
-        }
-
-        size_t actual_size =
-            streamvbyte_encode(buffer.data(), buffer.size(),
-                               compressed_buffer.data() + sizeof(uint32_t));
-
-        uint32_t* start_of_compressed_buffer =
-            reinterpret_cast<uint32_t*>(compressed_buffer.data());
-        *start_of_compressed_buffer = buffer.size();
-
-        writer.add_int(record.index, (const char*)compressed_buffer.data(),
-                       actual_size + sizeof(uint32_t));
-    }
-
-    uint32_t num_patients = original_ids.size();
-
-    writer.add_str("num_patients", (const char*)&num_patients,
-                   sizeof(uint32_t));
-    writer.add_str("original_ids", (const char*)original_ids.data(),
-                   sizeof(uint64_t) * original_ids.size());
-    writer.add_str("patient_ids", (const char*)patient_ids.data(),
-                   sizeof(uint32_t) * patient_ids.size());
-
-    std::string dictionary_str = dictionary.to_json();
-    std::string value_dictionary_str = value_dictionary.to_json();
-
-    writer.add_str("dictionary", dictionary_str.data(), dictionary_str.size());
-    writer.add_str("value_dictionary", value_dictionary_str.data(),
-                   value_dictionary_str.size());
-
-    std::cout << absl::Substitute("Done writing to $0\n", filename);
-}
-
-template <typename C>
-std::thread generate_converter_thread(
-    std::string location, std::string root_file, std::string name, C convert,
-    const absl::flat_hash_map<uint64_t, PatientInfo>& patient_data) {
-    return std::thread([location, convert, root_file, name, &patient_data]() {
-        std::string file_name = absl::Substitute("$0/$1", root_file, name);
-        run_converter(location, file_name, convert, patient_data);
-    });
-}
-
-template <typename C>
-void run_converter(
-    std::string location, std::string_view filename, const C& convert,
-    const absl::flat_hash_map<uint64_t, PatientInfo>& patient_data) {
-    std::cout << absl::Substitute("Starting to work on $0\n", filename);
-    int iter = 0;
-    size_t num_rows = 0;
-
-    TermDictionary dictionary;
-    TermDictionary value_dictionary;
-
-    std::string person_file =
-        absl::Substitute("$0/$1", location, convert.get_file());
-
-    std::vector<PatientRecord> results;
-
-    csv_iterator(
-        person_file.c_str(), convert.get_columns(), '\t', {}, true,
-        [&](const auto& row) {
-            num_rows++;
-
-            if (num_rows % 100000000 == 0) {
-                std::cout << absl::Substitute("Processed $0 rows\n", num_rows);
-            }
-
-            if (num_rows % 1000000000 == 0) {
-                std::string current_filename =
-                    absl::Substitute("$0_$1", filename, iter);
-
-                write_timeline(current_filename.c_str(), dictionary,
-                               value_dictionary,
-                               convert_vector_to_iter(std::move(results)));
-
-                dictionary.clear();
-                value_dictionary.clear();
-                results.clear();
-
-                iter += 1;
-            }
-
-            uint64_t person_id;
-            attempt_parse_or_die(row[0], person_id);
-
-            auto iter = patient_data.find(person_id);
-            const PatientInfo& info = iter->second;
-
-            if (info.index >= results.size()) {
-                results.resize(info.index * 2 + 1);
-            }
-
-            PatientRecord& record = results[info.index];
-            record.birth_date = info.birth_date;
-            record.person_id = info.person_id;
-            record.index = info.index;
-
-            auto date = convert.get_date(info.birth_date, row);
-
-            int day_index = date - info.birth_date;
-
-            if (day_index < 0) {
-                return;
-            }
-
-            convert.augment_day(dictionary, value_dictionary, record, day_index,
-                                row);
-        });
-
-    std::string current_filename = absl::Substitute("$0_$1", filename, iter);
-    write_timeline(current_filename.c_str(), dictionary, value_dictionary,
-                   convert_vector_to_iter(std::move(results)));
-    std::cout << absl::Substitute("Done working on $0\n", filename);
 }
 
 TermDictionary counts_to_dict(
@@ -861,403 +926,371 @@ TermDictionary counts_to_dict(
     return result;
 }
 
-std::pair<std::vector<std::vector<uint32_t>>, TermDictionary>
-convert_to_concept_strings(const TermDictionary& terms,
-                           const ConceptTable& table, const GEMMapper& gem) {
-    auto entries = terms.decompose();
-    std::vector<std::vector<uint32_t>> converter(entries.size());
+std::vector<std::string> normalize(
+    std::string input_code, const ConceptTable& table, const GEMMapper& gem,
+    absl::flat_hash_map<uint32_t, std::vector<uint32_t>>& rxnorm_to_atc) {
+    if (input_code == "" || input_code == "0") {
+        return {};
+    }
 
-    TermDictionary new_term_dictionary;
-    absl::flat_hash_map<uint32_t, std::vector<uint32_t>> rxnorm_to_atc;
+    uint32_t concept_id;
+    attempt_parse_or_die(input_code, concept_id);
 
-    for (uint32_t code = 0; code < entries.size(); code++) {
-        auto [term, count] = entries[code];
+    std::set<std::string> good_items = {"LOINC",
+                                        "ICD10CM",
+                                        "CPT4",
+                                        "Gender",
+                                        "HCPCS",
+                                        "Ethnicity",
+                                        "Race",
+                                        "ICD10PCS",
+                                        "Condition Type",
+                                        "Visit",
+                                        "CMS Place of Service"};
+    std::set<std::string> bad_items = {"SNOMED",       "NDC",
+                                       "ICD10CN",      "ICD10",
+                                       "ICD9ProcCN",   "STANFORD_CONDITION",
+                                       "STANFORD_MEAS"};
 
-        uint32_t concept_id;
-        if (!absl::SimpleAtoi(term, &concept_id)) {
-            std::cout << absl::Substitute(
-                "Could not parse supposed concept_id $0\n", term);
-        }
+    std::vector<uint32_t> results;
 
-        if (concept_id == 0) {
-            continue;
-        }
+    ConceptInfo info = *table.get_info(concept_id);
+    if (info.vocabulary_id == "RxNorm") {
+        // Need to map NDC over to ATC to avoid painful issues
 
-        std::vector<uint32_t> results;
+        uint32_t rxnorm_code;
+        attempt_parse_or_die(info.concept_code, rxnorm_code);
 
-        std::optional<ConceptInfo> maybe_info = table.get_info(concept_id);
-        if (!maybe_info) {
-            continue;
-        }
-        ConceptInfo info = *maybe_info;
-        if (info.vocabulary_id == "NDC") {
-            // Need to map NDC over to ATC to avoid painful issues
-            std::vector<uint32_t> rxnorm_codes;
-            for (const auto& relationship :
-                 table.get_relationships(concept_id)) {
-                if (relationship.relationship_id == "Maps to") {
-                    std::optional<ConceptInfo> other_info =
-                        table.get_info(relationship.other_concept);
-                    if (!other_info) {
-                        continue;
-                    }
-                    if (other_info->vocabulary_id == "RxNorm" ||
-                        other_info->vocabulary_id == "RxNorm Extension") {
-                        rxnorm_codes.push_back(relationship.other_concept);
-                    }
-                }
-            }
-
-            if (rxnorm_codes.size() > 1) {
-                std::cout << absl::Substitute(
-                    "Got a weird number of RxNorm mappings for $0 with $1\n",
-                    concept_id, rxnorm_codes.size());
-                continue;
-            }
-
-            if (rxnorm_codes.size() == 0) {
-                // std::cout << absl::Substitute("Could not find any rxnorm code
-                // for $0\n", concept_id);
-                continue;
-            }
-
-            uint32_t rxnorm_code = rxnorm_codes[0];
-
-            auto iter = rxnorm_to_atc.find(rxnorm_code);
-            if (iter == std::end(rxnorm_to_atc)) {
-                std::vector<uint32_t> atc_codes;
-                for (const auto& ancestor : table.get_ancestors(rxnorm_code)) {
-                    const auto& anc_info = table.get_info(ancestor);
-                    if (anc_info &&
-                        (anc_info->vocabulary_id == "RxNorm" ||
-                         anc_info->vocabulary_id == "RxNorm Extension")) {
-                        for (const auto& relationship :
-                             table.get_relationships(ancestor)) {
-                            ConceptInfo other_info =
-                                *table.get_info(relationship.other_concept);
-                            if (other_info.vocabulary_id == "ATC") {
-                                atc_codes.push_back(relationship.other_concept);
-                            }
+        auto iter = rxnorm_to_atc.find(rxnorm_code);
+        if (iter == std::end(rxnorm_to_atc)) {
+            std::vector<uint32_t> atc_codes;
+            for (const auto& ancestor : table.get_ancestors(rxnorm_code)) {
+                const auto& anc_info = *table.get_info(ancestor);
+                if (anc_info.vocabulary_id == "RxNorm" ||
+                    anc_info.vocabulary_id == "RxNorm Extension") {
+                    for (const auto& relationship :
+                         table.get_relationships(ancestor)) {
+                        ConceptInfo other_info =
+                            *table.get_info(relationship.other_concept);
+                        if (other_info.vocabulary_id == "ATC") {
+                            atc_codes.push_back(relationship.other_concept);
                         }
                     }
                 }
-
-                std::sort(std::begin(atc_codes), std::end(atc_codes));
-                atc_codes.erase(
-                    std::unique(std::begin(atc_codes), std::end(atc_codes)),
-                    std::end(atc_codes));
-
-                // if (atc_codes.size() == 0) {
-                //     std::cout << absl::Substitute("Could not find any atc
-                //     codes for $0\n", rxnorm_code);
-                // }
-
-                rxnorm_to_atc[rxnorm_code] = atc_codes;
-                iter = rxnorm_to_atc.find(rxnorm_code);
             }
 
-            results = iter->second;
-        } else if (info.vocabulary_id == "ICD9Proc") {
-            for (const auto& proc : gem.map_proc(info.concept_code)) {
-                auto new_code = table.get_inverse("ICD10PCS", proc);
-                if (!new_code) {
-                    std::cout << absl::Substitute(
-                        "Could not find $0 after converting $1\n", proc,
-                        info.concept_code);
-                }
-                results.push_back(*new_code);
-            }
-        } else if (info.vocabulary_id == "ICD9CM") {
-            for (std::string diag : gem.map_diag(info.concept_code)) {
-                auto new_code = table.get_inverse("ICD10CM", diag);
-                if (!new_code) {
-                    std::cout << absl::Substitute(
-                        "Could not find $0 after converting $1\n", diag,
-                        info.concept_code);
-                }
-                results.push_back(*new_code);
-            }
-        } else {
-            results.push_back(concept_id);
+            std::sort(std::begin(atc_codes), std::end(atc_codes));
+            atc_codes.erase(
+                std::unique(std::begin(atc_codes), std::end(atc_codes)),
+                std::end(atc_codes));
+
+            // if (atc_codes.size() == 0) {
+            //     std::cout << absl::Substitute("Could not find any atc
+            //     codes for $0\n", rxnorm_code);
+            // }
+
+            rxnorm_to_atc[rxnorm_code] = atc_codes;
+            iter = rxnorm_to_atc.find(rxnorm_code);
         }
 
-        for (const auto result : results) {
-            std::optional<ConceptInfo> result_info = table.get_info(result);
-            if (!result_info) {
-                continue;
+        results = iter->second;
+    } else if (info.vocabulary_id == "ICD9Proc") {
+        for (const auto& proc : gem.map_proc(info.concept_code)) {
+            auto new_code = table.get_inverse("ICD10PCS", proc);
+            if (!new_code) {
+                std::cout << absl::Substitute(
+                    "Could not find $0 after converting $1\n", proc,
+                    info.concept_code);
             }
+            results.push_back(*new_code);
+        }
+    } else if (info.vocabulary_id == "ICD9CM") {
+        for (std::string diag : gem.map_diag(info.concept_code)) {
+            auto new_code = table.get_inverse("ICD10CM", diag);
+            if (!new_code) {
+                std::cout << absl::Substitute(
+                    "Could not find $0 after converting $1\n", diag,
+                    info.concept_code);
+            }
+            results.push_back(*new_code);
+        }
+    } else if (good_items.find(info.vocabulary_id) != std::end(good_items)) {
+        results.push_back(concept_id);
+    } else if (bad_items.find(info.vocabulary_id) != std::end(bad_items)) {
+        return {};
+    } else {
+        std::cout << "Could not handle '" << info.vocabulary_id << "' '"
+                  << input_code << "'" << std::endl;
+        return {};
+    }
+
+    std::vector<std::string> final_results;
+
+    for (const auto result : results) {
+        ConceptInfo result_info = *table.get_info(result);
+
+        if (result_info.vocabulary_id == "Condition Type") {
+            std::string final =
+                absl::Substitute("$0/$1", result_info.concept_class_id,
+                                 result_info.concept_code);
+
+            final_results.push_back(final);
+        } else {
             std::string final = absl::Substitute(
-                "$0/$1", result_info->vocabulary_id, result_info->concept_code);
-            converter[code].push_back(
-                new_term_dictionary.map_or_add(final, count));
+                "$0/$1", result_info.vocabulary_id, result_info.concept_code);
+
+            final_results.push_back(final);
         }
     }
 
-    return {converter, new_term_dictionary};
+    return final_results;
 }
 
-void merge_intermediates(std::string source_folder, std::string gem_location,
-                         const std::vector<std::string>& files,
-                         const std::string& target,
-                         const ConceptTable& concepts) {
-    GEMMapper gem(gem_location);
+class Cleaner {
+   public:
+    Cleaner(const ConceptTable& concepts, const GEMMapper& gem,
+            const char* path)
+        : reader(path, false), iterator(reader.iter()) {
+        patient_ids = reader.get_patient_ids();
+        original_patient_ids = reader.get_original_patient_ids();
+        current_index = 0;
 
-    std::cout << absl::Substitute("Processing the concept table\n");
+        {
+            TermDictionary temp_dictionary;
+            std::vector<std::pair<std::string, uint32_t>> items =
+                reader.get_dictionary().decompose();
 
-    std::cout << absl::Substitute("Starting to merge results\n");
-    std::vector<ExtractReader> readers;
-    std::vector<std::vector<std::vector<uint32_t>>> all_converters;
-    std::vector<std::vector<std::string>> all_dict_mappers;
-    absl::flat_hash_map<std::string, uint32_t> dict_counts;
+            remap_dict.reserve(items.size());
 
-    std::vector<std::vector<std::string>> all_val_mappers;
-    absl::flat_hash_map<std::string, uint32_t> val_counts;
+            absl::flat_hash_map<std::string, uint32_t> lost_counts;
 
-    for (size_t i = 0; i < files.size(); i++) {
-        const std::string& file = files[i];
-        std::cout << absl::Substitute("Starting to load $0\n", file);
-        readers.emplace_back(file.c_str(), true);
+            absl::flat_hash_map<uint32_t, std::vector<uint32_t>> rxnorm_to_atc;
 
-        ExtractReader& reader = readers[i];
-        auto [converter, new_dict] =
-            convert_to_concept_strings(reader.get_dictionary(), concepts, gem);
-        auto dict_entries = new_dict.decompose();
-        auto value_entries = reader.get_value_dictionary().decompose();
+            uint32_t total_lost = 0;
 
-        std::cout << absl::Substitute(
-            "$0 normal terms and $1 value terms for $2\n", dict_entries.size(),
-            value_entries.size(), files[i]);
+            for (const auto& entry : items) {
+                std::vector<std::string> terms =
+                    normalize(entry.first, concepts, gem, rxnorm_to_atc);
+                if (terms.size() == 0) {
+                    total_lost += entry.second;
+                    lost_counts[entry.first] += entry.second;
+                }
 
-        std::vector<std::string> dict_mapper;
-        for (const auto& entry : dict_entries) {
-            dict_mapper.push_back(entry.first);
-            dict_counts[entry.first] += entry.second;
-        }
+                std::vector<uint32_t> result;
+                for (const auto& term : terms) {
+                    result.push_back(
+                        temp_dictionary.map_or_add(term, entry.second));
+                }
 
-        std::vector<std::string> val_dict_mapper;
-        for (const auto& entry : value_entries) {
-            val_dict_mapper.push_back(entry.first);
-            val_counts[entry.first] += entry.second;
-        }
-
-        all_converters.push_back(std::move(converter));
-        all_dict_mappers.push_back(std::move(dict_mapper));
-        all_val_mappers.push_back(std::move(val_dict_mapper));
-    }
-
-    std::vector<ExtractReaderIterator> iterators;
-
-    for (size_t i = 0; i < files.size(); i++) {
-        iterators.push_back(readers[i].iter());
-    }
-
-    std::cout << absl::Substitute(
-        "Got a total of $0 normal terms and $1 value terms\n",
-        dict_counts.size(), val_counts.size());
-
-    TermDictionary final_dict = counts_to_dict(dict_counts);
-    TermDictionary final_val_dict = counts_to_dict(val_counts);
-
-    std::vector<std::vector<uint32_t>> remapper;
-    std::vector<std::vector<uint32_t>> value_remapper;
-
-    for (const auto& dict_mapper : all_dict_mappers) {
-        std::vector<uint32_t> result(dict_mapper.size());
-        for (size_t i = 0; i < dict_mapper.size(); i++) {
-            result[i] = *final_dict.map(dict_mapper[i]);
-        }
-        remapper.push_back(std::move(result));
-    }
-
-    for (const auto& val_mapper : all_val_mappers) {
-        std::vector<uint32_t> result(val_mapper.size());
-        for (size_t i = 0; i < val_mapper.size(); i++) {
-            result[i] = *final_val_dict.map(val_mapper[i]);
-        }
-        value_remapper.push_back(std::move(result));
-    }
-
-    std::vector<uint32_t> patient_record_indices(readers.size());
-
-    auto iter = [&]() {
-        uint32_t next_patient_id = std::numeric_limits<uint32_t>::max();
-        uint64_t next_patient_original_id =
-            std::numeric_limits<uint64_t>::max();
-
-        for (size_t i = 0; i < patient_record_indices.size(); i++) {
-            uint32_t index = patient_record_indices[i];
-            if (index < readers[i].get_patient_ids().size() &&
-                readers[i].get_patient_ids()[index] < next_patient_id) {
-                next_patient_id = readers[i].get_patient_ids()[index];
-                next_patient_original_id =
-                    readers[i].get_original_patient_ids()[index];
+                remap_dict.push_back(result);
             }
-        }
 
-        if (next_patient_id == std::numeric_limits<uint32_t>::max()) {
-            return std::optional<PatientRecord>();
-        }
+            std::cout << "Lost items " << total_lost << std::endl;
 
-        PatientRecord record;
-        record.index = next_patient_id;
+            std::vector<std::pair<int32_t, std::string>> lost_entries;
 
-        for (size_t i = 0; i < patient_record_indices.size(); i++) {
-            const auto& converter = all_converters.at(i);
-            const auto& remap = remapper.at(i);
-            const auto& value_remap = value_remapper.at(i);
-            uint32_t& index = patient_record_indices[i];
-            if (index < readers[i].get_patient_ids().size() &&
-                readers[i].get_patient_ids()[index] == next_patient_id) {
-                index++;
+            for (const auto& entry : lost_counts) {
+                lost_entries.push_back(
+                    std::make_pair(-entry.second, entry.first));
+                // std::cout<<entry.first << " " << entry.second << std::endl;
+            }
+            std::sort(std::begin(lost_entries), std::end(lost_entries));
 
-                bool found = iterators[i].process_patient(
-                    next_patient_id,
-                    [&](absl::CivilDay birth_date, uint32_t age,
-                        const std::vector<uint32_t>& observations,
-                        const std::vector<ObservationWithValue>&
-                            observations_with_values) {
-                        record.birth_date = birth_date;
-                        record.person_id = next_patient_original_id;
+            for (size_t i = 0; i < 30 && i < lost_entries.size(); i++) {
+                const auto& entry = lost_entries[i];
+                std::cout << entry.second << " " << entry.first << std::endl;
+            }
 
-                        for (uint32_t obs : observations) {
-                            for (uint32_t converted : converter[obs]) {
-                                record.observations.push_back(
-                                    std::make_pair(age, remap[converted]));
-                            }
-                        }
+            auto [a, b] = temp_dictionary.optimize();
+            final_dictionary = a;
 
-                        for (auto obs_with_value : observations_with_values) {
-                            for (uint32_t converted :
-                                 converter[obs_with_value.code]) {
-                                obs_with_value.code = remap[converted];
-
-                                if (obs_with_value.is_text) {
-                                    obs_with_value.text_value =
-                                        value_remap[obs_with_value.text_value];
-                                }
-
-                                record.observationsWithValues.push_back(
-                                    std::make_pair(age,
-                                                   obs_with_value.encode()));
-                            }
-                        }
-                    });
-
-                if (!found) {
-                    std::cout << absl::Substitute(
-                        "Could not find patient_id $0\n", next_patient_id);
-                    exit(-1);
+            for (auto& entry : remap_dict) {
+                for (auto& val : entry) {
+                    val = b[val];
                 }
             }
         }
 
-        return std::optional<PatientRecord>(std::move(record));
+        {
+            TermDictionary temp_dictionary;
+
+            std::vector<std::pair<std::string, uint32_t>> items =
+                reader.get_value_dictionary().decompose();
+            value_remap_dict.reserve(items.size());
+
+            for (const auto& entry : items) {
+                value_remap_dict.push_back(
+                    temp_dictionary.map_or_add(entry.first, entry.second));
+            }
+
+            auto [a, b] = temp_dictionary.optimize();
+            final_value_dictionary = a;
+
+            for (auto& entry : value_remap_dict) {
+                entry = b[entry];
+            }
+        }
+
+        std::cout << "Dictionary size " << reader.get_dictionary().size()
+                  << std::endl;
+        std::cout << "Value dictionary size "
+                  << reader.get_value_dictionary().size() << std::endl;
+        std::cout << "Final Dictionary size " << final_dictionary.size()
+                  << std::endl;
+        std::cout << "Final Value dictionary size "
+                  << final_value_dictionary.size() << std::endl;
+        std::cout << "Num patients " << patient_ids.size() << std::endl;
+    }
+
+    WriterItem operator()() {
+        if (current_index == patient_ids.size()) {
+            Metadata meta;
+            meta.dictionary = final_dictionary;
+            meta.value_dictionary = final_value_dictionary;
+            return meta;
+        } else {
+            uint32_t patient_id = patient_ids[current_index];
+
+            PatientRecord record;
+            record.person_id = original_patient_ids[current_index];
+            current_index++;
+
+            iterator.process_patient(
+                patient_id, [&](absl::CivilDay birth_date, uint32_t age,
+                                const std::vector<uint32_t>& observations,
+                                const std::vector<ObservationWithValue>&
+                                    observations_with_values) {
+                    record.birth_date = birth_date;
+
+                    for (const auto& obs : observations) {
+                        for (const auto& remapped : remap_dict[obs]) {
+                            record.observations.push_back(
+                                std::make_pair(age, remapped));
+                        }
+                    }
+
+                    for (const auto& obs_with_value :
+                         observations_with_values) {
+                        for (const auto& remapped_code :
+                             remap_dict[obs_with_value.code]) {
+                            ObservationWithValue new_obs;
+                            new_obs.code = remapped_code;
+
+                            if (obs_with_value.is_text) {
+                                new_obs.is_text = true;
+                                new_obs.text_value =
+                                    value_remap_dict[obs_with_value.text_value];
+                            } else {
+                                new_obs.is_text = false;
+                                new_obs.numeric_value =
+                                    obs_with_value.numeric_value;
+                            }
+
+                            record.observations_with_values.push_back(
+                                std::make_pair(age, new_obs.encode()));
+                        }
+                    }
+                });
+
+            return record;
+        }
+    }
+
+   private:
+    ExtractReader reader;
+
+    std::vector<std::vector<uint32_t>> remap_dict;
+    std::vector<uint32_t> value_remap_dict;
+
+    TermDictionary final_dictionary;
+    TermDictionary final_value_dictionary;
+
+    ExtractReaderIterator iterator;
+    absl::Span<const uint32_t> patient_ids;
+    absl::Span<const uint64_t> original_patient_ids;
+    size_t current_index;
+};
+
+void create_extract(std::string omop_source_dir, std::string target_directory, const ConceptTable& concepts, const GEMMapper& gem) {
+    std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
+        converter_threads;
+
+    std::vector<boost::filesystem::path> targets;
+
+    for (const auto& p :
+         boost::filesystem::recursive_directory_iterator(omop_source_dir)) {
+        targets.push_back(p);
+    }
+
+    auto helper = [&](const auto& c) {
+        auto results = generate_converter_threads(c, targets);
+
+        for (auto& result : results) {
+            converter_threads.push_back(std::move(result));
+        }
     };
 
-    write_timeline(target.c_str(), final_dict, final_val_dict, iter);
+    helper(DemographicsConverter());
+    helper(VisitConverter());
+    helper(MeasurementConverter());
+    helper(StandardConceptTableConverter(
+        "drug_exposure", "drug_exposure_start_date", "drug_source_concept_id"));
+    helper(StandardConceptTableConverter("death", "death_date",
+                                         "death_type_concept_id"));
+    helper(StandardConceptTableConverter("condition_occurrence",
+                                         "condition_start_date",
+                                         "condition_source_concept_id"));
+    helper(StandardConceptTableConverter("procedure_occurrence",
+                                         "procedure_date",
+                                         "procedure_source_concept_id"));
+    helper(StandardConceptTableConverter("device_exposure",
+                                         "device_exposure_start_date",
+                                         "device_source_concept_id"));
+    helper(StandardConceptTableConverter("observation", "observation_date",
+                                         "observation_source_concept_id"));
+
+    std::string tmp_extract = absl::Substitute("$0/tmp.db", target_directory);
+    std::string final_extract =
+        absl::Substitute("$0/extract.db", target_directory);
+
+    write_timeline(tmp_extract.c_str(), Merger(std::move(converter_threads)));
+
+    write_timeline(final_extract.c_str(),
+                   Cleaner(concepts, gem, tmp_extract.c_str()));
+
+    
+    boost::filesystem::remove(tmp_extract);
 }
 
-void perform_omop_extraction(std::string omop_source_dir, std::string umls_dir,
+void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_dir,
                              std::string gem_dir,
-                             std::string target_directory) {
-    int error = mkdir(target_directory.c_str(), 0700);
+                             std::string target_dir_str) {
 
-    if (error == -1) {
+    boost::filesystem::path omop_source_dir = boost::filesystem::canonical(omop_source_dir_str);
+    boost::filesystem::path target_dir = boost::filesystem::weakly_canonical(target_dir_str);
+
+    if (!boost::filesystem::create_directory(target_dir)) {
         std::cout << absl::Substitute(
             "Could not make result directory $0, got error $1\n",
-            target_directory, std::strerror(errno));
+            target_dir.string(), std::strerror(errno));
         exit(-1);
     }
 
-    std::string root_path = absl::Substitute("$0/temp", target_directory);
+    boost::filesystem::path sorted_dir = target_dir / "sorted";
 
-    error = mkdir(root_path.c_str(), 0700);
+    boost::filesystem::create_directory(sorted_dir);
 
-    if (error == -1) {
-        std::cout << absl::Substitute(
-            "Could not make result directory $0, got error $1\n", root_path,
-            std::strerror(errno));
-        exit(-1);
-    }
+    sort_csvs(omop_source_dir, sorted_dir);
 
-    std::cout << absl::Substitute("Starting to download patient data\n");
-    auto patient_data = get_patient_data(omop_source_dir);
-    std::cout << absl::Substitute("Found $0 patients\n", patient_data.size());
+    ConceptTable concepts = construct_concept_table(omop_source_dir.string());
+    GEMMapper gem(gem_dir);
 
-    std::vector<std::thread> converter_threads;
-    converter_threads.push_back(
-        generate_converter_thread(omop_source_dir, root_path, "demo",
-                                  DemographicsConverter(), patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "visit", VisitConverter(), patient_data));
-    converter_threads.push_back(
-        generate_converter_thread(omop_source_dir, root_path, "measure",
-                                  MeasurementConverter(), patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "drug",
-        StandardConceptTableConverter("drug_exposure.csv.gz",
-                                      "drug_exposure_start_date",
-                                      "drug_source_concept_id"),
-        patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "death",
-        StandardConceptTableConverter("death.csv.gz", "death_date",
-                                      "death_type_concept_id"),
-        patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "cond",
-        StandardConceptTableConverter("condition_occurrence.csv.gz",
-                                      "condition_start_date",
-                                      "condition_source_concept_id"),
-        patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "proc",
-        StandardConceptTableConverter("procedure_occurrence.csv.gz",
-                                      "procedure_date",
-                                      "procedure_source_concept_id"),
-        patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "device",
-        StandardConceptTableConverter("device_exposure.csv.gz",
-                                      "device_exposure_start_date",
-                                      "device_source_concept_id"),
-        patient_data));
-    converter_threads.push_back(generate_converter_thread(
-        omop_source_dir, root_path, "obs",
-        StandardConceptTableConverter("observation.csv.gz", "observation_date",
-                                      "observation_source_concept_id"),
-        patient_data));
+    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem);
 
-    for (std::thread& thread : converter_threads) {
-        thread.join();
-    }
+    boost::filesystem::remove_all(sorted_dir); 
 
-    std::cout << absl::Substitute("Finding files to merge\n");
-    std::vector<std::string> files;
-
-    DIR* d = opendir(root_path.c_str());
-    if (d) {
-        dirent* dir = readdir(d);
-        while (dir != nullptr) {
-            std::string filename = dir->d_name;
-            dir = readdir(d);
-            if (filename[0] == '.') {
-                continue;
-            }
-
-            std::cout << absl::Substitute("Found $0\n", filename);
-            files.push_back(absl::Substitute("$0/$1", root_path, filename));
-        }
-        closedir(d);
-    }
-
-    std::string target = absl::Substitute("$0/extract.db", target_directory);
-
-    ConceptTable table = construct_concept_table_csv(omop_source_dir);
-
-    merge_intermediates(omop_source_dir, gem_dir, files, target, table);
-    create_index(target_directory);
-    create_ontology(target_directory, umls_dir, omop_source_dir, table);
+    create_index(target_dir.string());
+    create_ontology(target_dir.string(), umls_dir, omop_source_dir.string(), concepts);
 }
 
 void register_extract_extension(py::module& root) {

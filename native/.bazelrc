@@ -1,5 +1,6 @@
 build --cxxopt="-std=c++17"
-build --copt -march=native
+build --cxxopt="-march=native"
+build --copt="-march=native"
 
 build:asan --strip=never
 build:asan --copt -fsanitize=address

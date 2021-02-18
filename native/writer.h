@@ -4,8 +4,10 @@
 #include <variant>
 #include <vector>
 
+#include "atomicops.h"
 #include "constdb.h"
 #include "reader.h"
+#include "readerwriterqueue.h"
 
 struct Metadata {
     TermDictionary dictionary;
@@ -18,6 +20,40 @@ struct PatientRecord {
     std::vector<std::pair<uint32_t, uint32_t>> observations;
     std::vector<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>>
         observations_with_values;
+};
+
+template <typename QueueItem>
+class BlockingQueue {
+   public:
+    BlockingQueue(size_t max_size)
+        : inner_queue(max_size), capacity(max_size), count(0) {}
+
+    void wait_enqueue(QueueItem&& item) {
+        while (!capacity.wait())
+            ;
+        bool value = inner_queue.try_enqueue(item);
+        if (!value) {
+            std::cout << "Invariant failed in queue enqueue" << std::endl;
+            abort();
+        }
+        count.signal();
+    }
+
+    void wait_dequeue(QueueItem& item) {
+        while (!count.wait())
+            ;
+        bool value = inner_queue.try_dequeue(item);
+        if (!value) {
+            std::cout << "Invariant failed in queue dequeue" << std::endl;
+            abort();
+        }
+        capacity.signal();
+    }
+
+   private:
+    moodycamel::ReaderWriterQueue<QueueItem> inner_queue;
+    moodycamel::spsc_sema::LightweightSemaphore capacity;
+    moodycamel::spsc_sema::LightweightSemaphore count;
 };
 
 using WriterItem = std::variant<PatientRecord, Metadata>;

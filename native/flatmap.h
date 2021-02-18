@@ -35,8 +35,9 @@ struct FlatMap {
         T* ptr = find(index);
         if (ptr == nullptr) {
             insert(index, value);
+            ptr = find(index);
         }
-        return find(index);
+        return ptr;
     }
 
     void insert(size_t index, T value) {

@@ -13,9 +13,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
-#include "atomicops.h"
 #include "parse_utils.h"
-#include "readerwriterqueue.h"
 #include "writer.h"
 #include "csv.h"
 
@@ -284,41 +282,7 @@ class LabConverter : public Converter {
 };
 
 using QueueItem = std::variant<RawPatientRecord, Metadata>;
-
-class Queue {
-   public:
-    Queue(size_t max_size)
-        : inner_queue(max_size), capacity(max_size), count(0) {}
-
-    void wait_enqueue(QueueItem&& item) {
-        while (!capacity.wait())
-            ;
-        bool value = inner_queue.try_enqueue(item);
-        if (!value) {
-            std::cout << "Invariant failed in queue enqueue" << std::endl;
-            abort();
-        }
-        count.signal();
-    }
-
-    void wait_dequeue(QueueItem& item) {
-        while (!count.wait())
-            ;
-        bool value = inner_queue.try_dequeue(item);
-        if (!value) {
-            std::cout << "Invariant failed in queue dequeue" << std::endl;
-            abort();
-        }
-        capacity.signal();
-    }
-
-   private:
-    moodycamel::ReaderWriterQueue<QueueItem> inner_queue;
-    moodycamel::spsc_sema::LightweightSemaphore capacity;
-    moodycamel::spsc_sema::LightweightSemaphore count;
-};
-
-using WriterItem = std::variant<PatientRecord, Metadata>;
+using Queue = BlockingQueue<QueueItem>;
 
 template <typename C>
 void run_converter(C converter, Queue& queue) {
