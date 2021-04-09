@@ -10,7 +10,7 @@
 #include "csv.h"
 #include "blockingconcurrentqueue.h"
 
-void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path target_file) {
+void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path target_file, char delimiter, bool use_quotes) {
 
     gzFile file = gzopen(source_file.c_str(), "r");
     if (file == nullptr) {
@@ -36,7 +36,7 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
 
     int person_id_index = -1;
 
-    line_iter(first_line, ',', true,
+    line_iter(first_line, delimiter, use_quotes,
               [&](int index, std::string_view column) {
                   if (column == "person_id") {
                       person_id_index = index;
@@ -65,7 +65,7 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
         uint64_t person_id;
 
         line_iter(
-            next_line, ',', true,
+            next_line, delimiter, true,
             [&](int index, std::string_view column) {
                 if (index == person_id_index) {
                     if (!absl::SimpleAtoi(column, &person_id)) {
@@ -100,7 +100,7 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
 using WorkItem = std::pair<boost::filesystem::path, boost::filesystem::path>;
 using WorkQueue = moodycamel::BlockingConcurrentQueue<std::optional<WorkItem>>;
 
-void worker_thread(std::shared_ptr<WorkQueue> work_queue) {
+void worker_thread(std::shared_ptr<WorkQueue> work_queue, char delimiter, bool use_quotes) {
     while (true) {
         std::optional<WorkItem> result;
         work_queue->wait_dequeue(result);
@@ -111,12 +111,12 @@ void worker_thread(std::shared_ptr<WorkQueue> work_queue) {
             auto& source = result->first;
             auto& target = result->second;
 
-            sort_csv_file(source, target);
+            sort_csv_file(source, target, delimiter, use_quotes);
         }
     }
 }
 
-void sort_csvs(boost::filesystem::path source_dir, boost::filesystem::path target_dir) {
+void sort_csvs(boost::filesystem::path source_dir, boost::filesystem::path target_dir, char delimiter, bool use_quotes) {
 
     std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>>
         files_to_sort;
@@ -140,7 +140,7 @@ void sort_csvs(boost::filesystem::path source_dir, boost::filesystem::path targe
     std::vector<std::thread> threads;
 
     for (int i = 0; i < num_threads; i++) {
-        std::thread thread([work_queue]() { worker_thread(work_queue); });
+        std::thread thread([work_queue, delimiter, use_quotes]() { worker_thread(work_queue, delimiter, use_quotes); });
 
         threads.push_back(std::move(thread));
 

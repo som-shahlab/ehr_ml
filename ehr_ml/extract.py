@@ -17,27 +17,41 @@ def extract_omop_program() -> None:
     parser.add_argument(
         "omop_source",
         type=str,
-        help="Path of the folder to the ehr_ml extraction",
+        help="Path of the folder to the omop source",
     )
 
     parser.add_argument(
         "umls_location",
         type=str,
-        help="The patient id to inspect",
+        help="The location of the umls directory",
     )
     
     parser.add_argument(
         "gem_location",
         type=str,
-        help="The patient id to inspect",
+        help="The location of the gem directory",
     )
 
     parser.add_argument(
         "target_location",
         type=str,
-        help="The patient id to inspect",
+        help="The place to store the extract",
     )
+
+    parser.add_argument(
+        "--delimiter",
+        type=str,
+        default=',',
+        help="The delimiter used in the raw OMOP source",
+    )
+
+    parser.add_argument('--ignore_quotes', dest='use_quotes', action='store_false', help="Ignore quotes while parsing")
+    parser.add_argument('--use_quotes', dest='use_quotes', action='store_true', help="Use quotes while parsing")
+    parser.set_defaults(use_quotes=True)
 
     args = parser.parse_args()
 
-    extract_omop(args.omop_source, args.umls_location, args.gem_location, args.target_location)
+    print(args)
+
+    extract_omop(args.omop_source, args.umls_location, args.gem_location, args.target_location, args.delimiter,
+        args.use_quotes)

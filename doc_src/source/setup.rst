@@ -37,10 +37,14 @@ Downloading Data
 *********************************************
 
 There are three important necessary datasets for performing ehr_ml extractions:
+
 1. You must first have a clinical dataset in OMOP form. One example accessible synthetic clinical dataset is the OMOP SynPUF dataset available at http://www.ltscomputingllc.com/downloads/.
+
 2. The clinical dataset must have an attached OMOP vocabulary. Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. Make sure to perform the CPT4 postprocessing step after downloading.
+
 3. You must have a recent copy of UMLS. This can be obtained from https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html.
-4. You must have a copy of the latest General Equivalence Mappings. These can be downloaded from https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-CM-and-GEMs and https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-PCS-and-GEMs. (Merge the two folders.)
+
+4. You must have a copy of the latest General Equivalence Mappings for both ICD9 diagnoses and procedures. These can be downloaded from https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-CM-and-GEMs and https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-PCS-and-GEMs. (Merge the two folders.)
 
 *********************************************
 Fixing SynPUF Data
@@ -62,7 +66,7 @@ The extractor can now be run on the properly formatted SynPUF dataset.
 
 .. code-block:: console
 
-   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION GEM_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION
+   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION GEM_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION --delimiter "  " --ignore_quotes
 
 *********************************************
 Verifying The Extraction

@@ -126,14 +126,14 @@ void file_iter(const std::string& location, std::string_view prefix, F f) {
     }
 }
 
-ConceptTable construct_concept_table(const std::string& location) {
+ConceptTable construct_concept_table(const std::string& location, char delimiter, bool use_quotes) {
     ConceptTable result;
 
     std::vector<std::string_view> columns = {
         "concept_id", "vocabulary_id", "concept_code", "concept_class_id"};
 
     file_iter(location, "concept", [&](const auto& concept_file) {
-        csv_iterator(concept_file.c_str(), columns, ',', {}, true, true,
+        csv_iterator(concept_file.c_str(), columns, delimiter, {}, use_quotes, true,
                      [&result](const auto& row) {
                          uint32_t concept_id;
                          attempt_parse_or_die(row[0], concept_id);
@@ -152,8 +152,8 @@ ConceptTable construct_concept_table(const std::string& location) {
 
     file_iter(location, "concept_relationship",
               [&](const auto& concept_file_rel) {
-                  csv_iterator(concept_file_rel.c_str(), rel_columns, ',', {},
-                               true, true, [&result](const auto& row) {
+                  csv_iterator(concept_file_rel.c_str(), rel_columns, delimiter, {},
+                               use_quotes, true, [&result](const auto& row) {
                                    uint32_t concept_id;
                                    attempt_parse_or_die(row[0], concept_id);
                                    uint32_t other_concept;
@@ -172,7 +172,7 @@ ConceptTable construct_concept_table(const std::string& location) {
                                                  "descendant_concept_id"};
 
     file_iter(location, "concept_ancestor", [&](const auto& concept_file_anc) {
-        csv_iterator(concept_file_anc.c_str(), anc_columns, ',', {}, true, true,
+        csv_iterator(concept_file_anc.c_str(), anc_columns, delimiter, {}, use_quotes, true,
                      [&result](const auto& row) {
                          uint32_t ancestor_concept_id;
                          attempt_parse_or_die(row[0], ancestor_concept_id);

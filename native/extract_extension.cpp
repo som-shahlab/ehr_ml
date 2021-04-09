@@ -416,7 +416,7 @@ class Converter {
 };
 
 template <typename C>
-void run_converter(C converter, Queue& queue, boost::filesystem::path file) {
+void run_converter(C converter, Queue& queue, boost::filesystem::path file, char delimiter, bool use_quotes) {
     Metadata meta;
 
     size_t num_rows = 0;
@@ -428,7 +428,7 @@ void run_converter(C converter, Queue& queue, boost::filesystem::path file) {
     columns.push_back("person_id");
 
     csv_iterator(
-        file.c_str(), columns, ',', {}, true, false, [&](const auto& row) {
+        file.c_str(), columns, delimiter, {}, true, false, [&](const auto& row) {
             num_rows++;
 
             if (num_rows % 100000000 == 0) {
@@ -466,13 +466,33 @@ class DemographicsConverter : public Converter {
 
     std::vector<std::string_view> get_columns() const {
         return {"birth_DATETIME", "gender_source_concept_id",
-                "ethnicity_source_concept_id", "race_source_concept_id"};
+                "ethnicity_source_concept_id", "race_source_concept_id", "year_of_birth", "month_of_birth", "day_of_birth"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
-        absl::CivilDay birth = parse_date(row[0]);
+        absl::CivilDay birth;
+        if (!row[0].empty()) {
+            birth = parse_date(row[0]);
+            patient_record.birth_date = birth;
+        } else {
+            int year = 1900;
+            int month = 1;
+            int day = 1;
+
+            if (!row[4].empty()) {
+                attempt_parse_or_die(row[4], year);
+            }
+            if (!row[5].empty()) {
+                attempt_parse_or_die(row[5], month);
+            }
+            if (!row[6].empty()) {
+                attempt_parse_or_die(row[6], day);
+            }
+            birth = absl::CivilDay(year, month, day);
+        }
         patient_record.birth_date = birth;
+        
 
         uint32_t gender_code = meta.dictionary.map_or_add(row[1]);
         patient_record.observations.push_back(
@@ -591,10 +611,10 @@ class MeasurementConverter : public Converter {
 
 template <typename C>
 std::pair<std::thread, std::shared_ptr<Queue>> generate_converter_thread(
-    const C& converter, boost::filesystem::path target) {
+    const C& converter, boost::filesystem::path target, char delimiter, bool use_quotes) {
     std::shared_ptr<Queue> queue =
         std::make_shared<Queue>(10000);  // Ten thousand patient records
-    std::thread thread([converter, queue, target]() {
+    std::thread thread([converter, queue, target, delimiter, use_quotes]() {
         std::string thread_name = target.string();
         thread_name = thread_name.substr(0, 15);
         std::string name_copy(std::begin(thread_name), std::end(thread_name));
@@ -604,7 +624,7 @@ std::pair<std::thread, std::shared_ptr<Queue>> generate_converter_thread(
                       << error << std::endl;
             abort();
         }
-        run_converter(std::move(converter), *queue, target);
+        run_converter(std::move(converter), *queue, target, delimiter, use_quotes);
     });
 
     return std::make_pair(std::move(thread), std::move(queue));
@@ -614,7 +634,8 @@ template <typename C>
 std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
 generate_converter_threads(
     const C& converter,
-    const std::vector<boost::filesystem::path>& possible_targets) {
+    const std::vector<boost::filesystem::path>& possible_targets, 
+    char delimiter, bool use_quotes) {
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>> results;
 
     std::vector<std::string> options = {
@@ -633,7 +654,7 @@ generate_converter_threads(
             }
         }
         if (found) {
-            results.push_back(generate_converter_thread(converter, target));
+            results.push_back(generate_converter_thread(converter, target, delimiter, use_quotes));
         }
     }
 
@@ -1211,7 +1232,7 @@ class Cleaner {
     size_t current_index;
 };
 
-void create_extract(std::string omop_source_dir, std::string target_directory, const ConceptTable& concepts, const GEMMapper& gem) {
+void create_extract(std::string omop_source_dir, std::string target_directory, const ConceptTable& concepts, const GEMMapper& gem, char delimiter, bool use_quotes) {
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
         converter_threads;
 
@@ -1223,7 +1244,7 @@ void create_extract(std::string omop_source_dir, std::string target_directory, c
     }
 
     auto helper = [&](const auto& c) {
-        auto results = generate_converter_threads(c, targets);
+        auto results = generate_converter_threads(c, targets, delimiter, use_quotes);
 
         for (auto& result : results) {
             converter_threads.push_back(std::move(result));
@@ -1264,7 +1285,7 @@ void create_extract(std::string omop_source_dir, std::string target_directory, c
 
 void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_dir,
                              std::string gem_dir,
-                             std::string target_dir_str) {
+                             std::string target_dir_str, char delimiter, bool use_quotes) {
 
     boost::filesystem::path omop_source_dir = boost::filesystem::canonical(omop_source_dir_str);
     boost::filesystem::path target_dir = boost::filesystem::weakly_canonical(target_dir_str);
@@ -1280,12 +1301,13 @@ void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_d
 
     boost::filesystem::create_directory(sorted_dir);
 
-    sort_csvs(omop_source_dir, sorted_dir);
+    sort_csvs(omop_source_dir, sorted_dir, delimiter, use_quotes);
 
-    ConceptTable concepts = construct_concept_table(omop_source_dir.string());
+    ConceptTable concepts = construct_concept_table(omop_source_dir.string(), delimiter, use_quotes);
+
     GEMMapper gem(gem_dir);
 
-    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem);
+    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem, delimiter, use_quotes);
 
     boost::filesystem::remove_all(sorted_dir); 
 
