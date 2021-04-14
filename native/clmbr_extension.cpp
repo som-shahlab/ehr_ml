@@ -100,7 +100,6 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
         if (num_processed % ten_percent == 0) {
             std::cout << "Processed " << (100.0 * num_processed / num_patients)
                       << std::endl;
-            // break;
         }
 
         iter.process_patient(

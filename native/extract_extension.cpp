@@ -975,7 +975,13 @@ std::vector<std::string> normalize(
 
     std::vector<uint32_t> results;
 
-    ConceptInfo info = *table.get_info(concept_id);
+    std::optional<ConceptInfo> info_ptr = table.get_info(concept_id);
+    if (info_ptr) {
+        std::cout << "Could not find the concept id " << concept_id << std::endl;
+        abort();
+    }
+
+    ConceptInfo info = *info_ptr;
     if (info.vocabulary_id == "RxNorm") {
         // Need to map NDC over to ATC to avoid painful issues
 

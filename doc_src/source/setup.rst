@@ -40,7 +40,7 @@ There are three important necessary datasets for performing ehr_ml extractions:
 
 1. You must first have a clinical dataset in OMOP form. One example accessible synthetic clinical dataset is the OMOP SynPUF dataset available at http://www.ltscomputingllc.com/downloads/.
 
-2. The clinical dataset must have an attached OMOP vocabulary. Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. Make sure to perform the CPT4 postprocessing step after downloading.
+2. The clinical dataset must have an attached OMOP vocabulary. Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. Make sure to perform the CPT4 postprocessing step after downloading. Place the resulting concept files in the directory with the synthetic data.
 
 3. You must have a recent copy of UMLS. This can be obtained from https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html.
 
@@ -56,6 +56,10 @@ In order to deal with these issues, ehr_ml contains a tool for fixing the SynPUF
 
 .. code-block:: console
 
+   # Need to add vocabulary to synpuf first
+   cp VOCAB_LOCATION/* SYNPUF_LOCATION
+
+   # Clean up the synpuf extract
    ehr_ml_clean_synpuf SYNPUF_LOCATION FIXED_SYNPUF_LOCATION
 
 *********************************************
