@@ -976,7 +976,7 @@ std::vector<std::string> normalize(
     std::vector<uint32_t> results;
 
     std::optional<ConceptInfo> info_ptr = table.get_info(concept_id);
-    if (info_ptr) {
+    if (!info_ptr) {
         std::cout << "Could not find the concept id " << concept_id << std::endl;
         abort();
     }
