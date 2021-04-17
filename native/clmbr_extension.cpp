@@ -80,7 +80,6 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
     size_t num_patients = reader.get_patient_ids().size();
 
     size_t ten_percent = num_patients / 10;
-    size_t one_percent = ten_percent / 10;
 
     size_t num_processed = 0;
 
