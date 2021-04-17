@@ -7,6 +7,7 @@
 #include "ontology_extension.h"
 #include "patient2vec_extension.h"
 #include "timeline_extension.h"
+#include "extract_subset_extension.h"
 
 PYBIND11_MODULE(extension, m) {
     register_timeline_extension(m);
@@ -15,4 +16,5 @@ PYBIND11_MODULE(extension, m) {
     register_patient2vec_extension(m);
     register_clmbr_extension(m);
     register_extract_extension(m);
+    register_subset_extension(m);
 }

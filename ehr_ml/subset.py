@@ -4,10 +4,6 @@ import argparse
 import bisect
 import os
 
-from .extension.extract import (
-    extract_omop
-)
-
 from .extension.subset import (
     extract_subset
 )
