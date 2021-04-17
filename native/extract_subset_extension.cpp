@@ -24,6 +24,7 @@ class Reader2Writer {
 		  float subset_ratio) : reader(src_path, true), iterator(reader.iter()) {
       size_t total_patients = reader.get_patient_ids().size();
       size_t target_num_patients = static_cast<size_t>((float) total_patients * subset_ratio);
+      std::cout << "Selecting " << target_num_patients << " out of " << total_patients << " for subset" << std::endl;
       size_t num_processed = 0;
       for (auto patient_id : reader.get_patient_ids()) {
 	if (num_processed >= target_num_patients) {
@@ -37,27 +38,38 @@ class Reader2Writer {
 
     WriterItem operator()() {
       // essentially just iterate through patient_ids
-      while (true) {
-	uint32_t patient_id = *patient_id_iterator;
-	// after a while
-	PatientRecord final_record;
-	final_record.person_id = patient_id;
-	iterator.process_patient(patient_id,
-			     [&](absl::CivilDay birth_day, uint32_t age,
-				 const std::vector<uint32_t>& observations,
-				 const std::vector<ObservationWithValue>&
-				 observations_with_values) {
-			       final_record.birth_date = birth_day;
-			       for (uint32_t code : observations) {
-				 final_record.observations.push_back(std::make_pair(age, code));
-			       }
-			       for (ObservationWithValue obswv : observations_with_values) {
-				 final_record.observations_with_values.push_back(std::make_pair(age, obswv.encode()));
-			       }
-			     });
-	return final_record;
+      if (patient_id_iterator == patient_ids.end()) {
+	// need to return metadata to conclude write_timeline
+
+	// should I be returning the exact same dictionaries as the original extract?
+	Metadata meta;
+	meta.dictionary = reader.get_dictionary();
+	meta.value_dictionary = reader.get_value_dictionary();
+	return meta;
       }
+      uint32_t patient_id = *patient_id_iterator;
+      patient_id_iterator++;
+      PatientRecord final_record;
+      final_record.person_id = patient_id;
+      iterator.process_patient(patient_id,
+			       [&](absl::CivilDay birth_day, uint32_t age,
+				   const std::vector<uint32_t>& observations,
+				   const std::vector<ObservationWithValue>&
+				   observations_with_values) {
+				 final_record.birth_date = birth_day;
+				 for (uint32_t code : observations) {
+				   final_record.observations.push_back(std::make_pair(age, code));
+				 }
+				 for (ObservationWithValue obswv : observations_with_values) {
+				   final_record.observations_with_values.push_back(std::make_pair(age, obswv.encode()));
+				 }
+			       });
+      return final_record;
     }
+
+  ~Reader2Writer() {
+    std::cout << "Finished writing subset!" << std::endl;
+  }
 
   private:
     ExtractReader reader;
