@@ -17,7 +17,9 @@ struct Metadata {
 struct PatientRecord {
     uint64_t person_id;
     absl::CivilDay birth_date;
+    // <age, obs code>
     std::vector<std::pair<uint32_t, uint32_t>> observations;
+    // <age, <obs code, value>>
     std::vector<std::pair<uint32_t, std::pair<uint32_t, uint32_t>>>
         observations_with_values;
 };

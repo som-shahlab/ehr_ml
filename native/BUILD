@@ -321,6 +321,8 @@ cc_binary(
         "civil_day_caster.h",
         "extract_extension.cpp",
         "extract_extension.h",
+	"extract_subset_extension.cpp",
+	"extract_subset_extension.h"
     ],
     deps = [
         ":parse_utils",
