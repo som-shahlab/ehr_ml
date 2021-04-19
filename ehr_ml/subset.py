@@ -31,8 +31,15 @@ def extract_subset_program() -> None:
         help="subset ratio of the existing extract"
     )
 
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="random seed for sampling",
+        default=42
+    )
+
     args = parser.parse_args()
 
     print(args)
 
-    extract_subset(args.src_timeline_path, args.target_timeline_path, args.subset_ratio)
+    extract_subset(args.src_timeline_path, args.target_timeline_path, args.subset_ratio, args.seed)
