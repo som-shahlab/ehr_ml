@@ -11,19 +11,22 @@ As a shortcut, you can also simply use the preprocessed extract "synpuf_extract.
 Installation
 *********************************************
 
-ehr_ml can be installed by cloning the repository and using poetry install.
+ehr_ml can be installed by cloning the repository and using poetry install. As of time of writing, we have only confirmed installation on Linux (Ubuntu, Debian, CentOS).
 
 Note that there are several main build depencies for ehr_ml:
-   1. Poetry (https://github.com/python-poetry/poetry)
-   2. Bazel 3 or greater (https://bazel.build/)
-   3. A C++ compiler that supports C++14
-   4. CMake 3 or greater
+   1. Python 3.8
+   2. Poetry (https://github.com/python-poetry/poetry)
+   3. Bazel 3.x (https://bazel.build/)
+   4. A C++ compiler that supports C++14
+   5. CMake 3 or greater
 
-If you are using conda, the following command should install those dependencies:
+If you are using conda, the following commands should install those dependencies:
 
 .. code-block:: console
 
-   conda install cmake poetry bazel gxx_linux-64 -c conda-forge
+   conda create -n env_name python=3.8
+   conda activate env_name
+   conda install cmake poetry bazel=3.1 gxx_linux-64 -c conda-forge
 
 
 .. code-block:: console
@@ -38,13 +41,17 @@ Downloading Data
 
 There are three important necessary datasets for performing ehr_ml extractions:
 
-1. You must first have a clinical dataset in OMOP form. One example accessible synthetic clinical dataset is the OMOP SynPUF dataset available at http://www.ltscomputingllc.com/downloads/.
+1. You must first have a clinical dataset in OMOP form.
+   - One example accessible synthetic clinical dataset is the OMOP SynPUF dataset available at http://www.ltscomputingllc.com/downloads/. Once unzipped, the location of this directory is referred to as `SYNPUF_LOCATION` below.
 
-2. The clinical dataset must have an attached OMOP vocabulary. Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. Make sure to perform the CPT4 postprocessing step after downloading. Place the resulting concept files in the directory with the synthetic data.
+2. The clinical dataset must have an attached OMOP vocabulary.
+   - Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. You will need to create an account, which may take a few hours to get approval. The vocabulary can be downloaded from the "Download" tab in the top right of the webpage.
+     - **IMPORTANT:** Make sure to perform the CPT4 postprocessing step after downloading (on Linux, this involves running `cpt.sh` with your Athena API key, more detailed instructions in the `readme.txt` included in the SynPUF download).
+     - After performing the CPT4 postprocessing, move the concept files into the same directory as the SynPUF dataset. In the instructions below, the directory of this vocabulary is referred to as `VOCAB_LOCATION`.
 
-3. You must have a recent copy of UMLS. This can be obtained from https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html.
+3. You must have a recent copy of UMLS. This can be obtained from https://www.nlm.nih.gov/research/umls/licensedcontent/umlsknowledgesources.html. In the instructions below, the unzipped directory is referred to as `UMLS_FOLDER_LOCATION`.
 
-4. You must have a copy of the latest General Equivalence Mappings for both ICD9 diagnoses and procedures. These can be downloaded from https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-CM-and-GEMs and https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-PCS-and-GEMs. (Merge the two folders.)
+4. You must have a copy of the latest General Equivalence Mappings for both ICD9 diagnoses and procedures. These can be downloaded from https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-CM-and-GEMs and https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-PCS-and-GEMs. Place the contents in in a single directory, referred to as `GEM_FOLDER_LOCATION` below.
 
 *********************************************
 Fixing SynPUF Data
@@ -70,7 +77,7 @@ The extractor can now be run on the properly formatted SynPUF dataset.
 
 .. code-block:: console
 
-   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION GEM_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION --delimiter "  " --ignore_quotes
+   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION GEM_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION --delimiter $'\t' --ignore_quotes
 
 *********************************************
 Verifying The Extraction
