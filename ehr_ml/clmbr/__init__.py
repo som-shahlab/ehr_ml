@@ -373,7 +373,9 @@ def train_model() -> None:
                            os.path.join(model_dir, 'best'))
 
 
-def featurize_patients(model_dir: str, extract_dir: str) -> Tuple[np.array, np.array, np.array]:
+def featurize_patients(model_dir: str, extract_dir: str,
+                       patient_ids: Union[List[int], np.array],
+                       day_offsets: Union[List[int], np.array]) -> np.array:
     """
     Featurize patients using the given model.
     This function will use the GPU if it is available.
@@ -397,38 +399,37 @@ def featurize_patients(model_dir: str, extract_dir: str) -> Tuple[np.array, np.a
         device_from_config(use_cuda=use_cuda),
     )
 
+    dummy_labels = [0 for _ in patient_ids]
+    data = (dummy_labels, patient_ids, day_offsets)
+
     loaded_data = StrideDataset(
         os.path.join(extract_dir, "extract.db"),
         os.path.join(extract_dir, "ontology.db"),
         os.path.join(model_dir, "info.json"),
+        data,
+        data
     )
 
-    patient_ids = []
-    patient_indices = []
     patient_id_to_info = defaultdict(dict)
-    patient_day_idx = 0
-    
-    # set up data iterator for collecting patient stats
+    for i, (pid, index) in enumerate(zip(patient_ids, day_offsets)):
+        patient_id_to_info[pid][index] = i
+
+    patient_representations = np.zeros((len(patient_ids), config['size']))
+    print(f'Total # patient days = {len(patient_ids)}', flush=True)
+    print(f'Total # batches = {(len(patient_ids)) / 10000}', flush=True)
+
+    # batch iterator args
     is_val = True
     batch_size = 10000
     seed = info['seed']
     threshold = config['num_first']
     day_dropout = 0
     code_dropout = 0
-    iterator_args = (is_val, batch_size, seed, threshold, day_dropout, code_dropout)
-    for item in loaded_data.get_iterator(*iterator_args):
-        for pid in item['pid']:
-            for index in range(item['day_index'].shape[-1]):
-                patient_ids.append(pid)
-                patient_indices.append(patient_day_idx)
-                patient_id_to_info[pid][index] = patient_day_idx
-                patient_day_idx += 1
-
-    patient_representations = np.zeros((patient_day_idx + 1, config['size']))
-    print(f'Total # patient days = {patient_day_idx + 1}', flush=True)
-    print(f'Total # batches = {(patient_day_idx + 1) / 10000}', flush=True)
-
-    with dataset.BatchIterator(loaded_data, final_transformation, threshold=threshold, is_val=is_val, batch_size=batch_size, seed=seed, day_dropout=day_dropout, code_dropout=code_dropout) as batches:
+    with dataset.BatchIterator(loaded_data, final_transformation,
+                               threshold=threshold, is_val=is_val,
+                               batch_size=batch_size, seed=seed,
+                               day_dropout=day_dropout,
+                               code_dropout=code_dropout) as batches:
         pbar = tqdm(batches)
         pbar.set_description('Computing patient representations')
         for batch in pbar:
@@ -442,9 +443,10 @@ def featurize_patients(model_dir: str, extract_dir: str) -> Tuple[np.array, np.a
                             i, index, :
                         ]
 
-    return patient_representations, np.array(patient_ids), np.array(patient_indices)
+    return patient_representations
 
-def featurize_patients_w_labels(model_dir: str, extract_dir: str, l: labeler.SavedLabeler) -> Tuple[np.array, np.array, np.array, np.array]:
+def featurize_patients_w_labels(model_dir: str, extract_dir: str,
+                                l: labeler.SavedLabeler) -> Tuple[np.array, np.array, np.array, np.array]:
     """
     Featurize patients using the given model and labeler.
     The result is a numpy array aligned with l.get_labeler_data().
@@ -482,12 +484,6 @@ def featurize_patients_w_labels(model_dir: str, extract_dir: str, l: labeler.Sav
     )
 
     patient_id_to_info = defaultdict(dict)
-    is_val = True
-    batch_size = 10000
-    seed = info['seed']
-    threshold = config['num_first']
-    day_dropout = 0
-    code_dropout = 0
 
     for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
         patient_id_to_info[pid][index] = i
@@ -496,7 +492,18 @@ def featurize_patients_w_labels(model_dir: str, extract_dir: str, l: labeler.Sav
     print(f'Total # patient days = {len(labels)}', flush=True)
     print(f'Total # batches = {len(labels) / batch_size}', flush=True)
 
-    with dataset.BatchIterator(loaded_data, final_transformation, threshold=threshold, is_val=is_val, batch_size=batch_size, seed=seed, day_dropout=day_dropout, code_dropout=code_dropout) as batches:
+    # batch iterator args
+    is_val = True
+    batch_size = 10000
+    seed = info['seed']
+    threshold = config['num_first']
+    day_dropout = 0
+    code_dropout = 0
+    with dataset.BatchIterator(loaded_data, final_transformation,
+                               threshold=threshold, is_val=is_val,
+                               batch_size=batch_size, seed=seed,
+                               day_dropout=day_dropout,
+                               code_dropout=code_dropout) as batches:
         pbar = tqdm(batches)
         pbar.set_description('Computing patient representations')
         for batch in pbar:
