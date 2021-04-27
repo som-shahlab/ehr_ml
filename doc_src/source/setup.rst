@@ -45,7 +45,8 @@ There are three important necessary datasets for performing ehr_ml extractions:
    - One example accessible synthetic clinical dataset is the OMOP SynPUF dataset available at http://www.ltscomputingllc.com/downloads/. Once unzipped, the location of this directory is referred to as `SYNPUF_LOCATION` below.
 
 2. The clinical dataset must have an attached OMOP vocabulary.
-   - Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. You will need to create an account, which may take a few hours to get approval. The vocabulary can be downloaded from the "Download" tab in the top right of the webpage.
+
+     - Normally this comes with the dataset itself, but in the case of SynPUF this must be downloaded seperately from https://athena.ohdsi.org/. You will need to create an account, which may take a few hours to get approval. The vocabulary can be downloaded from the "Download" tab in the top right of the webpage.
      - **IMPORTANT:** Make sure to perform the CPT4 postprocessing step after downloading (on Linux, this involves running `cpt.sh` with your Athena API key, more detailed instructions in the `readme.txt` included in the SynPUF download).
      - After performing the CPT4 postprocessing, move the concept files into the same directory as the SynPUF dataset. In the instructions below, the directory of this vocabulary is referred to as `VOCAB_LOCATION`.
 
