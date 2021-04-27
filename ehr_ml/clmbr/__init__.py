@@ -17,6 +17,7 @@ from functools import partial
 from pathlib import Path
 from collections import defaultdict
 from shutil import copyfile
+from tqdm import tqdm
 
 import sklearn.model_selection
 import sklearn.metrics
@@ -223,7 +224,7 @@ def train_model() -> None:
         if info['code_counts'][code] < 10 * info['min_patient_count']:
             first_too_small_index = min(first_too_small_index, index)
 
-    print(len(info['valid_code_map']))
+    print(len(info['valid_code_map']), flush=True)
 
     # Create and save config dictionary
     config = {
@@ -372,10 +373,11 @@ def train_model() -> None:
                            os.path.join(model_dir, 'best'))
 
 
-def featurize_patients(model_dir: str, extract_dir: str, l: labeler.SavedLabeler) -> Tuple[np.array, np.array, np.array, np.array]:
+def featurize_patients(model_dir: str, extract_dir: str,
+                       patient_ids: Union[List[int], np.array],
+                       day_offsets: Union[List[int], np.array]) -> np.array:
     """
-    Featurize patients using the given model and labeler.
-    The result is a numpy array aligned with l.get_labeler_data().
+    Featurize patients using the given model.
     This function will use the GPU if it is available.
     """
 
@@ -397,27 +399,38 @@ def featurize_patients(model_dir: str, extract_dir: str, l: labeler.SavedLabeler
         device_from_config(use_cuda=use_cuda),
     )
 
-    data = l.get_label_data()
+    dummy_labels = [0 for _ in patient_ids]
+    data = (dummy_labels, patient_ids, day_offsets)
 
-    labels, patient_ids, patient_indices = data
-    
     loaded_data = StrideDataset(
         os.path.join(extract_dir, "extract.db"),
         os.path.join(extract_dir, "ontology.db"),
         os.path.join(model_dir, "info.json"),
         data,
-        data,
+        data
     )
 
     patient_id_to_info = defaultdict(dict)
-
-    for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
+    for i, (pid, index) in enumerate(zip(patient_ids, day_offsets)):
         patient_id_to_info[pid][index] = i
 
-    patient_representations = np.zeros((len(data[0]), config['size']))
+    patient_representations = np.zeros((len(patient_ids), config['size']))
 
-    with dataset.BatchIterator(loaded_data, final_transformation, threshold=config['num_first'], is_val=True, batch_size=10000, seed=info['seed'], day_dropout=0, code_dropout=0) as batches:
-        for batch in batches:
+    # batch iterator args
+    is_val = True
+    batch_size = 10000
+    seed = info['seed']
+    threshold = config['num_first']
+    day_dropout = 0
+    code_dropout = 0
+    with dataset.BatchIterator(loaded_data, final_transformation,
+                               threshold=threshold, is_val=is_val,
+                               batch_size=batch_size, seed=seed,
+                               day_dropout=day_dropout,
+                               code_dropout=code_dropout) as batches:
+        pbar = tqdm(batches)
+        pbar.set_description('Computing patient representations')
+        for batch in pbar:
              with torch.no_grad():
                 embeddings = (
                     model.compute_embedding_batch(batch["rnn"]).cpu().numpy()
@@ -428,7 +441,24 @@ def featurize_patients(model_dir: str, extract_dir: str, l: labeler.SavedLabeler
                             i, index, :
                         ]
 
+    return patient_representations
+
+def featurize_patients_w_labels(model_dir: str, extract_dir: str,
+                                l: labeler.SavedLabeler) -> Tuple[np.array, np.array, np.array, np.array]:
+    """
+    Featurize patients using the given model and labeler.
+    The result is a numpy array aligned with l.get_labeler_data().
+    This function will use the GPU if it is available.
+    """
+
+    data = l.get_label_data()
+
+    labels, patient_ids, patient_indices = data
+
+    patient_representations = featurize_patients(model_dir, extract_dir, patient_ids, patient_indices)
+
     return patient_representations, labels, patient_ids, patient_indices
+    
 
 
 def debug_model() -> None:
