@@ -415,8 +415,6 @@ def featurize_patients(model_dir: str, extract_dir: str,
         patient_id_to_info[pid][index] = i
 
     patient_representations = np.zeros((len(patient_ids), config['size']))
-    print(f'Total # patient days = {len(patient_ids)}', flush=True)
-    print(f'Total # batches = {(len(patient_ids)) / 10000}', flush=True)
 
     # batch iterator args
     is_val = True
@@ -453,69 +451,11 @@ def featurize_patients_w_labels(model_dir: str, extract_dir: str,
     This function will use the GPU if it is available.
     """
 
-    config = read_config(os.path.join(model_dir, "config.json"))
-    info = read_info(os.path.join(model_dir, "info.json"))
-
-    use_cuda = torch.cuda.is_available()
-
-    model = PredictionModel(config, info, use_cuda=use_cuda).to(
-        device_from_config(use_cuda=use_cuda)
-    )
-    model_data = torch.load(os.path.join(model_dir, "best"), map_location="cpu")
-    model.load_state_dict(model_data)
-
-    final_transformation = partial(
-        PredictionModel.finalize_data,
-        config,
-        info,
-        device_from_config(use_cuda=use_cuda),
-    )
-
     data = l.get_label_data()
 
     labels, patient_ids, patient_indices = data
-    
-    loaded_data = StrideDataset(
-        os.path.join(extract_dir, "extract.db"),
-        os.path.join(extract_dir, "ontology.db"),
-        os.path.join(model_dir, "info.json"),
-        data,
-        data,
-    )
 
-    patient_id_to_info = defaultdict(dict)
-
-    for i, (pid, index) in enumerate(zip(patient_ids, patient_indices)):
-        patient_id_to_info[pid][index] = i
-
-    patient_representations = np.zeros((len(labels), config['size']))
-    print(f'Total # patient days = {len(labels)}', flush=True)
-    print(f'Total # batches = {len(labels) / batch_size}', flush=True)
-
-    # batch iterator args
-    is_val = True
-    batch_size = 10000
-    seed = info['seed']
-    threshold = config['num_first']
-    day_dropout = 0
-    code_dropout = 0
-    with dataset.BatchIterator(loaded_data, final_transformation,
-                               threshold=threshold, is_val=is_val,
-                               batch_size=batch_size, seed=seed,
-                               day_dropout=day_dropout,
-                               code_dropout=code_dropout) as batches:
-        pbar = tqdm(batches)
-        pbar.set_description('Computing patient representations')
-        for batch in pbar:
-             with torch.no_grad():
-                embeddings = (
-                    model.compute_embedding_batch(batch["rnn"]).cpu().numpy()
-                )
-                for i, patient_id in enumerate(batch["pid"]):
-                    for index, target_id in patient_id_to_info[patient_id].items():
-                        patient_representations[target_id, :] = embeddings[
-                            i, index, :
-                        ]
+    patient_representations = featurize_patients(model_dir, extract_dir, patient_ids, patient_indices)
 
     return patient_representations, labels, patient_ids, patient_indices
     
