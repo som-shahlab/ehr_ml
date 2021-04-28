@@ -36,7 +36,19 @@ If you are using conda, the following commands should install those dependencies
    poetry install
 
 *********************************************
-Downloading Data
+Existing Extracts
+*********************************************
+The repository contains a pre-extracted version of the OMOP SynPUF dataset that you can work with out of the box under :code:`example/synpuf_extract.zip`. The following should allow you to get started:
+
+.. code-block:: console
+
+   cd ehr_ml/example
+   unzip synpuf_extract.zip
+
+You should see at least three files: :code:`extract.db`, :code:`ontology.db` and :code:`index.db`. You can then follow the instructions in the tutorial to get started training models.
+
+*********************************************
+Creating New Extracts
 *********************************************
 
 There are three important necessary datasets for performing ehr_ml extractions:
