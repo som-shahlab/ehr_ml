@@ -54,6 +54,7 @@ Creating New Extracts
 There are three important necessary datasets for performing ehr_ml extractions:
 
 1. You must first have a clinical dataset in OMOP form.
+
    - One example accessible synthetic clinical dataset is the OMOP SynPUF dataset available at http://www.ltscomputingllc.com/downloads/. Once unzipped, the location of this directory is referred to as `SYNPUF_LOCATION` below.
 
 2. The clinical dataset must have an attached OMOP vocabulary.
@@ -86,7 +87,7 @@ In order to deal with these issues, ehr_ml contains a tool for fixing the SynPUF
 Running The Extraction
 *********************************************
 
-The extractor can now be run on the properly formatted SynPUF dataset.
+The extractor can now be run on the properly formatted SynPUF dataset. If you are using another OMOP dataset, replace `FIXED_SYNPUF_LOCATION` with the path to that dataset. You may need to change the delimiter to ',' depending on the format of your concept files.
 
 .. code-block:: console
 
