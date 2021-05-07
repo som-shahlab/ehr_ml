@@ -20,7 +20,7 @@ Note that there are several main build depencies for ehr_ml:
    4. A C++ compiler that supports C++14
    5. CMake 3 or greater
 
-If you are using conda, the following commands should install those dependencies:
+If you are using Anaconda, the following commands should install those dependencies:
 
 .. code-block:: console
 
@@ -28,12 +28,22 @@ If you are using conda, the following commands should install those dependencies
    conda activate env_name
    conda install cmake poetry bazel=3.1 gxx_linux-64 -c conda-forge
 
-
 .. code-block:: console
 
    git clone https://github.com/som-shahlab/ehr_ml
    cd ehr_ml
    poetry install
+
+If you are using CLMBR, you will additionally need to install PyTorch and a custom library for computing dot products between embeddings.
+
+.. code-block:: console
+
+   conda install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvidia
+   git clone https://github.com/Lalaland/embedding_dot.git
+   cd embedding_dot
+   pip install -e .
+
+Note that your installation command for PyTorch may differ depending on your version of CUDA; please check https://pytorch.org/get-started/locally/ for the appropriate installation command. Additionally, :code:`embedding_dot` (and CLMBR as a whole) will still work even if you do not have CUDA installed, so long as you install the CPU-only version of PyTorch first.
 
 *********************************************
 Existing Extracts
