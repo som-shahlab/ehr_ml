@@ -22,6 +22,8 @@ numpy = "1.19.1"
 scipy = "^1.5.2"
 scikit-learn = "^0.23.2"
 tqdm = "^4.60.0"
+embedding-dot = {git = "https://github.com/Lalaland/embedding_dot.git"}
+torch = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
