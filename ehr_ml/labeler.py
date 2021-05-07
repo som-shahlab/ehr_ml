@@ -70,7 +70,7 @@ class Label:
             Construct a label with a day_index and a value. 
             You must only provide a single value option.
         """
-        
+
         self.day_index = day_index
         self.is_positive = is_positive
         self.numeric_value = numeric_value
@@ -467,23 +467,25 @@ class SavedLabeler(Labeler):
 
         label_dict = collections.defaultdict(list)
 
-        for label, patient_id, patient_index in zip(result_labels, patient_ids, patient_day_indices):
-            label_dict[patient_id].append(Label(day_index = int(patient_index), is_positive = bool(label)))
+        for label, patient_id, patient_index in zip(
+            result_labels, patient_ids, patient_day_indices
+        ):
+            label_dict[patient_id].append(
+                Label(day_index=int(patient_index), is_positive=bool(label))
+            )
 
         for patient_id in patient_ids:
             labels.append(
                 (
                     int(patient_id),
-                    [label.to_dict() for label in label_dict[patient_id]]
+                    [label.to_dict() for label in label_dict[patient_id]],
                 )
             )
 
-        data_str = json.dumps(
-            {"labels": labels, "labeler_type": "binary"},
-        )
-        
+        data_str = json.dumps({"labels": labels, "labeler_type": "binary"},)
+
         return SavedLabeler(io.StringIO(data_str))
-            
+
     @classmethod
     def save(
         cls,
@@ -864,12 +866,14 @@ class MortalityLabeler(CodeLabeler):
     def __init__(self, timelines: timeline.TimelineReader, ind: index.Index):
         death_codes = set()
         for code_str, _ in timelines.get_dictionary().get_items():
-            if code_str.startswith('Death Type/'):
+            if code_str.startswith("Death Type/"):
                 code_id = timelines.get_dictionary().map(code_str)
                 death_codes.add((code_str, code_id))
 
         if len(death_codes) != 1:
-            raise ValueError("Could not find a single death code " + str(death_codes))
+            raise ValueError(
+                "Could not find a single death code " + str(death_codes)
+            )
         else:
             death_code = list(death_codes)[0][1]
             super().__init__(code=death_code)

@@ -26,14 +26,12 @@ def inspect_timelines() -> None:
     )
 
     parser.add_argument(
-        "patient_id",
-        type=int,
-        help="The patient id to inspect",
+        "patient_id", type=int, help="The patient id to inspect",
     )
 
     args = parser.parse_args()
 
-    source_file = os.path.join(args.extract_dir, 'extract.db')
+    source_file = os.path.join(args.extract_dir, "extract.db")
     timelines = TimelineReader(source_file)
     if args.patient_id is not None:
         patient_id = int(args.patient_id)

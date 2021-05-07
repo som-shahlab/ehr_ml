@@ -612,7 +612,7 @@ def debug_model() -> None:
         os.path.join(info["extract_dir"], "extract.db"),
         os.path.join(info["extract_dir"], "ontology.db"),
         os.path.join(model_dir, "info.json"),
-    # )
+        # )
         data,
         data,
     )

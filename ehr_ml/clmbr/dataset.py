@@ -9,7 +9,14 @@ from . import StrideDataset
 
 from typing import Any
 
-def prepare_batch_thread(dataset: StrideDataset, args: Any, out_queue: queue.Queue, stop_event: threading.Event, transform_func: Any) -> None:
+
+def prepare_batch_thread(
+    dataset: StrideDataset,
+    args: Any,
+    out_queue: queue.Queue,
+    stop_event: threading.Event,
+    transform_func: Any,
+) -> None:
     iterator = dataset.get_iterator(*args)
     while True:
         if stop_event.is_set():
@@ -26,14 +33,32 @@ def prepare_batch_thread(dataset: StrideDataset, args: Any, out_queue: queue.Que
 
 
 class BatchIterator:
-    def __init__(self, dataset: StrideDataset, transform_func: Any, threshold: int, is_val: bool = False, batch_size: int = 2000, seed:int = 0, day_dropout: float = 0, code_dropout: float = 0):
+    def __init__(
+        self,
+        dataset: StrideDataset,
+        transform_func: Any,
+        threshold: int,
+        is_val: bool = False,
+        batch_size: int = 2000,
+        seed: int = 0,
+        day_dropout: float = 0,
+        code_dropout: float = 0,
+    ):
         self.batch_queue: queue.Queue[Any] = queue.Queue(maxsize=20)
         self.stop_event = threading.Event()
 
         args = (is_val, batch_size, seed, threshold, day_dropout, code_dropout)
 
-        self.data_thread = threading.Thread(target=prepare_batch_thread, 
-            args=(dataset, args, self.batch_queue, self.stop_event, transform_func))
+        self.data_thread = threading.Thread(
+            target=prepare_batch_thread,
+            args=(
+                dataset,
+                args,
+                self.batch_queue,
+                self.stop_event,
+                transform_func,
+            ),
+        )
         self.data_thread.start()
         self.stopped = False
 

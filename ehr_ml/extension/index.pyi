@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Iterable, Sequence
 
-
 class Index:
     def __init__(self, filename: str): ...
     def get_patient_ids(self, term: int) -> Sequence[int]: ...

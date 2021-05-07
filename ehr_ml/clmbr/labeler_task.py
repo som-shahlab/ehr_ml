@@ -8,14 +8,15 @@ from ..timeline import TimelineReader
 import torch
 from torch import nn
 from collections import defaultdict, deque
-  
+
+
 class LabelerTask(nn.Module):
     """
     This is paired with an encoder that outputs an encoding for each timestep.  
     This is the output (and loss) module for that encoder.  An example of an 
     encoder is PatientRNN in rnn_model.py.  
     """
-    
+
     def __init__(self, config, data_config, info):
         super().__init__()
 
@@ -23,26 +24,29 @@ class LabelerTask(nn.Module):
         self.data_config = data_config
         self.info = info
 
-        self.final_layer = nn.Linear(config['size'], 1, bias=True)
-        
+        self.final_layer = nn.Linear(config["size"], 1, bias=True)
+
     def forward(self, rnn_output, data):
         indices, targets = data
 
-        flat_rnn_output = rnn_output.view(-1, self.config['size'])
+        flat_rnn_output = rnn_output.view(-1, self.config["size"])
 
         correct_output = nn.functional.embedding(indices, flat_rnn_output)
 
         final = self.final_layer(correct_output)
 
         final = final.view((final.shape[0],))
-        
+
         loss = nn.functional.binary_cross_entropy_with_logits(
-            final, targets, reduction='sum')
+            final, targets, reduction="sum"
+        )
 
         return final, loss
 
     @classmethod
-    def convert_samples_to_variables(cls, data_config, info, ontologies, patients, labeler):
+    def convert_samples_to_variables(
+        cls, data_config, info, ontologies, patients, labeler
+    ):
         """
         Name is confusing but this constructs _targets_ from next day codes and terms. 
         """
@@ -68,7 +72,9 @@ class LabelerTask(nn.Module):
                     labels.popleft()
                     max_length = max(max_length, index + 1)
 
-        indices = torch.ShortTensor([(i * max_length + index) for i, index in indices])
+        indices = torch.ShortTensor(
+            [(i * max_length + index) for i, index in indices]
+        )
         targets = torch.ByteTensor(targets)
 
         return (indices, targets)
@@ -79,4 +85,3 @@ class LabelerTask(nn.Module):
         indices = indices.to(torch.long)
         targets = targets.to(torch.float)
         return indices, targets
-        
