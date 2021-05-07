@@ -557,7 +557,7 @@ def debug_model() -> None:
                 for a in items:
                     print(a)
 
-def convert_patient_data(extract_dir: str, original_patient_ids: List[int], date_strs: List[str]) -> Tuple[np.array, np.array]:
+def convert_patient_data(extract_dir: str, original_patient_ids: Iterable[int], date_strs: Iterable[str]) -> Tuple[np.array, np.array]:
     timelines = timeline.TimelineReader(os.path.join(extract_dir, 'extract.db'))
 
     all_original_pids = timelines.get_original_patient_ids()
@@ -575,8 +575,7 @@ def convert_patient_data(extract_dir: str, original_patient_ids: List[int], date
         assert all_original_pids[pid_index] == og_pid, f"original patient ID {og_pid} not in timeline"
         ehr_ml_pid = all_ehr_ml_pids[pid_index]
     
-        year_month_day = [int(s) for s in date_str.split('-')]
-        date_obj = datetime.date(*year_month_day)
+        date_obj = datetime.date.fromisoformat(date_str)
         date_index = get_date_index(ehr_ml_pid, date_obj)
         return ehr_ml_pid, date_index
 
