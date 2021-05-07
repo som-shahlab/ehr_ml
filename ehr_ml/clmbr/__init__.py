@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import bisect
 import pickle
 import numpy as np
 import json
@@ -555,3 +556,34 @@ def debug_model() -> None:
 
                 for a in items:
                     print(a)
+
+def convert_patient_data(extract_dir: str, original_patient_ids: Iterable[int], date_strs: Iterable[str]) -> Tuple[np.array, np.array]:
+    timelines = timeline.TimelineReader(os.path.join(extract_dir, 'extract.db'))
+
+    all_original_pids = timelines.get_original_patient_ids()
+    all_ehr_ml_pids = timelines.get_patient_ids()
+
+    def get_date_index(pid, date_obj):
+        patient = timelines.get_patient(pid)
+        for i, day in enumerate(patient.days):
+            if date_obj == day.date:
+                return i
+        assert 0, "should find correct date in timeline!"
+
+    def convert_data(og_pid, date_str):
+        pid_index = bisect.bisect_left(all_original_pids, og_pid)
+        assert all_original_pids[pid_index] == og_pid, f"original patient ID {og_pid} not in timeline"
+        ehr_ml_pid = all_ehr_ml_pids[pid_index]
+    
+        date_obj = datetime.date.fromisoformat(date_str)
+        date_index = get_date_index(ehr_ml_pid, date_obj)
+        return ehr_ml_pid, date_index
+
+    ehr_ml_patient_ids = []
+    day_indices = []
+    for og_pid, date_str in tqdm(zip(original_patient_ids, date_strs)):
+        ehr_ml_pid, date_index = convert_data(og_pid, date_str)
+        ehr_ml_patient_ids.append(ehr_ml_pid)
+        day_indices.append(date_index)
+
+    return np.array(ehr_ml_patient_ids), np.array(day_indices)
