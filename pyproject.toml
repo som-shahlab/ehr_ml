@@ -51,5 +51,5 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [build-system]
-requires = ["setuptools", "poetry_core"]
+requires = ["setuptools", "poetry_core", "numpy"]
 build-backend = "poetry.core.masonry.api"

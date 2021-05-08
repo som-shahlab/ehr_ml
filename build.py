@@ -14,6 +14,8 @@ import subprocess
 import shutil
 import sys
 
+import numpy as np
+
 
 class BazelExtension(setuptools.Extension):
     def __init__(self, name: str, target: str, sourcedir: str):
@@ -43,7 +45,6 @@ class cmake_build_ext(build_ext):
                 )
 
         for ext in bazel_extensions:
-            import numpy as np
 
             python_include_lib = sysconfig.get_config_var("INCLUDEPY")
             if python_include_lib is None:
