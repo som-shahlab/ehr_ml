@@ -18,12 +18,12 @@ patient2vec_debug_model = 'ehr_ml.patient2vec:debug_model'
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "1.19.1"
-scipy = "^1.5.2"
-scikit-learn = "^0.23.2"
+numpy = "1.20.2"
+scipy = "^1.6"
+scikit-learn = "^0.24"
 tqdm = "^4.60.0"
 embedding-dot = {git = "https://github.com/Lalaland/embedding_dot.git"}
-torch = "^1.8.1"
+torch = "^1.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -51,5 +51,5 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [build-system]
-requires = ["setuptools", "poetry_core", "numpy==1.19.1"]
+requires = ["setuptools", "poetry_core", "numpy==1.20.2"]
 build-backend = "poetry.core.masonry.api"
