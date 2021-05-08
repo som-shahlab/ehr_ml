@@ -132,7 +132,7 @@ develop = false
 type = "git"
 url = "https://github.com/Lalaland/embedding_dot.git"
 reference = "master"
-resolved_reference = "50e12bd395a3908fa72343b36dcdaf589a5c514d"
+resolved_reference = "5d3a00b09b7f341bdb5d4edcad439e841fab8800"
 
 [[package]]
 name = "flake8"
