@@ -37,7 +37,7 @@ class cmake_build_ext(build_ext):
                 raise RuntimeError("Cannot find bazel executable")
 
             version_string = bazel_version.split(" ")[1]
-            if version_string[0] != "3":
+            if int(version_string[0]) < 3:
                 raise RuntimeError(
                     f"Need at least bazel 3, got bazel version {bazel_version}"
                 )
