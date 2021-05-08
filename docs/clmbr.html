@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>ehr_ml.clmbr &mdash; ehr_ml  documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -50,7 +52,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ehr_ml
+            <a href="index.html" class="icon icon-home"> ehr_ml
           
 
           
@@ -140,6 +142,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -151,7 +155,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/clmbr.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -228,7 +232,7 @@ Please see our paper for the fine details on these hyperameters. We recommend le
 <p>The function featurize_patients provides code that performs this tasks</p>
 <dl class="py function">
 <dt id="ehr_ml.clmbr.featurize_patients">
-<code class="sig-prename descclassname">ehr_ml.clmbr.</code><code class="sig-name descname">featurize_patients</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">extract_dir</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">l</span><span class="p">:</span> <span class="n">labeler.SavedLabeler</span></em><span class="sig-paren">)</span> &#x2192; np.array<a class="headerlink" href="#ehr_ml.clmbr.featurize_patients" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">ehr_ml.clmbr.</span></code><code class="sig-name descname"><span class="pre">featurize_patients</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extract_dir</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">labeler.SavedLabeler</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">np.array</span><a class="headerlink" href="#ehr_ml.clmbr.featurize_patients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Featurize patients using the given model and labeler.
 The result is a numpy array aligned with l.get_labeler_data().
 This function will use the GPU if it is available.</p>
@@ -242,35 +246,28 @@ This function will use the GPU if it is available.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="m-index.html" class="btn btn-neutral float-left" title="ehr_ml.index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="m-index.html" class="btn btn-neutral float-left" title="ehr_ml.index" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Ethan Steinberg
+        &#169; Copyright 2020, Ethan Steinberg.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
