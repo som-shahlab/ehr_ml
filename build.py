@@ -33,15 +33,14 @@ class cmake_build_ext(build_ext):
         if bazel_extensions:
             try:
                 bazel_version = subprocess.check_output(
-                    ["bazel", "--version"]
+                    ["bazel", "version"]
                 ).decode("utf8")
             except OSError:
                 raise RuntimeError("Cannot find bazel executable")
 
-            version_string = bazel_version.split(" ")[1]
-            if int(version_string[0]) < 3:
+            if '4' not in bazel_version:
                 raise RuntimeError(
-                    f"Need at least bazel 3, got bazel version {bazel_version}"
+                    f"Need at least bazel 4, got bazel version {bazel_version}"
                 )
 
         for ext in bazel_extensions:
