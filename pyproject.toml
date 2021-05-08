@@ -52,4 +52,4 @@ build-backend = "poetry.masonry.api"
 
 [build-system]
 requires = ["setuptools", "poetry_core"]
-build-backend = "poetry.masonry.api"
+build-backend = "poetry.core.masonry.api"
