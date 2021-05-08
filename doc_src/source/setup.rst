@@ -22,7 +22,7 @@ If you are using Anaconda, the following commands should install those dependenc
 
 .. code-block:: console
 
-   conda create -n env_name python=3.9 bazel gxx_linux-64 -c conda-forge
+   conda create -n env_name python=3.9 bazel gxx_linux-64=8 -c conda-forge
    conda activate env_name
    pip install git+https://github.com/som-shahlab/ehr_ml.git
 
