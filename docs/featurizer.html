@@ -176,6 +176,24 @@
 <h2>Definition Of A Feature Extractor<a class="headerlink" href="#definition-of-a-feature-extractor" title="Permalink to this headline">¶</a></h2>
 <p>A feature extractor is a class which takes a patient and a list of labeled timepoints and then returns a row for each timepoint. Feature extractors must be trained before they are used to compute normalization statistics. Most of the candidate features within STRIDE are sparse, so a sparse representation named <code class="xref py py-class docutils literal notranslate"><span class="pre">ColumnValue</span></code> is used to represent the values returned by a feature extractor. <code class="xref py py-class docutils literal notranslate"><span class="pre">Featurizer</span></code> is an interface for feature extractors that descripes the required methods.</p>
 <dl class="py class">
+<dt id="ehr_ml.featurizer.ColumnValue">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ehr_ml.featurizer.</span></code><code class="sig-name descname"><span class="pre">ColumnValue</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ehr_ml.featurizer.ColumnValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A value for a particular column</p>
+<dl class="py attribute">
+<dt id="ehr_ml.featurizer.ColumnValue.column">
+<code class="sig-name descname"><span class="pre">column</span></code><a class="headerlink" href="#ehr_ml.featurizer.ColumnValue.column" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index for the column</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="ehr_ml.featurizer.ColumnValue.value">
+<code class="sig-name descname"><span class="pre">value</span></code><a class="headerlink" href="#ehr_ml.featurizer.ColumnValue.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value for that column</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="ehr_ml.featurizer.Featurizer">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">ehr_ml.featurizer.</span></code><code class="sig-name descname"><span class="pre">Featurizer</span></code><a class="headerlink" href="#ehr_ml.featurizer.Featurizer" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
@@ -235,13 +253,13 @@ label_indices (:obj:set: of int): The set of indices for that patient.</p>
 
 <dl class="py method">
 <dt id="ehr_ml.featurizer.Featurizer.transform">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ehr_ml.extension.timeline.Patient</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ehr_ml.featurizer.ColumnValue</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ehr_ml.featurizer.Featurizer.transform" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patient</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ehr_ml.extension.timeline.Patient</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ehr_ml.featurizer.ColumnValue" title="ehr_ml.featurizer.ColumnValue"><span class="pre">ehr_ml.featurizer.ColumnValue</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#ehr_ml.featurizer.Featurizer.transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform a patient into a series of rows using the specified timepoints.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>patient: The patient to train on.
 label_indices (:obj:set of int): The indices which will be labeled.</p>
 </dd>
-<dt>Returns:</dt><dd><p>A list of rows. Each row in turn is a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">ColumnValues</span></code> for the
+<dt>Returns:</dt><dd><p>A list of rows. Each row in turn is a list of <a class="reference internal" href="#ehr_ml.featurizer.ColumnValue" title="ehr_ml.featurizer.ColumnValue"><code class="xref py py-class docutils literal notranslate"><span class="pre">ColumnValues</span></code></a> for the
 values in each column.</p>
 </dd>
 </dl>
