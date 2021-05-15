@@ -211,7 +211,6 @@ def read_info(info_file: str) -> Dict[str, Any]:
 def device_from_config(use_cuda: bool) -> torch.device:
     return torch.device("cuda:0" if use_cuda else "cpu")
 
-
 def train_model() -> None:
     parser = argparse.ArgumentParser(
         description="Representation Learning Experiments"
@@ -450,6 +449,19 @@ def train_model() -> None:
 
                 torch.save(model.state_dict(), os.path.join(model_dir, "best"))
 
+def from_pretrained(model_dir: str)  -> PredictionModel:
+    """
+    Read info and configuration from a pretrained model dir to load a pretrained CLMBR model
+    """
+    config = read_config(os.path.join(model_dir, "config.json"))
+    info = read_info(os.path.join(model_dir, "info.json"))
+    use_cuda = torch.cuda.is_available()
+    model = PredictionModel(config, info, use_cuda=use_cuda).to(
+        device_from_config(use_cuda=use_cuda)
+    )
+    model_data = torch.load(os.path.join(model_dir, "best"), map_location="cpu")
+    model.load_state_dict(model_data)
+    return model
 
 def featurize_patients(
     model_dir: str,
