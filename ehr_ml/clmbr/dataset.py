@@ -6,16 +6,31 @@ import math
 import torch
 
 from . import StrideDataset
+from .rnn_model import PatientRNN
+from .sequential_task import SequentialTask
+from .labeler_task import LabelerTask
+from .doctorai_task import DoctorAITask
 
-from typing import Any
+from typing import Any, Dict
 
+def finalize_data(batch: Dict[Any, Any], device: torch.device):
+    batch["pid"] = batch["pid"].tolist()
+    batch["day_index"] = batch["day_index"].tolist()
+    batch["rnn"] = PatientRNN.finalize_data(batch["rnn"], device)
+    if "task" in batch:
+        batch["task"] = SequentialTask.finalize_data(batch["task"], device)
+    if "doctorai" in batch:
+        batch["doctorai"] = DoctorAITask.finalize_data(batch["doctorai"])
+    if "labeler" in batch:
+        batch["labeler"] = LabelerTask.finalize_data(batch["labeler"])
+    return batch
 
 def prepare_batch_thread(
     dataset: StrideDataset,
     args: Any,
     out_queue: queue.Queue,
     stop_event: threading.Event,
-    transform_func: Any,
+    device: torch.device
 ) -> None:
     iterator = dataset.get_iterator(*args)
     while True:
@@ -28,24 +43,24 @@ def prepare_batch_thread(
             out_queue.put(None)
             break
 
-        result = transform_func(item)
+        result = finalize_data(item, device)
         out_queue.put(result)
 
-
-class BatchIterator:
+class DataLoader:
     def __init__(
         self,
         dataset: StrideDataset,
-        transform_func: Any,
         threshold: int,
         is_val: bool = False,
         batch_size: int = 2000,
         seed: int = 0,
         day_dropout: float = 0,
         code_dropout: float = 0,
+        use_cuda: bool = torch.cuda.is_available()
     ):
         self.batch_queue: queue.Queue[Any] = queue.Queue(maxsize=20)
         self.stop_event = threading.Event()
+        self.num_batches = dataset.num_train_batches(batch_size)
 
         args = (is_val, batch_size, seed, threshold, day_dropout, code_dropout)
 
@@ -56,16 +71,19 @@ class BatchIterator:
                 args,
                 self.batch_queue,
                 self.stop_event,
-                transform_func,
+                torch.device("cuda:0" if use_cuda else "cpu")
             ),
         )
         self.data_thread.start()
         self.stopped = False
 
-    def __iter__(self) -> BatchIterator:
+    def __len__(self) -> int:
+        return self.num_batches
+        
+    def __iter__(self) -> DataLoader:
         return self
 
-    def __enter__(self) -> BatchIterator:
+    def __enter__(self) -> DataLoader:
         return self
 
     def __exit__(self, type: Any, value: Any, traceback: Any) -> None:

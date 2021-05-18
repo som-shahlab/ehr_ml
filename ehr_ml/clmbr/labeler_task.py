@@ -80,7 +80,7 @@ class LabelerTask(nn.Module):
         return (indices, targets)
 
     @classmethod
-    def finalize_data(cls, info, data_config, initial):
+    def finalize_data(cls, initial):
         indices, targets = initial
         indices = indices.to(torch.long)
         targets = targets.to(torch.float)

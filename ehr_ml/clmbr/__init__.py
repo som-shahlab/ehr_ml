@@ -33,6 +33,8 @@ from .. import labeler
 
 from . import dataset
 from .prediction_model import PredictionModel
+from .featurizer import CLMBRFeaturizer
+from .utils import read_config, read_info, device_from_config
 from ..featurizer import ColumnValue, Featurizer
 from ..splits import read_time_split
 from ..utils import OnlineStatistics, set_up_logging
@@ -53,26 +55,39 @@ def create_info_program() -> None:
     parser = argparse.ArgumentParser(
         description="Precompute training data summary statistics etc for CLMBR experiments"
     )
-    parser.add_argument("--extract_dir", type=str, help="Extract dir")
+    parser.add_argument("input_data_dir",
+                        type=str,
+                        help="Location of the dataset extract to be used for CLMBR training")
     parser.add_argument(
-        "--train_end_date", type=str, help="The end date for training"
+        "save_dir", type=str, help="Location where model info is to be saved",
     )
     parser.add_argument(
-        "--val_end_date", type=str, help="The end date for validation"
+        "train_end_date",
+        type=str,
+        help="The end date for training"
+    )
+    parser.add_argument(
+        "val_end_date",
+        type=str,
+        help="The end date for validation. Should be later than the end date for training"
     )
     parser.add_argument(
         "--min_patient_count",
         type=int,
         default=100,
-        help="Only keep statistics on codes/terms that appear for this many patients",
-    )
-    parser.add_argument(
-        "--save_dir", type=str, help="Override dir where model is saved"
+        help="Only keep statistics on codes/terms that appear for this many patients (default 100)",
     )
     parser.add_argument(
         "--banned_patient_file",
         type=str,
         help="A file containing a list of patients to exclude from training",
+        default=None
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=3451235,
+        help="Random seed"
     )
     args = parser.parse_args()
 
@@ -95,8 +110,8 @@ def create_info_program() -> None:
         logging.info("Fatal error - model dir {} is not empty".format(save_dir))
         exit(1)
 
-    ontologies_path = os.path.join(args.extract_dir, "ontology.db")
-    timelines_path = os.path.join(args.extract_dir, "extract.db")
+    ontologies_path = os.path.join(args.input_data_dir, "ontology.db")
+    timelines_path = os.path.join(args.input_data_dir, "extract.db")
 
     train_end_date = datetime.datetime.fromisoformat(args.train_end_date)
     val_end_date = datetime.datetime.fromisoformat(args.val_end_date)
@@ -110,16 +125,16 @@ def create_info_program() -> None:
             args.min_patient_count,
         )
     )
-    result["extract_dir"] = args.extract_dir
+    result["extract_dir"] = args.input_data_dir
     result["extract_file"] = "extract.db"
     result["train_start_date"] = "1900-01-01"
     result["train_end_date"] = args.train_end_date
     result["val_start_date"] = args.train_end_date
     result["val_end_date"] = args.val_end_date
-    result["seed"] = 3451235
+    result["seed"] = args.seed
     result["min_patient_count"] = args.min_patient_count
 
-    if args.banned_patient_file:
+    if args.banned_patient_file is not None:
         with open(args.banned_patient_file) as f:
             pids = {int(a) for a in f}
 
@@ -169,65 +184,25 @@ def create_info_program() -> None:
     with open(os.path.join(args.save_dir, "info.json"), "w") as fp:
         json.dump(result, fp)
 
-
-def read_config(config_file: str) -> Dict[str, Any]:
-    with open(config_file, "r") as file:
-        config = json.load(file)
-        return config
-
-
-def read_info(info_file: str) -> Dict[str, Any]:
-    if not Path(os.path.join(info_file)).is_file():
-        print("Fatal error: info.json not found.", file=sys.stderr)
-        logging.info("Fatal error: info.json not found")
-        exit(1)
-
-    def date_from_str(x: str) -> Optional[datetime.date]:
-        if x == "None":
-            return None
-        else:
-            date_obj = datetime.datetime.strptime(x, "%Y-%m-%d").date()
-            return date_obj
-
-    with open(info_file, "rb") as file:
-        info = json.load(file)
-        info["valid_code_map"] = {
-            int(code): int(idx) for code, idx in info["valid_code_map"].items()
-        }
-        info["code_counts"] = {
-            int(code): int(idx) for code, idx in info["code_counts"].items()
-        }
-        for date_name in [
-            "train_start_date",
-            "train_end_date",
-            "val_start_date",
-            "val_end_date",
-        ]:
-            if date_name in info:
-                info[date_name] = date_from_str(info[date_name])
-        return info
-
-
-def device_from_config(use_cuda: bool) -> torch.device:
-    return torch.device("cuda:0" if use_cuda else "cpu")
-
 def train_model() -> None:
     parser = argparse.ArgumentParser(
         description="Representation Learning Experiments"
     )
     parser.add_argument(
-        "--model_dir",
+        "model_dir",
         type=str,
-        default=None,
-        help="Override where model is saved",
+        help="Location where model logs and weights should be saved",
     )
-    parser.add_argument("--info_dir", type=str, default=None)
+    parser.add_argument("info_dir", type=str,
+                        help="Location where `clmbr_create_info` results were saved")
     parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
     parser.add_argument(
         "--size", default=768, type=int,
+        help="Dimensionality of the output embeddings"
     )
     parser.add_argument(
         "--use_gru", default=False, action="store_true",
+        help="Whether to use a GRU, if not specified a Transformer is used"
     )
     parser.add_argument("--no_tied_weights", default=False, action="store_true")
     parser.add_argument("--gru_layers", default=1, type=int)
@@ -238,24 +213,33 @@ def train_model() -> None:
         "--batch_size", type=int, default=500, help="Batch size"
     )
     parser.add_argument(
+        "--eval_batch_size", type=int, default=2000, help="Batch size during evaluation"
+    )
+    parser.add_argument(
         "--extract_dir",
         action="store_true",
         help="Use the doctorai task definition",
     )
-    parser.add_argument("--no_cuda", action="store_true", default=False)
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="Specify whether the model should be run on CPU or GPU. Can specify a specific GPU, e.g. \"cuda:0\""
+    )
     parser.add_argument("--code_dropout", type=float, default=0.2)
+    # Day dropout added in reference to Lawrence's comment,
+    # although Ethan mentioned it should be removed from the API
+    parser.add_argument("--day_dropout", type=float, default=0.2)
     args = parser.parse_args()
-
-    if args.info_dir is None or not Path(args.info_dir).is_dir():
-        print("Error - must provide path to info directory", file=sys.stderr)
-        exit(1)
-
-    if args.model_dir is None:
-        print("Error - must provide model dir", file=sys.stderr)
-        exit(1)
 
     model_dir = args.model_dir
     os.makedirs(model_dir, exist_ok=True)
+    if check_dir_for_overwrite(model_dir):
+        print(
+            "Fatal error - model dir {} is not empty".format(model_dir),
+            file=sys.stderr,
+        )
+        logging.info("Fatal error - model dir {} is not empty".format(model_dir))
+        exit(1)
 
     epochs_per_cycle = 50
     warmup_epochs = 2
@@ -277,6 +261,7 @@ def train_model() -> None:
     # Create and save config dictionary
     config = {
         "batch_size": args.batch_size,
+        "eval_batch_size": args.eval_batch_size,
         "num_first": first_too_small_index,
         "num_second": len(info["valid_code_map"]) - first_too_small_index,
         "size": args.size,
@@ -293,6 +278,8 @@ def train_model() -> None:
         "epochs_per_cycle": epochs_per_cycle,
         "warmup_epochs": warmup_epochs,
         "code_dropout": args.code_dropout,
+        "day_dropout": args.day_dropout,
+        "model_dir": os.path.abspath(model_dir)
     }
 
     with open(os.path.join(model_dir, "config.json"), "w") as outfile:
@@ -301,7 +288,7 @@ def train_model() -> None:
     set_up_logging(os.path.join(model_dir, "train.log"))
     logging.info("Args: %s", str(args))
 
-    loaded_data = StrideDataset(
+    dataset = StrideDataset(
         os.path.join(info["extract_dir"], "extract.db"),
         os.path.join(info["extract_dir"], "ontology.db"),
         os.path.join(args.info_dir, "info.json"),
@@ -309,260 +296,8 @@ def train_model() -> None:
 
     random.seed(info["seed"])
 
-    use_cuda = torch.cuda.is_available() and not args.no_cuda
-
-    model = PredictionModel(config, info, use_cuda=use_cuda).to(
-        device_from_config(use_cuda=use_cuda)
-    )
-    params = []
-    for name, param in model.named_parameters():
-        if not param.requires_grad:
-            continue
-        params.append(param)
-
-    final_transformation = partial(
-        PredictionModel.finalize_data,
-        config,
-        info,
-        device_from_config(use_cuda=use_cuda),
-    )
-
-    print(
-        "Iters per epoch", loaded_data.num_train_batches(config["batch_size"])
-    )
-
-    optimizer = OpenAIAdam(
-        params,
-        lr=config["lr"],
-        schedule="warmup_linear",
-        warmup=config["warmup_epochs"] / config["epochs_per_cycle"],
-        t_total=loaded_data.num_train_batches(config["batch_size"])
-        * config["epochs_per_cycle"],
-        b1=config["b1"],
-        b2=config["b2"],
-        e=config["e"],
-        l2=config["l2"],
-    )
-
-    def train_epoch() -> None:
-        model.train()
-
-        all_non_text_loss = 0
-
-        last_time = time.time()
-
-        code_dropout = config["code_dropout"]
-        day_dropout = config["code_dropout"]
-        print(f"Code dropout is {code_dropout}")
-        print(f"Day dropout is {day_dropout}")
-
-        with dataset.BatchIterator(
-            loaded_data,
-            final_transformation,
-            threshold=config["num_first"],
-            is_val=False,
-            batch_size=config["batch_size"],
-            seed=random.randint(0, 100000),
-            day_dropout=day_dropout,
-            code_dropout=code_dropout,
-        ) as batches:
-            for i, batch in enumerate(batches):
-                values, non_text_loss = model(batch)
-                del values
-
-                optimizer.zero_grad()
-                non_text_loss.backward()
-                optimizer.step()
-
-                del non_text_loss
-                del batch
-
-                if i % 2000 == 0:
-                    current_time = time.time()
-                    delta = current_time - last_time
-                    if i != 0:
-                        print("Iters per second ", 2000 / delta, " ", i)
-                    last_time = current_time
-
-    def test(sample_size: int = 100) -> Tuple[float, float]:
-        model.eval()
-        train_loss = test_helper(is_val=False, sample_size=sample_size)
-        val_loss = test_helper(is_val=True, sample_size=sample_size)
-        return train_loss, val_loss
-
-    def test_helper(is_val: bool, sample_size: int) -> float:
-        non_text_total_loss = 0
-
-        with dataset.BatchIterator(
-            loaded_data,
-            final_transformation,
-            threshold=config["num_first"],
-            is_val=is_val,
-            batch_size=2000,
-            seed=0,
-            day_dropout=0,
-            code_dropout=0,
-        ) as batches:
-            for batch, _ in zip(batches, range(sample_size)):
-                with torch.no_grad():
-                    values, non_text_loss = model(batch)
-                    del values
-
-                    non_text_total_loss += non_text_loss.item()
-
-                    del batch
-                    del non_text_loss
-
-        return non_text_total_loss / sample_size
-
-    checkpoint_dir = os.path.join(model_dir, "checkpoints")
-    os.makedirs(checkpoint_dir, exist_ok=True)
-
-    best_val_loss = None
-    best_val_loss_epoch = None
-
-    logging.info("Start training (v2)")
-    with open(os.path.join(model_dir, "losses"), "w") as loss_file:
-        for epoch in range(config["epochs_per_cycle"]):
-            logging.info("About to start epoch %s", epoch)
-            train_epoch()
-            logging.info("Epoch is complete %s", epoch)
-
-            train_loss, val_loss = test(sample_size=2000)
-
-            logging.info("Train loss: %s", train_loss)
-            logging.info("Val loss: %s", val_loss)
-
-            loss_file.write("Epoch {}\n".format(epoch))
-            loss_file.write("Train loss {}\n".format(train_loss))
-            loss_file.write("Val loss {}\n".format(val_loss))
-            loss_file.write("\n")
-            loss_file.flush()
-
-            # if epoch == 49:
-            if best_val_loss is None or val_loss < best_val_loss:
-                best_val_loss = val_loss
-                best_val_loss_epoch = epoch
-
-                if os.path.exists(os.path.join(model_dir, "best")):
-                    os.unlink(os.path.join(model_dir, "best"))
-
-                torch.save(model.state_dict(), os.path.join(model_dir, "best"))
-
-def from_pretrained(model_dir: str)  -> PredictionModel:
-    """
-    Read info and configuration from a pretrained model dir to load a pretrained CLMBR model
-    """
-    config = read_config(os.path.join(model_dir, "config.json"))
-    info = read_info(os.path.join(model_dir, "info.json"))
-    use_cuda = torch.cuda.is_available()
-    model = PredictionModel(config, info, use_cuda=use_cuda).to(
-        device_from_config(use_cuda=use_cuda)
-    )
-    model_data = torch.load(os.path.join(model_dir, "best"), map_location="cpu")
-    model.load_state_dict(model_data)
-    return model
-
-def featurize_patients(
-    model_dir: str,
-    extract_dir: str,
-    patient_ids: Union[List[int], np.array],
-    day_offsets: Union[List[int], np.array],
-) -> np.array:
-    """
-    Featurize patients using the given model.
-    This function will use the GPU if it is available.
-    """
-
-    config = read_config(os.path.join(model_dir, "config.json"))
-    info = read_info(os.path.join(model_dir, "info.json"))
-
-    use_cuda = torch.cuda.is_available()
-
-    model = PredictionModel(config, info, use_cuda=use_cuda).to(
-        device_from_config(use_cuda=use_cuda)
-    )
-    model_data = torch.load(os.path.join(model_dir, "best"), map_location="cpu")
-    model.load_state_dict(model_data)
-
-    final_transformation = partial(
-        PredictionModel.finalize_data,
-        config,
-        info,
-        device_from_config(use_cuda=use_cuda),
-    )
-
-    dummy_labels = [0 for _ in patient_ids]
-    data = (dummy_labels, patient_ids, day_offsets)
-
-    loaded_data = StrideDataset(
-        os.path.join(extract_dir, "extract.db"),
-        os.path.join(extract_dir, "ontology.db"),
-        os.path.join(model_dir, "info.json"),
-        data,
-        data,
-    )
-
-    patient_id_to_info = defaultdict(dict)
-    for i, (pid, index) in enumerate(zip(patient_ids, day_offsets)):
-        patient_id_to_info[pid][index] = i
-
-    patient_representations = np.zeros((len(patient_ids), config["size"]))
-
-    # batch iterator args
-    is_val = True
-    batch_size = 10000
-    seed = info["seed"]
-    threshold = config["num_first"]
-    day_dropout = 0
-    code_dropout = 0
-    with dataset.BatchIterator(
-        loaded_data,
-        final_transformation,
-        threshold=threshold,
-        is_val=is_val,
-        batch_size=batch_size,
-        seed=seed,
-        day_dropout=day_dropout,
-        code_dropout=code_dropout,
-    ) as batches:
-        pbar = tqdm(batches)
-        pbar.set_description("Computing patient representations")
-        for batch in pbar:
-            with torch.no_grad():
-                embeddings = (
-                    model.compute_embedding_batch(batch["rnn"]).cpu().numpy()
-                )
-                for i, patient_id in enumerate(batch["pid"]):
-                    for index, target_id in patient_id_to_info[
-                        patient_id
-                    ].items():
-                        patient_representations[target_id, :] = embeddings[
-                            i, index, :
-                        ]
-
-    return patient_representations
-
-
-def featurize_patients_w_labels(
-    model_dir: str, extract_dir: str, l: labeler.SavedLabeler
-) -> Tuple[np.array, np.array, np.array, np.array]:
-    """
-    Featurize patients using the given model and labeler.
-    The result is a numpy array aligned with l.get_labeler_data().
-    This function will use the GPU if it is available.
-    """
-
-    data = l.get_label_data()
-
-    labels, patient_ids, patient_indices = data
-
-    patient_representations = featurize_patients(
-        model_dir, extract_dir, patient_ids, patient_indices
-    )
-
-    return patient_representations, labels, patient_ids, patient_indices
-
+    featurizer = CLMBRFeaturizer(config, info, device=torch.device(args.device))
+    featurizer.fit(dataset, use_pbar = False)
 
 def debug_model() -> None:
     parser = argparse.ArgumentParser(

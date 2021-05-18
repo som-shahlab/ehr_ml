@@ -309,7 +309,7 @@ class PatientRNN(nn.Module):
             return self.model(padded_output)
 
     @classmethod
-    def finalize_data(cls, config, info, device, initial):
+    def finalize_data(cls, initial, device):
         (
             all_non_text_codes,
             all_non_text_offsets,

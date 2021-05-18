@@ -20,7 +20,7 @@ class PredictionModel(nn.Module):
     codes vs terms, etc. 
     """
 
-    def __init__(self, config, info, use_cuda, for_labeler=False):
+    def __init__(self, config, info, for_labeler=False):
         super().__init__()
         self.config = config
         self.info = info
@@ -37,7 +37,6 @@ class PredictionModel(nn.Module):
                     weight=self.timeline_model.input_code_embedding.weight,
                     weight1=self.timeline_model.input_code_embedding1.weight,
                 )
-        self.use_cuda = use_cuda
 
     def compute_embedding(self, code_ontology, patient):
         rnn_input = PatientRNN.convert_to_rnn_input(
@@ -71,25 +70,3 @@ class PredictionModel(nn.Module):
             return self.labeler_module(rnn_output, batch["labeler"])
         else:
             raise ValueError("Could not find target in batch")
-
-    @classmethod
-    def finalize_data(cls, config, info, device, batch):
-        batch["pid"] = batch["pid"].tolist()
-        batch["day_index"] = batch["day_index"].tolist()
-        batch["rnn"] = PatientRNN.finalize_data(
-            config, info, device, batch["rnn"]
-        )
-        if "task" in batch:
-            batch["task"] = SequentialTask.finalize_data(
-                config, info, device, batch["task"]
-            )
-        if "doctorai" in batch:
-            batch["doctorai"] = DoctorAITask.finalize_data(
-                config, info, device, batch["doctorai"]
-            )
-        if "labeler" in batch:
-            batch["labeler"] = LabelerTask.finalize_data(
-                config, info, device, batch["labeler"]
-            )
-
-        return batch

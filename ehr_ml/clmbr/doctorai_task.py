@@ -161,7 +161,7 @@ class DoctorAITask(nn.Module):
         return (non_text_output_weights, non_text_expected_output)
 
     @classmethod
-    def finalize_data(cls, info, data_config, initial):
+    def finalize_data(cls, initial):
         non_text_output_weights, non_text_expected_output = initial
         non_text_output_weights = non_text_output_weights.to(torch.float)
         non_text_expected_output = non_text_expected_output.to(torch.float)

@@ -65,7 +65,7 @@ class SequentialTask(nn.Module):
         return final, (loss + loss1)
 
     @classmethod
-    def finalize_data(cls, config, info, device, initial):
+    def finalize_data(cls, initial, device):
         (
             non_text_indices,
             non_text_expected_output,
