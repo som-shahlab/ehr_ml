@@ -26,6 +26,8 @@ If you are using Anaconda, the following commands should install those dependenc
    conda activate env_name
    pip install git+https://github.com/som-shahlab/ehr_ml.git
 
+Once the :code:`pip install` command completes, your installation is done! The instructions below guide you through creating an :code:`ehr_ml`-compatible extract from an OMOP dataset.
+
 *********************************************
 Existing Extracts
 *********************************************
