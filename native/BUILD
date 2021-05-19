@@ -341,6 +341,7 @@ cc_binary(
         ":umls",
         ":csv",
         ":sort_csv",
+        ":rxnorm",
     ],
     linkstatic=1, 
     linkshared=1

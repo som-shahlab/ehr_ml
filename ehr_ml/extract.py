@@ -23,6 +23,10 @@ def extract_omop_program() -> None:
     parser.add_argument(
         "gem_location", type=str, help="The location of the gem directory",
     )
+    
+    parser.add_argument(
+        "rxnorm_location", type=str, help="The location of the rxnorm directory",
+    )
 
     parser.add_argument(
         "target_location", type=str, help="The place to store the extract",
@@ -57,6 +61,7 @@ def extract_omop_program() -> None:
         args.omop_source,
         args.umls_location,
         args.gem_location,
+        args.rxnorm_location,
         args.target_location,
         args.delimiter,
         args.use_quotes,

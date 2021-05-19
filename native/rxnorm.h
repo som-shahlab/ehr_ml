@@ -8,11 +8,9 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/substitute.h"
 
-const char* rxnorm_path = "/share/pi/nigam/ethanid/rxnorm/rrf";
-
 template <typename F>
-void rxnorm_util(std::string_view name, F f) {
-    std::string fname = absl::Substitute("$0/$1", rxnorm_path, name);
+void rxnorm_util(std::string_view path, std::string_view name, F f) {
+    std::string fname = absl::Substitute("$0/rrf/$1", path, name);
 
     std::ifstream infile(fname);
 
@@ -26,11 +24,11 @@ void rxnorm_util(std::string_view name, F f) {
 
 class RxNorm {
    public:
-    RxNorm() {
+    RxNorm(std::string_view path) {
         absl::flat_hash_map<std::pair<std::string, std::string>,
                             std::vector<std::string>>
             text_to_rxcui_map;
-        rxnorm_util("RXNSAT.RRF", [&](const auto& columns) {
+        rxnorm_util(path, "RXNSAT.RRF", [&](const auto& columns) {
             std::string_view rxcui = columns[0];
             std::string_view atn = columns[8];
             std::string_view atv = columns[10];
@@ -67,7 +65,7 @@ class RxNorm {
             "consists_of",    "has_part",     "has_precise_ingredient"};
 
         absl::flat_hash_map<std::string, std::vector<std::string>> children_map;
-        rxnorm_util("RXNREL.RRF", [&](const auto& columns) {
+        rxnorm_util(path, "RXNREL.RRF", [&](const auto& columns) {
             std::string_view child_cui = columns[0];
             std::string_view parent_cui = columns[4];
             std::string_view rela = columns[7];
@@ -96,11 +94,15 @@ class RxNorm {
                                            all_children_map);
         };
 
+        std::vector<std::string> rxcuis;
+
         absl::flat_hash_map<std::string, std::vector<std::string>> atc_map;
-        rxnorm_util("RXNCONSO.RRF", [&](const auto& columns) {
+        rxnorm_util(path, "RXNCONSO.RRF", [&](const auto& columns) {
             std::string_view cui = columns[0];
             std::string_view sab = columns[11];
             std::string_view code = columns[13];
+
+            rxcuis.push_back(std::string(cui));
 
             if (sab != "ATC") {
                 return;
@@ -137,7 +139,29 @@ class RxNorm {
 
             text_to_atc_map.insert(std::make_pair(key, atc_codes));
         }
+
+        for (const auto& rxcui : rxcuis) {
+            std::vector<std::string> atc_codes;
+            for (const auto& child_rxcui : get_all_children(rxcui)) {
+                auto iter = atc_map.find(child_rxcui);
+                if (iter == std::end(atc_map)) {
+                    continue;
+                }
+                for (const auto& atc_code : iter->second) {
+                    atc_codes.push_back(
+                        absl::Substitute("ATC/$0", atc_code));
+                }
+            }
+
+            std::sort(std::begin(atc_codes), std::end(atc_codes));
+            atc_codes.erase(
+                std::unique(std::begin(atc_codes), std::end(atc_codes)),
+                std::end(atc_codes));
+
+            text_to_atc_map.insert(std::make_pair(std::make_pair("RxNorm", rxcui), atc_codes));
+        }
     }
+
 
     std::vector<std::string> get_atc_codes(const std::string& sab,
                                            const std::string& code) const {

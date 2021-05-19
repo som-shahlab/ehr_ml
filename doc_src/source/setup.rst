@@ -58,6 +58,8 @@ There are three important necessary datasets for performing ehr_ml extractions:
 
 4. You must have a copy of the latest General Equivalence Mappings for both ICD9 diagnoses and procedures. These can be downloaded from https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-CM-and-GEMs and https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-PCS-and-GEMs. Place the contents in in a single directory, referred to as `GEM_FOLDER_LOCATION` below.
 
+5. You must have a recent copy of RXNORM. This can be obtained from https://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html. In the instructions below, the unzipped directory is referred to as `RXNORM_FOLDER_LOCATION`.
+
 *********************************************
 Fixing SynPUF Data
 *********************************************
@@ -82,7 +84,7 @@ The extractor can now be run on the properly formatted SynPUF dataset. If you ar
 
 .. code-block:: console
 
-   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION GEM_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION --delimiter $'\t' --ignore_quotes
+   ehr_ml_extract_omop FIXED_SYNPUF_LOCATION UMLS_FOLDER_LOCATION GEM_FOLDER_LOCATION RXNORM_FOLDER_LOCATION TARGET_EXTRACT_FOLDER_LOCATION --delimiter $'\t' --ignore_quotes
 
 *********************************************
 Verifying The Extraction

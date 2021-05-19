@@ -27,6 +27,7 @@ namespace py = pybind11;
 #include "umls.h"
 #include "writer.h"
 #include "sort_csv.h"
+#include "rxnorm.h"
 
 std::vector<std::string> map_terminology_type(std::string_view terminology) {
     if (terminology == "CPT4") {
@@ -37,64 +38,6 @@ std::vector<std::string> map_terminology_type(std::string_view terminology) {
         return {"HCPCS", "CDT"};
     } else {
         return {std::string(terminology)};
-    }
-}
-
-std::optional<std::string> try_to_recover(const UMLS& umls,
-                                          const ConceptTable& table,
-                                          uint32_t concept_id) {
-    ConceptInfo info = *table.get_info(concept_id);
-
-    std::vector<uint32_t> new_id_candidates;
-
-    for (const auto& relationship : table.get_relationships(concept_id)) {
-        if (relationship.relationship_id == "Is a") {
-            new_id_candidates.push_back(relationship.other_concept);
-        }
-    }
-
-    if (info.vocabulary_id == "ICD10CM") {
-        // Hack to work around weird ICD10 behavior ...
-        std::vector<std::pair<uint32_t, uint32_t>> ids_with_lengths;
-        for (uint32_t candidate : new_id_candidates) {
-            ConceptInfo c_info = *table.get_info(candidate);
-            ids_with_lengths.push_back(
-                std::make_pair(-c_info.concept_code.size(), candidate));
-        }
-        std::sort(std::begin(ids_with_lengths), std::end(ids_with_lengths));
-
-        new_id_candidates.clear();
-
-        for (auto pair : ids_with_lengths) {
-            new_id_candidates.push_back(pair.second);
-        }
-
-        if (new_id_candidates.size() > 1) {
-            new_id_candidates.resize(1);
-        }
-    }
-
-    if (new_id_candidates.size() == 0) {
-        // Could not find a replacement
-        return std::nullopt;
-    } else if (new_id_candidates.size() > 1) {
-        std::cout << "Odd " << info.vocabulary_id << " " << info.concept_code
-                  << " " << concept_id << " " << new_id_candidates.size()
-                  << std::endl;
-        return std::nullopt;
-    } else {
-        const auto& info = *table.get_info(new_id_candidates[0]);
-
-        for (std::string terminology :
-             map_terminology_type(info.vocabulary_id)) {
-            auto res = umls.get_aui(terminology, info.concept_code);
-
-            if (res) {
-                return *res;
-            }
-        }
-
-        return try_to_recover(umls, table, new_id_candidates[0]);
     }
 }
 
@@ -217,24 +160,6 @@ void create_ontology(std::string_view root_path, std::string umls_path,
             if (res) {
                 result = res;
             }
-        }
-
-        if (result == std::nullopt &&
-            (parts[0] == "CPT4" || parts[0] == "ICD10CM")) {
-            // Manually try to recover by using the OMOP hierarchy to map to
-            // something useful.
-
-            std::optional<uint32_t> opt_concept_id =
-                table.get_inverse(std::string(parts[0]), std::string(parts[1]));
-
-            if (!opt_concept_id) {
-                std::cout << "Could not get inverse concept id " << word
-                          << std::endl;
-                abort();
-            }
-
-            uint32_t concept_id = *opt_concept_id;
-            result = try_to_recover(umls, table, concept_id);
         }
 
         if (result == std::nullopt) {
@@ -948,8 +873,7 @@ TermDictionary counts_to_dict(
 }
 
 std::vector<std::string> normalize(
-    std::string input_code, const ConceptTable& table, const GEMMapper& gem,
-    absl::flat_hash_map<uint32_t, std::vector<uint32_t>>& rxnorm_to_atc) {
+    std::string input_code, const ConceptTable& table, const GEMMapper& gem, const RxNorm& rxnorm) {
     if (input_code == "" || input_code == "0") {
         return {};
     }
@@ -973,7 +897,7 @@ std::vector<std::string> normalize(
                                        "ICD9ProcCN",   "STANFORD_CONDITION",
                                        "STANFORD_MEAS"};
 
-    std::vector<uint32_t> results;
+    std::vector<std::string> results;
 
     std::optional<ConceptInfo> info_ptr = table.get_info(concept_id);
     if (!info_ptr) {
@@ -982,67 +906,37 @@ std::vector<std::string> normalize(
     }
 
     ConceptInfo info = *info_ptr;
-    if (info.vocabulary_id == "RxNorm") {
-        // Need to map NDC over to ATC to avoid painful issues
+    if (info.vocabulary_id == "RxNorm" || info.vocabulary_id == "NDC" || info.vocabulary_id == "HCPCS") {
+        // Need to map over to ATC to avoid painful issues
+        results = rxnorm.get_atc_codes(info.vocabulary_id, info.concept_code);
 
-        uint32_t rxnorm_code;
-        attempt_parse_or_die(info.concept_code, rxnorm_code);
-
-        auto iter = rxnorm_to_atc.find(rxnorm_code);
-        if (iter == std::end(rxnorm_to_atc)) {
-            std::vector<uint32_t> atc_codes;
-            for (const auto& ancestor : table.get_ancestors(rxnorm_code)) {
-                const auto& anc_info = *table.get_info(ancestor);
-                if (anc_info.vocabulary_id == "RxNorm" ||
-                    anc_info.vocabulary_id == "RxNorm Extension") {
-                    for (const auto& relationship :
-                         table.get_relationships(ancestor)) {
-                        ConceptInfo other_info =
-                            *table.get_info(relationship.other_concept);
-                        if (other_info.vocabulary_id == "ATC") {
-                            atc_codes.push_back(relationship.other_concept);
-                        }
-                    }
-                }
-            }
-
-            std::sort(std::begin(atc_codes), std::end(atc_codes));
-            atc_codes.erase(
-                std::unique(std::begin(atc_codes), std::end(atc_codes)),
-                std::end(atc_codes));
-
-            // if (atc_codes.size() == 0) {
-            //     std::cout << absl::Substitute("Could not find any atc
-            //     codes for $0\n", rxnorm_code);
-            // }
-
-            rxnorm_to_atc[rxnorm_code] = atc_codes;
-            iter = rxnorm_to_atc.find(rxnorm_code);
+        if (results.empty() && info.vocabulary_id == "HCPCS") {
+            // If we fail to map to a drug, take it normally
+            results.push_back(absl::Substitute("$0/$1", info.vocabulary_id, info.concept_code));
+        } else {
+            std::cout<<"Could not map ? " << info.vocabulary_id << " " << info.concept_code << std::endl;
         }
-
-        results = iter->second;
     } else if (info.vocabulary_id == "ICD9Proc") {
         for (const auto& proc : gem.map_proc(info.concept_code)) {
-            auto new_code = table.get_inverse("ICD10PCS", proc);
-            if (!new_code) {
-                std::cout << absl::Substitute(
-                    "Could not find $0 after converting $1\n", proc,
-                    info.concept_code);
-            }
-            results.push_back(*new_code);
+            results.push_back(absl::Substitute("ICD10PCS/$0", proc));
         }
     } else if (info.vocabulary_id == "ICD9CM") {
         for (std::string diag : gem.map_diag(info.concept_code)) {
-            auto new_code = table.get_inverse("ICD10CM", diag);
-            if (!new_code) {
-                std::cout << absl::Substitute(
-                    "Could not find $0 after converting $1\n", diag,
-                    info.concept_code);
-            }
-            results.push_back(*new_code);
+            results.push_back(absl::Substitute("ICD10CM/$0", diag));
         }
     } else if (good_items.find(info.vocabulary_id) != std::end(good_items)) {
-        results.push_back(concept_id);
+        if (info.vocabulary_id == "Condition Type") {
+            std::string final =
+                absl::Substitute("$0/$1", info.concept_class_id,
+                                 info.concept_code);
+
+            results.push_back(final);
+        } else {
+            std::string final = absl::Substitute(
+                "$0/$1", info.vocabulary_id, info.concept_code);
+
+            results.push_back(final);
+        }
     } else if (bad_items.find(info.vocabulary_id) != std::end(bad_items)) {
         return {};
     } else {
@@ -1051,31 +945,12 @@ std::vector<std::string> normalize(
         return {};
     }
 
-    std::vector<std::string> final_results;
-
-    for (const auto result : results) {
-        ConceptInfo result_info = *table.get_info(result);
-
-        if (result_info.vocabulary_id == "Condition Type") {
-            std::string final =
-                absl::Substitute("$0/$1", result_info.concept_class_id,
-                                 result_info.concept_code);
-
-            final_results.push_back(final);
-        } else {
-            std::string final = absl::Substitute(
-                "$0/$1", result_info.vocabulary_id, result_info.concept_code);
-
-            final_results.push_back(final);
-        }
-    }
-
-    return final_results;
+    return results;
 }
 
 class Cleaner {
    public:
-    Cleaner(const ConceptTable& concepts, const GEMMapper& gem,
+    Cleaner(const ConceptTable& concepts, const GEMMapper& gem, const RxNorm& rxnorm,
             const char* path)
         : reader(path, false), iterator(reader.iter()) {
         patient_ids = reader.get_patient_ids();
@@ -1091,13 +966,11 @@ class Cleaner {
 
             absl::flat_hash_map<std::string, uint32_t> lost_counts;
 
-            absl::flat_hash_map<uint32_t, std::vector<uint32_t>> rxnorm_to_atc;
-
             uint32_t total_lost = 0;
 
             for (const auto& entry : items) {
                 std::vector<std::string> terms =
-                    normalize(entry.first, concepts, gem, rxnorm_to_atc);
+                    normalize(entry.first, concepts, gem, rxnorm);
                 if (terms.size() == 0) {
                     total_lost += entry.second;
                     lost_counts[entry.first] += entry.second;
@@ -1238,7 +1111,7 @@ class Cleaner {
     size_t current_index;
 };
 
-void create_extract(std::string omop_source_dir, std::string target_directory, const ConceptTable& concepts, const GEMMapper& gem, char delimiter, bool use_quotes) {
+void create_extract(std::string omop_source_dir, std::string target_directory, const ConceptTable& concepts, const GEMMapper& gem, const RxNorm& rxnorm, char delimiter, bool use_quotes) {
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
         converter_threads;
 
@@ -1283,14 +1156,14 @@ void create_extract(std::string omop_source_dir, std::string target_directory, c
     write_timeline(tmp_extract.c_str(), Merger(std::move(converter_threads)));
 
     write_timeline(final_extract.c_str(),
-                   Cleaner(concepts, gem, tmp_extract.c_str()));
+                   Cleaner(concepts, gem, rxnorm, tmp_extract.c_str()));
 
     
     boost::filesystem::remove(tmp_extract);
 }
 
 void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_dir,
-                             std::string gem_dir,
+                             std::string gem_dir, std::string rxnorm_dir,
                              std::string target_dir_str, char delimiter, bool use_quotes) {
 
     boost::filesystem::path omop_source_dir = boost::filesystem::canonical(omop_source_dir_str);
@@ -1312,8 +1185,9 @@ void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_d
     ConceptTable concepts = construct_concept_table(omop_source_dir.string(), delimiter, use_quotes);
 
     GEMMapper gem(gem_dir);
+    RxNorm rxnorm(rxnorm_dir);
 
-    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem, delimiter, use_quotes);
+    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem, rxnorm, delimiter, use_quotes);
 
     boost::filesystem::remove_all(sorted_dir); 
 
