@@ -1,6 +1,7 @@
 from ..timeline import TimelineReader
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 import embedding_dot
@@ -43,7 +44,7 @@ class SequentialTask(nn.Module):
             rnn_with_bias, self.output_code_weight, non_text_indices
         )
 
-        loss = nn.functional.binary_cross_entropy_with_logits(
+        loss = F.binary_cross_entropy_with_logits(
             final, non_text_expected_output, reduction="sum"
         )
 
@@ -57,14 +58,14 @@ class SequentialTask(nn.Module):
             non_text_indices1,
         )
 
-        loss1 = nn.functional.binary_cross_entropy_with_logits(
+        loss1 = F.binary_cross_entropy_with_logits(
             final1, non_text_expected_output1, reduction="sum"
         )
 
         return final, (loss + loss1)
 
     @classmethod
-    def finalize_data(cls, config, info, device, initial):
+    def finalize_data(cls, initial, device):
         (
             non_text_indices,
             non_text_expected_output,

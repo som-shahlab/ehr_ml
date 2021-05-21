@@ -313,15 +313,15 @@ std::vector<std::pair<uint32_t, uint32_t>> create_lengths(
     return result;
 }
 
-class StrideDatasetIterator;
-class StrideDataset {
+class PTDatasetIterator;
+class PatientTimelineDataset {
    public:
-    friend StrideDatasetIterator;
+    friend PTDatasetIterator;
 
-    StrideDataset(const char* timelines_path, const char* ontology_path,
+    PatientTimelineDataset(const char* timelines_path, const char* ontology_path,
                   const char* info_path, py::tuple train_data,
                   py::tuple val_data)
-        : StrideDataset(timelines_path, ontology_path, info_path) {
+        : PatientTimelineDataset(timelines_path, ontology_path, info_path) {
         train_map = create_label_map(train_data);
         train_lengths = create_lengths(train_map);
 
@@ -334,7 +334,7 @@ class StrideDataset {
                          });
     }
 
-    StrideDataset(const char* timelines_path, const char* ontology_path,
+    PatientTimelineDataset(const char* timelines_path, const char* ontology_path,
                   const char* info_path)
         : timelines(timelines_path, true), ontologies(ontology_path) {
         {
@@ -412,21 +412,25 @@ class StrideDataset {
                          });
     }
 
-    std::unique_ptr<StrideDatasetIterator> get_iterator(
+    std::unique_ptr<PTDatasetIterator> get_iterator(
         bool is_val, int batch_size, uint64_t seed, int threshold,
         float day_dropout = 0, float code_dropout = 0) const {
-        return std::make_unique<StrideDatasetIterator>(
+        return std::make_unique<PTDatasetIterator>(
             *this, is_val, batch_size, seed, threshold, day_dropout,
             code_dropout);
     }
 
-    int num_train_batches(int batch_size) const {
+    int num_batches(int batch_size, bool is_val = false) const {
+        std::vector<std::pair<uint32_t, uint32_t>> lengths_vec;
+	  
         int result = 0;
 
         size_t current_index = 0;
 
-        while (current_index < train_lengths.size()) {
-            int current_length = train_lengths[current_index].second;
+	lengths_vec = is_val ? val_lengths : train_lengths;
+
+        while (current_index < lengths_vec.size()) {
+            int current_length = lengths_vec[current_index].second;
             int num_items = std::max(1, batch_size / current_length);
 
             current_index += num_items;
@@ -494,7 +498,7 @@ void get_negative_codes(const OntologyReader& ontologies,
     }
 }
 
-struct StrideDatasetBatch {
+struct PTDatasetBatch {
     std::unique_ptr<ExtractReaderIterator> iter;
 
     size_t index;
@@ -530,9 +534,9 @@ struct StrideDatasetBatch {
     absl::flat_hash_set<uint32_t> seen_codes;
 };
 
-class StrideDatasetIterator {
+class PTDatasetIterator {
    public:
-    StrideDatasetIterator(const StrideDataset& p, bool is_val_, int batch_size,
+    PTDatasetIterator(const PatientTimelineDataset& p, bool is_val_, int batch_size,
                           uint64_t seed, int threshold_, float day_dropout_ = 0,
                           float code_dropout_ = 0)
         : rng(seed),
@@ -582,7 +586,7 @@ class StrideDatasetIterator {
         batches.resize(num_threads * 2 + 1);
 
         for (size_t i = 0; i < num_threads * 2 + 1 && i < indices.size(); i++) {
-            StrideDatasetBatch* batch = &batches[i];
+            PTDatasetBatch* batch = &batches[i];
             batch->iter =
                 std::make_unique<ExtractReaderIterator>(p.timelines.iter());
             batch->index = next_index++;
@@ -591,11 +595,11 @@ class StrideDatasetIterator {
 
         for (size_t i = 0; i < num_threads; i++) {
             uint64_t seed_for_thread = rng();
-            StrideDatasetIterator* self = this;
+            PTDatasetIterator* self = this;
             std::thread thread([self, i, seed_for_thread]() {
                 std::mt19937_64 batch_rng(seed_for_thread);
                 while (true) {
-                    StrideDatasetBatch* batch = self->get_next_empty_batch();
+                    PTDatasetBatch* batch = self->get_next_empty_batch();
                     if (batch == nullptr) {
                         self->add_batch_to_result(nullptr);
                         break;
@@ -612,7 +616,7 @@ class StrideDatasetIterator {
         current_batch = nullptr;
     }
 
-    ~StrideDatasetIterator() {
+    ~PTDatasetIterator() {
         for (size_t i = 0; i < num_threads; i++) {
             add_batch_to_empty(nullptr);
         }
@@ -623,7 +627,7 @@ class StrideDatasetIterator {
     }
 
     void fill_in_batch(std::mt19937_64& batch_rng,
-                       StrideDatasetBatch& batch) const {
+                       PTDatasetBatch& batch) const {
         // printf("Starting %d\n", (int) batch.index);
         int start_index, end_index;
 
@@ -1137,13 +1141,13 @@ class StrideDatasetIterator {
         return result;
     }
 
-    StrideDatasetBatch* get_next_empty_batch() {
-        StrideDatasetBatch* result;
+    PTDatasetBatch* get_next_empty_batch() {
+        PTDatasetBatch* result;
         empty_queue.wait_dequeue(result);
         return result;
     }
 
-    void add_batch_to_empty(StrideDatasetBatch* batch) {
+    void add_batch_to_empty(PTDatasetBatch* batch) {
         bool success = empty_queue.enqueue(batch);
         if (!success) {
             std::cerr << "Failed to enqueue" << std::endl;
@@ -1151,13 +1155,13 @@ class StrideDatasetIterator {
         }
     }
 
-    StrideDatasetBatch* get_next_result_batch() {
-        StrideDatasetBatch* result;
+    PTDatasetBatch* get_next_result_batch() {
+        PTDatasetBatch* result;
         result_queue.wait_dequeue(result);
         return result;
     }
 
-    void add_batch_to_result(StrideDatasetBatch* batch) {
+    void add_batch_to_result(PTDatasetBatch* batch) {
         bool success = result_queue.enqueue(batch);
         if (!success) {
             std::cerr << "Failed to enqueue" << std::endl;
@@ -1167,7 +1171,7 @@ class StrideDatasetIterator {
 
    private:
     std::mt19937_64 rng;
-    const StrideDataset& parent;
+    const PatientTimelineDataset& parent;
     const bool is_val;
     const uint32_t threshold;
     const float day_dropout;
@@ -1178,11 +1182,11 @@ class StrideDatasetIterator {
     size_t done_threads;
     size_t next_index;
     std::vector<std::thread> threads;
-    std::vector<StrideDatasetBatch> batches;
+    std::vector<PTDatasetBatch> batches;
 
-    StrideDatasetBatch* current_batch;
-    moodycamel::BlockingConcurrentQueue<StrideDatasetBatch*> result_queue;
-    moodycamel::BlockingConcurrentQueue<StrideDatasetBatch*> empty_queue;
+    PTDatasetBatch* current_batch;
+    moodycamel::BlockingConcurrentQueue<PTDatasetBatch*> result_queue;
+    moodycamel::BlockingConcurrentQueue<PTDatasetBatch*> empty_queue;
 
     std::vector<std::pair<size_t, size_t>> indices;
     std::vector<std::pair<uint32_t, uint32_t>> patient_lengths;
@@ -1202,18 +1206,18 @@ void register_clmbr_extension(pybind11::module& root) {
     py::module m = root.def_submodule("clmbr");
     m.def("create_info", create_info);
 
-    py::class_<StrideDataset>(m, "StrideDataset")
+    py::class_<PatientTimelineDataset>(m, "PatientTimelineDataset")
         .def(py::init<const char*, const char*, const char*>())
         .def(py::init<const char*, const char*, const char*, py::tuple,
                       py::tuple>())
-        .def("get_iterator", &StrideDataset::get_iterator,
+        .def("get_iterator", &PatientTimelineDataset::get_iterator,
              py::keep_alive<0, 1>())
-        .def("num_train_batches", &StrideDataset::num_train_batches);
+        .def("num_batches", &PatientTimelineDataset::num_batches);
 
-    py::class_<StrideDatasetIterator>(m, "StrideDatasetIterator")
+    py::class_<PTDatasetIterator>(m, "PTDatasetIterator")
         .def("__iter__",
-             [](StrideDatasetIterator& it) -> StrideDatasetIterator& {
+             [](PTDatasetIterator& it) -> PTDatasetIterator& {
                  return it;
              })
-        .def("__next__", &StrideDatasetIterator::next);
+        .def("__next__", &PTDatasetIterator::next);
 }

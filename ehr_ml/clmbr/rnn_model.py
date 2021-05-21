@@ -10,45 +10,6 @@ import numpy as np
 
 import copy
 
-
-def gelu(x):
-    return (
-        0.5
-        * x
-        * (
-            1
-            + torch.tanh(
-                math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))
-            )
-        )
-    )
-
-
-class GELU(nn.Module):
-    r"""Applies the Gaussian Error Linear Units function:
-
-    .. math::
-        \text{GELU}(x) = x * \Phi(x)
-    where :math:`\Phi(x)` is the Cumulative Distribution Function for Gaussian Distribution.
-
-    Shape:
-        - Input: :math:`(N, *)` where `*` means, any number of additional
-          dimensions
-        - Output: :math:`(N, *)`, same shape as the input
-
-    .. image:: scripts/activation_images/GELU.png
-
-    Examples::
-
-        >>> m = nn.GELU()
-        >>> input = torch.randn(2)
-        >>> output = m(input)
-    """
-
-    def forward(self, input):
-        return gelu(input)
-
-
 class MultiHeadAttention(nn.Module):
     """ Multi-Head Attention module """
 
@@ -133,7 +94,7 @@ class PositionwiseFeedForward(nn.Module):
     def forward(self, x):
         residual = x
         output = x.transpose(1, 2)
-        output = self.w_2(gelu(self.w_1(output)))
+        output = self.w_2(F.gelu(self.w_1(output)))
         output = output.transpose(1, 2)
         output = self.dropout(output)
         output = self.layer_norm(output + residual)
@@ -259,7 +220,7 @@ class PatientRNN(nn.Module):
 
         if config["use_gru"]:
             input_size = config["size"]
-            self.model = torch.nn.LSTM(
+            self.model = torch.nn.GRU(
                 input_size=input_size,
                 hidden_size=config["size"],
                 num_layers=config["gru_layers"],
@@ -348,7 +309,7 @@ class PatientRNN(nn.Module):
             return self.model(padded_output)
 
     @classmethod
-    def finalize_data(cls, config, info, device, initial):
+    def finalize_data(cls, initial, device):
         (
             all_non_text_codes,
             all_non_text_offsets,
