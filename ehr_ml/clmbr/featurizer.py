@@ -1,9 +1,10 @@
 import os
+import tqdm
 import torch
 import random
 import logging
+
 import numpy as np
-from tqdm import tqdm
 from collections import defaultdict
 
 from .dataset import DataLoader
@@ -16,21 +17,22 @@ from .. import ontology
 from .. import labeler
 
 from ..utils import set_up_logging
-from ..extension.clmbr import StrideDataset
+from ..extension.clmbr import PatientTimelineDataset
 
-from typing import Dict, Any, Union, List, Tuple
+from typing import Dict, Any, Union, List, Tuple, Optional
 
 class CLMBRFeaturizer:
     def __init__(self,
                  config: Dict[Any, Any],
                  info: Dict[Any, Any],
-                 device:torch.device = torch.device('cpu'),
-                 log_path: str = None):
+                 device: torch.device = torch.device('cpu'),
+                 log_path: Optional[str] = None):
         if log_path is not None:
             set_up_logging(log_path)
         self.model = PredictionModel(config, info).to(device)
 
-    def _build_adam_optimizer(self, dataset):
+    def _build_adam_optimizer(self,
+                              dataset: PatientTimelineDataset) -> OpenAIAdam:
         config = self.model.config
         params = []
         for name, param in self.model.named_parameters():
@@ -42,18 +44,19 @@ class CLMBRFeaturizer:
             lr=config["lr"],
             schedule="warmup_linear",
             warmup=config["warmup_epochs"] / config["epochs_per_cycle"],
-            t_total=dataset.num_train_batches(config["batch_size"])
+            t_total=dataset.num_batches(config["batch_size"], False)
             * config["epochs_per_cycle"],
             b1=config["b1"],
             b2=config["b2"],
             e=config["e"],
             l2=config["l2"],
         )
-        logging.info(f"Batches per epoch = {dataset.num_train_batches(config['batch_size'])}")
+        logging.info(f"Batches per epoch = {dataset.num_batches(config['batch_size'], False)}")
         logging.info(f"Total batches = {optimizer.defaults['t_total']}")
         return optimizer
 
-    def _train_epoch(self, dataset, pbar=None):
+    def _train_epoch(self, dataset: PatientTimelineDataset,
+                     pbar: Optional[tqdm.tqdm] = None) -> None:
         self.model.train()
         total_non_text_loss = 0
         config = self.model.config
@@ -81,7 +84,7 @@ class CLMBRFeaturizer:
                 elif i % 2000 == 0:
                     logging.info(f"Seen batch {i}")
     
-    def fit(self, dataset, use_pbar = True):
+    def fit(self, dataset: PatientTimelineDataset, use_pbar: bool = True) -> None:
         self.model.train()
         
         model_dir = self.model.config["model_dir"]
@@ -95,8 +98,8 @@ class CLMBRFeaturizer:
         best_val_loss = None
         best_val_loss_epoch = None
 
-        pbar = tqdm(total = self.optimizer.defaults['t_total']) if use_pbar \
-                            else None
+        pbar = tqdm.tqdm(total = self.optimizer.defaults['t_total']) if use_pbar \
+                         else None
         loss_file = open(os.path.join(model_dir, "losses"), "w")
 
         logging.info("Start training")
@@ -137,13 +140,13 @@ class CLMBRFeaturizer:
         logging.info("Training complete!")
         
     def evaluate(self,
-                 dataset: StrideDataset,
+                 dataset: PatientTimelineDataset,
                  is_val: bool = True,
-                 num_batches: int = None):
+                 num_batches: Optional[int] = None) -> float:
         self.model.eval()
         config = self.model.config
         if num_batches is None:
-            num_batches = dataset.num_train_batches(config["batch_size"])
+            num_batches = dataset.num_batches(config["batch_size"], is_val)
         total_loss = 0
         with DataLoader(
             dataset,
@@ -177,7 +180,7 @@ class CLMBRFeaturizer:
         dummy_labels = [0 for _ in patient_ids]
         data = (dummy_labels, patient_ids, day_offsets)
 
-        dataset = StrideDataset(
+        dataset = PatientTimelineDataset(
             os.path.join(extract_dir, "extract.db"),
             os.path.join(extract_dir, "ontology.db"),
             os.path.join(config["model_dir"], "info.json"),
@@ -197,7 +200,7 @@ class CLMBRFeaturizer:
                 batch_size=config["eval_batch_size"],
                 seed=random.randint(0, 100000)
         ) as batches:
-            pbar = tqdm(batches)
+            pbar = tqdm.tqdm(batches)
             pbar.set_description("Computing patient representations")
             for batch in pbar:
                 with torch.no_grad():
@@ -231,7 +234,7 @@ class CLMBRFeaturizer:
         return patient_representations, labels, patient_ids, patient_indices
         
     @classmethod
-    def from_pretrained(cls, model_dir):
+    def from_pretrained(cls, model_dir: str) -> CLMBRFeaturizer:
         config = read_config(os.path.join(model_dir, "config.json"))
         info = read_info(os.path.join(model_dir, "info.json"))
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

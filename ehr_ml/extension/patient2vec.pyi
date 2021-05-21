@@ -9,11 +9,11 @@ def create_info(
     min_patient_count: int,
 ) -> str: ...
 
-class StrideDataset:
+class PatientTimelineDataset:
     def __init__(
         self, timelines_path: str, ontology_path: str, info_path: str
     ): ...
-    def num_train_batches(self, batch_size: int) -> int: ...
+    def num_batches(self, batch_size: int, is_val: bool = ...) -> int: ...
     def get_iterator(
         self,
         is_val: bool,
