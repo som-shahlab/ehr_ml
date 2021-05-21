@@ -234,7 +234,7 @@ class CLMBRFeaturizer:
         return patient_representations, labels, patient_ids, patient_indices
         
     @classmethod
-    def from_pretrained(cls, model_dir: str) -> CLMBRFeaturizer:
+    def from_pretrained(cls, model_dir: str):
         config = read_config(os.path.join(model_dir, "config.json"))
         info = read_info(os.path.join(model_dir, "info.json"))
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
