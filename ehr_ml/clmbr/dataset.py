@@ -19,7 +19,10 @@ from .doctorai_task import DoctorAITask
 
 from typing import Any, Dict, Optional, Iterable, Tuple, List
 
-def finalize_data(batch: Dict[Any, Any], device: torch.device) -> Dict[Any, Any]:
+
+def finalize_data(
+    batch: Dict[Any, Any], device: torch.device
+) -> Dict[Any, Any]:
     batch["pid"] = batch["pid"].tolist()
     batch["day_index"] = batch["day_index"].tolist()
     batch["rnn"] = PatientRNN.finalize_data(batch["rnn"], device)
@@ -31,12 +34,13 @@ def finalize_data(batch: Dict[Any, Any], device: torch.device) -> Dict[Any, Any]
         batch["labeler"] = LabelerTask.finalize_data(batch["labeler"])
     return batch
 
+
 def prepare_batch_thread(
     dataset: PatientTimelineDataset,
     args: Any,
-        out_queue: queue.Queue[Optional[Dict[Any, Any]]],
+    out_queue: queue.Queue[Optional[Dict[Any, Any]]],
     stop_event: threading.Event,
-    device: torch.device
+    device: torch.device,
 ) -> None:
     iterator = dataset.get_iterator(*args)
     while True:
@@ -51,10 +55,13 @@ def prepare_batch_thread(
 
         result = finalize_data(item, device)
         out_queue.put(result)
-        
-def convert_patient_data(extract_dir: str,
-                         original_patient_ids: Iterable[int],
-                         date_strs: Iterable[str]) -> Tuple[np.array, np.array]:
+
+
+def convert_patient_data(
+    extract_dir: str,
+    original_patient_ids: Iterable[int],
+    date_strs: Iterable[str],
+) -> Tuple[np.array, np.array]:
     timelines = timeline.TimelineReader(os.path.join(extract_dir, "extract.db"))
 
     all_original_pids = timelines.get_original_patient_ids()
@@ -87,6 +94,7 @@ def convert_patient_data(extract_dir: str,
 
     return np.array(ehr_ml_patient_ids), np.array(day_indices)
 
+
 class DataLoader:
     def __init__(
         self,
@@ -97,7 +105,7 @@ class DataLoader:
         seed: int = 0,
         day_dropout: float = 0,
         code_dropout: float = 0,
-        use_cuda: Optional[bool] = None
+        use_cuda: Optional[bool] = None,
     ):
         if use_cuda is None:
             use_cuda = torch.cuda.is_available()
@@ -114,7 +122,7 @@ class DataLoader:
                 args,
                 self.batch_queue,
                 self.stop_event,
-                torch.device("cuda:0" if use_cuda else "cpu")
+                torch.device("cuda:0" if use_cuda else "cpu"),
             ),
         )
         self.data_thread.start()
@@ -122,7 +130,7 @@ class DataLoader:
 
     def __len__(self) -> int:
         return self.num_batches
-        
+
     def __iter__(self) -> DataLoader:
         return self
 

@@ -1,13 +1,23 @@
+import os
 import torch
+import numpy as np
+
 from torch import nn
+from collections import defaultdict
 
 from .rnn_model import PatientRNN
 from .sequential_task import SequentialTask
 from .labeler_task import LabelerTask
 from .doctorai_task import DoctorAITask
+from .utils import read_config, read_info, device_from_config
+
+from ..extension.clmbr import PatientTimelineDataset
+from ..labeler import SavedLabeler
+
+from typing import Union, List, Tuple, Optional
 
 
-class PredictionModel(nn.Module):
+class CLMBR(nn.Module):
     """
     Encapsulates a model that can encode a timeline, and a module that 
     defines some task.  Examples are PatientRNN and SequentialTask, 
@@ -61,12 +71,98 @@ class PredictionModel(nn.Module):
             labeler_input = batch["labeler"]
 
         rnn_output = self.timeline_model(batch["rnn"])
+        outputs = dict()
 
         if "task" in batch:
-            return self.task_module(rnn_output, batch["task"])
+            values, loss = self.task_module(rnn_output, batch["task"])
         elif "doctorai" in batch:
-            return self.doctorai_module(rnn_output, batch["doctorai"])
+            values, loss = self.doctorai_module(rnn_output, batch["doctorai"])
         elif "labeler" in batch:
-            return self.labeler_module(rnn_output, batch["labeler"])
+            values, loss = self.labeler_module(rnn_output, batch["labeler"])
         else:
             raise ValueError("Could not find target in batch")
+
+        outputs["rnn"] = rnn_output
+        outputs["values"] = values
+        outputs["loss"] = loss
+        return outputs
+
+    def featurize_patients(
+        self,
+        extract_dir: str,
+        patient_ids: Union[List[str], np.array],
+        day_offsets: Union[List[str], np.array],
+    ) -> np.array:
+        """
+        Read info and configuration from a pretrained model dir to load a pretrained CLMBR model
+        """
+        config = self.config
+        dummy_labels = [0 for _ in patient_ids]
+        data = (dummy_labels, patient_ids, day_offsets)
+
+        dataset = PatientTimelineDataset(
+            os.path.join(extract_dir, "extract.db"),
+            os.path.join(extract_dir, "ontology.db"),
+            os.path.join(config["model_dir"], "info.json"),
+            data,
+            data,
+        )
+
+        patient_id_to_info = defaultdict(dict)
+        for i, (pid, index) in enumerate(zip(patient_ids, day_offsets)):
+            patient_id_to_info[pid][index] = i
+
+        patient_representations = np.zeros((len(patient_ids), config["size"]))
+        with DataLoader(
+            dataset,
+            threshold=config["num_first"],
+            is_val=True,
+            batch_size=config["eval_batch_size"],
+            seed=random.randint(0, 100000),
+        ) as batches:
+            pbar = tqdm.tqdm(batches)
+            pbar.set_description("Computing patient representations")
+            for batch in pbar:
+                with torch.no_grad():
+                    embeddings = (
+                        self.compute_embedding_batch(batch["rnn"]).cpu().numpy()
+                    )
+                    for i, patient_id in enumerate(batch["pid"]):
+                        for index, target_id in patient_id_to_info[
+                            patient_id
+                        ].items():
+                            patient_representations[target_id, :] = embeddings[
+                                i, index, :
+                            ]
+
+        return patient_representations
+
+    def featurize_patients_w_labels(
+        self, extract_dir: str, l: SavedLabeler
+    ) -> Tuple[np.array, np.array, np.array, np.array]:
+        """
+        Featurize patients using the given model and labeler.
+        The result is a numpy array aligned with l.get_labeler_data().
+        This function will use the GPU if it is available.
+        """
+        data = l.get_label_data()
+
+        labels, patient_ids, patient_indices = data
+
+        patient_representations = self.featurize_patients(
+            extract_dir, patient_ids, patient_indices
+        )
+
+        return patient_representations, labels, patient_ids, patient_indices
+
+    @classmethod
+    def from_pretrained(cls, model_dir: str):
+        config = read_config(os.path.join(model_dir, "config.json"))
+        info = read_info(os.path.join(model_dir, "info.json"))
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model = cls(config, info, device=device)
+        model_data = torch.load(
+            os.path.join(model_dir, "best"), map_location="cpu"
+        )
+        model.load_state_dict(model_data)
+        return model
