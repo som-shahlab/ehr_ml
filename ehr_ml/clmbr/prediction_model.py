@@ -156,13 +156,19 @@ class CLMBR(nn.Module):
         return patient_representations, labels, patient_ids, patient_indices
 
     @classmethod
-    def from_pretrained(cls, model_dir: str):
+    def from_pretrained(
+        cls, model_dir: str, device: Optional[torch.device] = None
+    ):
         config = read_config(os.path.join(model_dir, "config.json"))
         info = read_info(os.path.join(model_dir, "info.json"))
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model = cls(config, info, device=device)
+        model = cls(config, info)
         model_data = torch.load(
             os.path.join(model_dir, "best"), map_location="cpu"
         )
         model.load_state_dict(model_data)
+        if device is None:
+            device = torch.device(
+                "cuda:0" if torch.cuda.is_available() else "cpu"
+            )
+        model = model.to(device)
         return model
