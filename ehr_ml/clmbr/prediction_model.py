@@ -1,10 +1,13 @@
 import os
+import tqdm
 import torch
+import random
 import numpy as np
 
 from torch import nn
 from collections import defaultdict
 
+from .dataset import DataLoader
 from .rnn_model import PatientRNN
 from .sequential_task import SequentialTask
 from .labeler_task import LabelerTask
@@ -120,9 +123,9 @@ class CLMBR(nn.Module):
             batch_size=config["eval_batch_size"],
             seed=random.randint(0, 100000),
         ) as batches:
-            pbar = tqdm.tqdm(batches)
+            pbar = tqdm.tqdm(total=dataset.num_batches(config["eval_batch_size"], True))
             pbar.set_description("Computing patient representations")
-            for batch in pbar:
+            for batch in batches:
                 with torch.no_grad():
                     embeddings = (
                         self.compute_embedding_batch(batch["rnn"]).cpu().numpy()
@@ -134,6 +137,7 @@ class CLMBR(nn.Module):
                             patient_representations[target_id, :] = embeddings[
                                 i, index, :
                             ]
+                    pbar.update(1)
 
         return patient_representations
 

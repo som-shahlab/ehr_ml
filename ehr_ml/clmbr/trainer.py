@@ -7,7 +7,6 @@ import logging
 from .dataset import DataLoader
 from .opt import OpenAIAdam
 from .prediction_model import CLMBR
-from .utils import read_config, read_info, device_from_config
 
 from .. import timeline
 from .. import ontology
@@ -130,14 +129,15 @@ class Trainer:
                 best_val_loss = val_loss
                 best_val_loss_epoch = epoch
 
-                if os.path.exists(os.path.join(model_dir, "best")):
-                    os.unlink(os.path.join(model_dir, "best"))
+                best_path = os.path.join(model_dir, "best")
+                if os.path.exists(best_path):
+                    os.unlink(best_path)
 
                 torch.save(
-                    self.model.state_dict(), os.path.join(model_dir, "best")
+                    self.model.state_dict(), best_path
                 )
                 logging.info(
-                    "Saving best model to %s", os.path.join(model_dir, "best")
+                    "Saving best model to %s", best_path
                 )
 
         if pbar is not None:

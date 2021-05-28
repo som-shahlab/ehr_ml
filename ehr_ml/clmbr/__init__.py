@@ -77,12 +77,22 @@ def create_info_program() -> None:
         help="Only keep statistics on codes/terms that appear for this many patients (default 100)",
     )
     parser.add_argument(
-        "--banned_patient_file",
+        "--excluded_patient_file",
         type=str,
         help="A file containing a list of patients to exclude from training. "
         "Any patient ID you plan to use for finetuning / evaluation should be "
-        "listed in this file.",
+        "listed in this file. If not provided, exclude_patient_ratio must be specified.",
         default=None,
+    )
+    parser.add_argument(
+        "--exclude_patient_ratio",
+        type=float,
+        default=None,
+        help="Ratio of patients to exclude from pre-training between 0 and 1."
+             " If provided, excluded patient IDs will "
+             "be randomly selected and written out to a file "
+             "\"excluded_patient_ids.txt\" in the save directory. If not "
+             "provided, excluded_patient_file must be specified."
     )
     parser.add_argument(
         "--seed",
@@ -135,19 +145,45 @@ def create_info_program() -> None:
     result["seed"] = args.seed
     result["min_patient_count"] = args.min_patient_count
 
-    if args.banned_patient_file is not None:
-        with open(args.banned_patient_file) as f:
+    def remove_pids(a, x):
+        return [(p, c) for p, c in a if p not in x]
+    
+    if args.excluded_patient_file is not None:
+        with open(args.excluded_patient_file) as f:
             pids = {int(a) for a in f}
 
-            def remove_banned(a):
-                return [(p, c) for p, c in a if p not in pids]
+            result["train_patient_ids_with_length"] = remove_pids(
+                result["train_patient_ids_with_length"],
+                pids
+            )
+            result["val_patient_ids_with_length"] = remove_pids(
+                result["val_patient_ids_with_length"],
+                pids
+            )
+        logging.info("Removed %d patient IDs from file %s" % (len(pids), args.excluded_patient_file))
+    else:
+        assert args.exclude_patient_ratio is not None
+        assert 0 < args.exclude_patient_ratio and args.exclude_patient_ratio < 1
+        train_pids = set(result["train_patient_ids_with_length"])
+        val_pids = set(result["val_patient_ids_with_length"])
+        all_pids = train_pids.union(val_pids)
+        excluded_pids = set(random.sample(list(all_pids),
+                                          int(round(len(all_pids) *
+                                                    args.exclude_patient_ratio))))
 
-            result["train_patient_ids_with_length"] = remove_banned(
-                result["train_patient_ids_with_length"]
-            )
-            result["val_patient_ids_with_length"] = remove_banned(
-                result["val_patient_ids_with_length"]
-            )
+        result["train_patient_ids_with_length"] = remove_pids(
+            result["train_patient_ids_with_length"],
+            excluded_pids
+        )
+        result["val_patient_ids_with_length"] = remove_pids(
+            result["val_patient_ids_with_length"],
+            excluded_pids
+        )
+        with open(os.path.join(args.save_dir, "excluded_patient_ids.txt"), "w") as f:
+            for pid in excluded_pids:
+                f.write("%d\n" % pid)
+        logging.info("Removed %d patient IDs using ratio %f" %
+                     (len(excluded_pids), args.exclude_patient_ratio))
 
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int:
         return len(
