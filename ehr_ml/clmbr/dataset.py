@@ -56,26 +56,28 @@ def prepare_batch_thread(
         result = finalize_data(item, device)
         out_queue.put(result)
 
-def convert_pid(pid: int, search_list, result_list) -> Tuple[int, int]:
+
+def convert_pid(
+    pid: int, search_list: List[int], result_list: List[int]
+) -> Tuple[int, int]:
     pid_index = bisect.bisect_left(search_list, pid)
-    assert (
-        search_list[pid_index] == pid
-    ), f"patient ID {pid} not in timeline"
+    assert search_list[pid_index] == pid, f"patient ID {pid} not in timeline"
     return_pid = result_list[pid_index]
     return return_pid
 
-def orig2ehr_pid(orig_pid: int, extract_dir: str):
-    timelines = timeline.TimelineReader(os.path.join(extract_dir, "extract.db"))
+
+def orig2ehr_pid(orig_pid: int, timelines: timeline.TimelineReader):
     all_original_pids = timelines.get_original_patient_ids()
     all_ehr_ml_pids = timelines.get_patient_ids()
     return convert_pid(orig_pid, all_original_pids, all_ehr_ml_pids)
 
-def ehr2orig_pid(ehr_pid: int, extract_dir: str):
-    timelines = timeline.TimelineReader(os.path.join(extract_dir, "extract.db"))
+
+def ehr2orig_pid(ehr_pid: int, timelines: timeline.TimelineReader):
     all_original_pids = timelines.get_original_patient_ids()
     all_ehr_ml_pids = timelines.get_patient_ids()
     return convert_pid(ehr_pid, all_ehr_ml_pids, all_original_pids)
-        
+
+
 def convert_patient_data(
     extract_dir: str,
     original_patient_ids: Iterable[int],
@@ -93,14 +95,18 @@ def convert_patient_data(
                 return i
         assert 0, "should find correct date in timeline!"
 
-    def convert_data(og_pid: int, date: Union[str, datetime.date]) -> Tuple[int, int]:
+    def convert_data(
+        og_pid: int, date: Union[str, datetime.date]
+    ) -> Tuple[int, int]:
         pid_index = bisect.bisect_left(all_original_pids, og_pid)
         assert (
             all_original_pids[pid_index] == og_pid
         ), f"original patient ID {og_pid} not in timeline"
         ehr_ml_pid = all_ehr_ml_pids[pid_index]
 
-        date_obj = datetime.date.fromisoformat(date) if type(date) == str else date
+        date_obj = (
+            datetime.date.fromisoformat(date) if type(date) == str else date
+        )
         assert type(date_obj) == datetime.date
         date_index = get_date_index(ehr_ml_pid, date_obj)
         return ehr_ml_pid, date_index
@@ -128,7 +134,11 @@ class DataLoader:
         device: Optional[torch.device] = None,
     ):
         if device is None:
-            device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+            device = (
+                torch.device("cuda")
+                if torch.cuda.is_available()
+                else torch.device("cpu")
+            )
         self.batch_queue: queue.Queue[Any] = queue.Queue(maxsize=20)
         self.stop_event = threading.Event()
         self.num_batches = dataset.num_batches(batch_size, is_val)
@@ -137,13 +147,7 @@ class DataLoader:
 
         self.data_thread = threading.Thread(
             target=prepare_batch_thread,
-            args=(
-                dataset,
-                args,
-                self.batch_queue,
-                self.stop_event,
-                device,
-            ),
+            args=(dataset, args, self.batch_queue, self.stop_event, device,),
         )
         self.data_thread.start()
         self.stopped = False

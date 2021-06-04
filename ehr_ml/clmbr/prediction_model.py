@@ -123,7 +123,9 @@ class CLMBR(nn.Module):
             batch_size=config["eval_batch_size"],
             seed=random.randint(0, 100000),
         ) as batches:
-            pbar = tqdm.tqdm(total=dataset.num_batches(config["eval_batch_size"], True))
+            pbar = tqdm.tqdm(
+                total=dataset.num_batches(config["eval_batch_size"], True)
+            )
             pbar.set_description("Computing patient representations")
             for batch in batches:
                 with torch.no_grad():

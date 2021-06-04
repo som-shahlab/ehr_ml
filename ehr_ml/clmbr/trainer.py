@@ -133,12 +133,8 @@ class Trainer:
                 if os.path.exists(best_path):
                     os.unlink(best_path)
 
-                torch.save(
-                    self.model.state_dict(), best_path
-                )
-                logging.info(
-                    "Saving best model to %s", best_path
-                )
+                torch.save(self.model.state_dict(), best_path)
+                logging.info("Saving best model to %s", best_path)
 
         if pbar is not None:
             pbar.close()
