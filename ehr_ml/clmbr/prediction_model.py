@@ -159,6 +159,14 @@ class CLMBR(nn.Module):
 
         return patient_representations, labels, patient_ids, patient_indices
 
+    def freeze(self):
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def unfreeze(self):
+        for param in self.parameters():
+            param.requires_grad = True
+
     @classmethod
     def from_pretrained(
         cls, model_dir: str, device: Optional[torch.device] = None
