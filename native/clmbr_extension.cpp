@@ -989,8 +989,8 @@ class PTDatasetIterator {
                     day_index++;
                 });
 
-            if (day_index != length + 1) {
-                std::cout << "Day index should count up to length + 1?"
+            if (day_index != length + 1 && day_index != length) {
+                std::cout << "Day index should count up to length or length + 1?"
                           << patient_id << " " << day_index << " " << length
                           << std::endl;
                 abort();
