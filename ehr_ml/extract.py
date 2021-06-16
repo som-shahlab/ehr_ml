@@ -23,9 +23,11 @@ def extract_omop_program() -> None:
     parser.add_argument(
         "gem_location", type=str, help="The location of the gem directory",
     )
-    
+
     parser.add_argument(
-        "rxnorm_location", type=str, help="The location of the rxnorm directory",
+        "rxnorm_location",
+        type=str,
+        help="The location of the rxnorm directory",
     )
 
     parser.add_argument(

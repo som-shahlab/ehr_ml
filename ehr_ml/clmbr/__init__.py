@@ -31,8 +31,8 @@ from .. import ontology
 from .. import labeler
 
 from .dataset import DataLoader, convert_patient_data
-from .prediction_model import PredictionModel
-from .featurizer import CLMBRFeaturizer
+from .prediction_model import CLMBR
+from .trainer import Trainer
 from .utils import read_config, read_info, device_from_config
 from ..featurizer import ColumnValue, Featurizer
 from ..splits import read_time_split
@@ -49,25 +49,26 @@ def check_dir_for_overwrite(dirname: str) -> bool:
         or glob.glob(os.path.join(dirname, "checkpoints"))
     )
 
+
 def create_info_program() -> None:
     parser = argparse.ArgumentParser(
         description="Precompute training data summary statistics etc for CLMBR experiments"
     )
-    parser.add_argument("input_data_dir",
-                        type=str,
-                        help="Location of the dataset extract to be used for CLMBR training")
+    parser.add_argument(
+        "input_data_dir",
+        type=str,
+        help="Location of the dataset extract to be used for CLMBR training",
+    )
     parser.add_argument(
         "save_dir", type=str, help="Location where model info is to be saved",
     )
     parser.add_argument(
-        "train_end_date",
-        type=str,
-        help="The end date for training"
+        "train_end_date", type=str, help="The end date for training"
     )
     parser.add_argument(
         "val_end_date",
         type=str,
-        help="The end date for validation. Should be later than the end date for training"
+        help="The end date for validation. Should be later than the end date for training",
     )
     parser.add_argument(
         "--min_patient_count",
@@ -76,16 +77,28 @@ def create_info_program() -> None:
         help="Only keep statistics on codes/terms that appear for this many patients (default 100)",
     )
     parser.add_argument(
-        "--banned_patient_file",
+        "--excluded_patient_file",
         type=str,
-        help="A file containing a list of patients to exclude from training",
-        default=None
+        help="A file containing a list of patients to exclude from training. "
+        "Any patient ID you plan to use for finetuning / evaluation should be "
+        "listed in this file. If not provided, exclude_patient_ratio must be specified.",
+        default=None,
+    )
+    parser.add_argument(
+        "--exclude_patient_ratio",
+        type=float,
+        default=None,
+        help="Ratio of patients to exclude from pre-training between 0 and 1."
+        " If provided, excluded patient IDs will "
+        "be randomly selected and written out to a file "
+        '"excluded_patient_ids.txt" in the save directory. If not '
+        "provided, excluded_patient_file must be specified.",
     )
     parser.add_argument(
         "--seed",
         type=int,
         default=3451235,
-        help="Random seed"
+        help="Random seed (default 3451235)",
     )
     args = parser.parse_args()
 
@@ -132,19 +145,51 @@ def create_info_program() -> None:
     result["seed"] = args.seed
     result["min_patient_count"] = args.min_patient_count
 
-    if args.banned_patient_file is not None:
-        with open(args.banned_patient_file) as f:
+    def remove_pids(a, x):
+        return [(p, c) for p, c in a if p not in x]
+
+    if args.excluded_patient_file is not None:
+        with open(args.excluded_patient_file) as f:
             pids = {int(a) for a in f}
 
-            def remove_banned(a):
-                return [(p, c) for p, c in a if p not in pids]
+            result["train_patient_ids_with_length"] = remove_pids(
+                result["train_patient_ids_with_length"], pids
+            )
+            result["val_patient_ids_with_length"] = remove_pids(
+                result["val_patient_ids_with_length"], pids
+            )
+        logging.info(
+            "Removed %d patient IDs from file %s"
+            % (len(pids), args.excluded_patient_file)
+        )
+    else:
+        assert args.exclude_patient_ratio is not None
+        assert 0 < args.exclude_patient_ratio and args.exclude_patient_ratio < 1
+        train_pids = set(result["train_patient_ids_with_length"])
+        val_pids = set(result["val_patient_ids_with_length"])
+        all_pids = train_pids.union(val_pids)
+        excluded_pids = set(
+            random.sample(
+                list(all_pids),
+                int(round(len(all_pids) * args.exclude_patient_ratio)),
+            )
+        )
 
-            result["train_patient_ids_with_length"] = remove_banned(
-                result["train_patient_ids_with_length"]
-            )
-            result["val_patient_ids_with_length"] = remove_banned(
-                result["val_patient_ids_with_length"]
-            )
+        result["train_patient_ids_with_length"] = remove_pids(
+            result["train_patient_ids_with_length"], excluded_pids
+        )
+        result["val_patient_ids_with_length"] = remove_pids(
+            result["val_patient_ids_with_length"], excluded_pids
+        )
+        with open(
+            os.path.join(args.save_dir, "excluded_patient_ids.txt"), "w"
+        ) as f:
+            for pid in excluded_pids:
+                f.write("%d\n" % pid)
+        logging.info(
+            "Removed %d patient IDs using ratio %f"
+            % (len(excluded_pids), args.exclude_patient_ratio)
+        )
 
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int:
         return len(
@@ -182,46 +227,91 @@ def create_info_program() -> None:
     with open(os.path.join(args.save_dir, "info.json"), "w") as fp:
         json.dump(result, fp)
 
+
 def train_model() -> None:
     parser = argparse.ArgumentParser(
         description="Representation Learning Experiments"
     )
+    # paths
     parser.add_argument(
         "model_dir",
         type=str,
         help="Location where model logs and weights should be saved",
     )
-    parser.add_argument("info_dir", type=str,
-                        help="Location where `clmbr_create_info` results were saved")
-    parser.add_argument("--lr", type=float, default=0.01, help="learning rate")
     parser.add_argument(
-        "--size", default=768, type=int,
-        help="Dimensionality of the output embeddings"
-    )
-    parser.add_argument(
-        "--use_gru", default=False, action="store_true",
-        help="Whether to use a GRU, if not specified a Transformer is used"
-    )
-    parser.add_argument("--no_tied_weights", default=False, action="store_true")
-    parser.add_argument("--gru_layers", default=1, type=int)
-    parser.add_argument("--gru_hidden_size", default=768, type=int)
-    parser.add_argument("--dropout", default=0, type=float)
-    parser.add_argument("--l2", default=0.01, type=float)
-    parser.add_argument(
-        "--batch_size", type=int, default=500, help="Batch size"
-    )
-    parser.add_argument(
-        "--eval_batch_size", type=int, default=2000, help="Batch size during evaluation"
+        "info_dir",
+        type=str,
+        help="Location where `clmbr_create_info` results were saved",
     )
     parser.add_argument(
         "--extract_dir",
         action="store_true",
         help="Use the doctorai task definition",
     )
+
+    # model specification
+    parser.add_argument(
+        "--size",
+        default=768,
+        type=int,
+        help="Dimensionality of the output embeddings",
+    )
+    parser.add_argument(
+        "--encoder_type",
+        default="gru",
+        choices=["gru", "lstm", "transformer"],
+        help='the sequence encoder module type (default "gru")',
+    )
+    parser.add_argument("--no_tied_weights", default=False, action="store_true")
+    parser.add_argument(
+        "--rnn_layers",
+        default=1,
+        type=int,
+        help='number of recurrent layers to use if encoder_type is "gru" or '
+        '"lstm" (default 1), not used if encoder_type is "transformer"',
+    )
+    parser.add_argument(
+        "--dropout",
+        default=0,
+        type=float,
+        help="dropout percentage (default 0)",
+    )
+
+    # optimization specification
+    parser.add_argument(
+        "--batch_size", type=int, default=500, help="Batch size (default 500)"
+    )
+    parser.add_argument(
+        "--eval_batch_size",
+        type=int,
+        default=2000,
+        help="Batch size during evaluation (default 2000)",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=50,
+        help="Number of training epochs (default 50)",
+    )
+    parser.add_argument(
+        "--warmup_epochs",
+        type=int,
+        default=2,
+        help="Number of warmup epochs (default 2)",
+    )
+    parser.add_argument(
+        "--lr", type=float, default=0.01, help="learning rate (default 0.01)"
+    )
+    parser.add_argument(
+        "--l2",
+        default=0.01,
+        type=float,
+        help="l2 regularization strength (default 0.01)",
+    )
     parser.add_argument(
         "--device",
         default="cpu",
-        help="Specify whether the model should be run on CPU or GPU. Can specify a specific GPU, e.g. \"cuda:0\""
+        help='Specify whether the model should be run on CPU or GPU. Can specify a specific GPU, e.g. "cuda:0" (default "cpu")',
     )
     parser.add_argument("--code_dropout", type=float, default=0.2)
     # Day dropout added in reference to Lawrence's comment,
@@ -236,11 +326,10 @@ def train_model() -> None:
             "Fatal error - model dir {} is not empty".format(model_dir),
             file=sys.stderr,
         )
-        logging.info("Fatal error - model dir {} is not empty".format(model_dir))
+        logging.info(
+            "Fatal error - model dir {} is not empty".format(model_dir)
+        )
         exit(1)
-
-    epochs_per_cycle = 50
-    warmup_epochs = 2
 
     # Try to load info.json file; see create_info above for details.
     info = read_info(os.path.join(args.info_dir, "info.json"))
@@ -265,19 +354,18 @@ def train_model() -> None:
         "size": args.size,
         "lr": args.lr,
         "dropout": args.dropout,
-        "use_gru": args.use_gru,
-        "gru_layers": args.gru_layers,
-        "gru_hidden_size": args.gru_hidden_size,
+        "encoder_type": args.encoder_type,
+        "rnn_layers": args.rnn_layers,
         "tied_weights": not args.no_tied_weights,
         "l2": args.l2,
         "b1": 0.9,
         "b2": 0.999,
         "e": 1e-8,
-        "epochs_per_cycle": epochs_per_cycle,
-        "warmup_epochs": warmup_epochs,
+        "epochs_per_cycle": args.epochs,
+        "warmup_epochs": args.warmup_epochs,
         "code_dropout": args.code_dropout,
         "day_dropout": args.day_dropout,
-        "model_dir": os.path.abspath(model_dir)
+        "model_dir": os.path.abspath(model_dir),
     }
 
     with open(os.path.join(model_dir, "config.json"), "w") as outfile:
@@ -286,14 +374,18 @@ def train_model() -> None:
     set_up_logging(os.path.join(model_dir, "train.log"))
     logging.info("Args: %s", str(args))
 
-    dataset = PatientTimelineDataset(os.path.join(info["extract_dir"], "extract.db"),
-                                     os.path.join(info["extract_dir"], "ontology.db"),
-                                     os.path.join(args.info_dir, "info.json"))
+    dataset = PatientTimelineDataset(
+        os.path.join(info["extract_dir"], "extract.db"),
+        os.path.join(info["extract_dir"], "ontology.db"),
+        os.path.join(args.info_dir, "info.json"),
+    )
 
     random.seed(info["seed"])
 
-    featurizer = CLMBRFeaturizer(config, info, device=torch.device(args.device))
-    featurizer.fit(dataset, use_pbar = False)
+    model = CLMBR(config, info).to(torch.device(args.device))
+    trainer = Trainer(model)
+    trainer.train(dataset, use_pbar=False)
+
 
 def debug_model() -> None:
     parser = argparse.ArgumentParser(
@@ -310,9 +402,7 @@ def debug_model() -> None:
     info = read_info(os.path.join(model_dir, "info.json"))
     use_cuda = torch.cuda.is_available()
 
-    model = PredictionModel(config, info).to(
-        device_from_config(use_cuda=use_cuda)
-    )
+    model = CLMBR(config, info).to(device_from_config(use_cuda=use_cuda))
     model_data = torch.load(os.path.join(model_dir, "best"), map_location="cpu")
     model.load_state_dict(model_data)
 

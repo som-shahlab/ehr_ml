@@ -10,6 +10,7 @@ import numpy as np
 
 import copy
 
+
 class MultiHeadAttention(nn.Module):
     """ Multi-Head Attention module """
 
@@ -217,16 +218,21 @@ class PatientRNN(nn.Module):
         self.input_code_embedding1.weight.data.normal_(mean=0.0, std=0.02)
 
         self.drop = nn.Dropout(config["dropout"])
+        self.recurrent = self.config["encoder_type"] in ["gru", "lstm"]
 
-        if config["use_gru"]:
+        if self.recurrent:
             input_size = config["size"]
-            self.model = torch.nn.GRU(
+            model_class = (
+                torch.nn.GRU
+                if config["encoder_type"] == "gru"
+                else torch.nn.LSTM
+            )
+            self.model = model_class(
                 input_size=input_size,
                 hidden_size=config["size"],
-                num_layers=config["gru_layers"],
-                dropout=config["dropout"] if config["gru_layers"] > 1 else 0,
+                num_layers=config["rnn_layers"],
+                dropout=config["dropout"] if config["rnn_layers"] > 1 else 0,
             )
-
         else:
             self.model = Decoder(
                 n_layers=6,
@@ -251,7 +257,7 @@ class PatientRNN(nn.Module):
 
         size_for_embedding = (
             (self.config["size"] - 5)
-            if self.config["use_gru"]
+            if self.recurrent
             else (self.config["size"] - 5 - 200)
         )
 
@@ -275,7 +281,7 @@ class PatientRNN(nn.Module):
             for a in [
                 embedded_non_text_codes + embedded_non_text_codes1,
                 all_day_information,
-                all_positional_encoding if not self.config["use_gru"] else None,
+                all_positional_encoding if not self.recurrent else None,
             ]
             if a is not None
         ]
@@ -289,7 +295,7 @@ class PatientRNN(nn.Module):
 
         packed_sequence = nn.utils.rnn.pack_sequence(codes_split_by_patient)
 
-        if self.config["use_gru"]:
+        if self.recurrent:
             output, _ = self.model(packed_sequence)
 
             padded_output, _ = nn.utils.rnn.pad_packed_sequence(

@@ -46,5 +46,6 @@ def read_info(info_file: str) -> Dict[str, Any]:
                 info[date_name] = date_from_str(info[date_name])
         return info
 
+
 def device_from_config(use_cuda: bool) -> torch.device:
     return torch.device("cuda:0" if use_cuda else "cpu")
