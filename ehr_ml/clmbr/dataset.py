@@ -32,6 +32,8 @@ def finalize_data(
         batch["doctorai"] = DoctorAITask.finalize_data(batch["doctorai"])
     if "labeler" in batch:
         batch["labeler"] = LabelerTask.finalize_data(batch["labeler"])
+    if "label" in batch:
+        batch["label"] = [torch.tensor(a, device=device) for a in batch["label"]]
     return batch
 
 

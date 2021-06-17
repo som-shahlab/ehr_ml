@@ -532,6 +532,9 @@ struct PTDatasetBatch {
     std::vector<int64_t> day_index;
 
     absl::flat_hash_set<uint32_t> seen_codes;
+
+    std::vector<int64_t> label_indices;
+    std::vector<int64_t> label_values;
 };
 
 class PTDatasetIterator {
@@ -548,9 +551,11 @@ class PTDatasetIterator {
         if (is_val) {
             patient_lengths = parent.val_lengths;
             dates = parent.val_dates;
+            labels = parent.val_map;
         } else {
             patient_lengths = parent.train_lengths;
             dates = parent.train_dates;
+            labels = parent.train_map;
         }
 
         std::shuffle(std::begin(patient_lengths), std::end(patient_lengths),
@@ -652,6 +657,9 @@ class PTDatasetIterator {
         batch.targets1.clear();
         batch.target1_seen.clear();
 
+        batch.label_indices.clear();
+        batch.label_values.clear();
+
         batch.day_index.clear();
 
         uint32_t max_days_to_drop = 0;
@@ -712,6 +720,14 @@ class PTDatasetIterator {
 
             std::optional<uint32_t> end_age;
             std::optional<uint32_t> start_age;
+
+            
+            std::vector<std::pair<uint32_t, bool>> current_labels;
+            auto label_pointer = labels.find(patient_id);
+            if (label_pointer != std::end(labels)) {
+                current_labels = label_pointer->second;
+            }
+            auto current_label_iter = std::begin(current_labels);
 
             bool found = batch.iter->process_patient(
                 patient_id, [&](absl::CivilDay birth_day, uint32_t age,
@@ -913,6 +929,12 @@ class PTDatasetIterator {
 
                     if (!is_drop) {
                         current_offset += 1;
+                    }
+
+                    if (!is_drop && current_label_iter != std::end(current_labels) && current_label_iter->first == day_index) {
+                        batch.label_indices.push_back((current_offset - 2) + i * max_length);
+                        batch.label_values.push_back(current_label_iter->second);
+                        current_label_iter++;
                     }
 
                     if (current_offset > 2 && age >= *start_age && !is_drop) {
@@ -1138,6 +1160,20 @@ class PTDatasetIterator {
             target_indices_numpy, targets_numpy, target_seen_numpy,
             target_indices1_numpy, targets1_numpy, target1_seen_numpy);
 
+        
+        npy_intp label_indices_numpy_dims[] = {
+            (npy_intp)current_batch->label_indices.size()};
+        py::handle label_indices_numpy =
+            PyArray_SimpleNewFromData(1, label_indices_numpy_dims, NPY_INT64,
+                                      current_batch->label_indices.data());
+
+        npy_intp label_values_numpy_dims[] = {
+            (npy_intp)current_batch->label_values.size()};
+        py::handle label_values_numpy = PyArray_SimpleNewFromData(
+            1, label_values_numpy_dims, NPY_INT64, current_batch->label_values.data());
+
+        result["label"] = py::make_tuple(label_indices_numpy, label_values_numpy);
+
         return result;
     }
 
@@ -1190,6 +1226,8 @@ class PTDatasetIterator {
 
     std::vector<std::pair<size_t, size_t>> indices;
     std::vector<std::pair<uint32_t, uint32_t>> patient_lengths;
+    
+    std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>> labels;
 
     std::pair<absl::CivilDay, absl::CivilDay> dates;
 };
