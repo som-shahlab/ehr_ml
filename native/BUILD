@@ -1,7 +1,6 @@
-load("@rules_foreign_cc//tools/build_defs:cmake.bzl", "cmake_external")
-load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake", "configure_make")
 
-cmake_external(
+cmake(
     name = "zlib_ng",
     # Values to be passed as -Dkey=value on the CMake command line;
     # here are serving to provide some CMake script configuration options
@@ -18,7 +17,7 @@ cmake_external(
    # as the result of the build;
    # However, the cmake_external dependants could use other artefacts provided by the build,
    # according to their CMake script
-   static_libraries = ["libz.a"],
+    out_static_libs = ["libz.a"],
 )
 
 cc_library(
