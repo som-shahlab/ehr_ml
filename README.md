@@ -1,6 +1,6 @@
 # ehr_ml
 
-ehr_ml is a python package for building models using EHR data. As part of the model building process, it offers the ability to learn clinical language model based representations (CLMBR) as described in Steinberg et al at https://arxiv.org/abs/2001.05295.
+ehr_ml is a python package for building models using EHR data. As part of the model building process, it offers the ability to learn clinical language model based representations (CLMBR) as described in Steinberg et al at https://pubmed.ncbi.nlm.nih.gov/33290879/.
 
 There are four main groups of functionality in ehr_ml. The ability to:
 1. Convert EHR and claims data into a common schema
