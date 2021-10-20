@@ -165,8 +165,8 @@ def create_info_program() -> None:
     else:
         assert args.exclude_patient_ratio is not None
         assert 0 < args.exclude_patient_ratio and args.exclude_patient_ratio < 1
-        train_pids = set(result["train_patient_ids_with_length"])
-        val_pids = set(result["val_patient_ids_with_length"])
+        train_pids = set([x[0] for x in result["train_patient_ids_with_length"]])
+        val_pids = set([x[0] for x in result["val_patient_ids_with_length"]])
         all_pids = train_pids.union(val_pids)
         excluded_pids = set(
             random.sample(
