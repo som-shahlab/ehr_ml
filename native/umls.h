@@ -18,6 +18,9 @@ class UMLS {
 
         aui_to_parents_map =
             load_aui_to_parents_map(umls_path, aui_to_code_map);
+
+        aui_to_text_description_map = 
+            aui_to_text_description_map(umls_path, aui_to_code_map);
     }
 
     std::optional<std::string> get_aui(const std::string& sab,
@@ -49,6 +52,34 @@ class UMLS {
         }
     }
 
+    std::optional<std::string> get_name(const std::string& aui) const {
+        auto iter = aui_to_text_description_map.find(aui);
+        if (iter == std::end(aui_to_text_description_map)) {
+            return std::nullopt;
+        } else {
+            return {iter->second.first};
+        }
+    }
+
+    std::optional<std::string> get_definition(const std::string& aui) const {
+        auto iter = aui_to_text_description_map.find(aui);
+        if (iter == std::end(aui_to_text_description_map)) {
+            return std::nullopt;
+        } else {
+            return {iter->second.second};
+        }
+    }
+
+    std::optional<std::pair<std::string, std::string>> get_full_description(
+        const std::string& aui) const {
+        auto iter = aui_to_text_description_map.find(aui);
+        if (iter == std::end(aui_to_text_description_map)) {
+            return std::nullopt;
+        } else {
+            return {iter->second};
+        }
+    }
+
    private:
     absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
         code_to_aui_map;
@@ -56,6 +87,8 @@ class UMLS {
         aui_to_code_map;
     absl::flat_hash_map<std::string, std::vector<std::string>>
         aui_to_parents_map;
+    absl::flat_hash_map<std::string, std::pair<std::string, std::string>>
+        aui_to_text_description_map;
 
     absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
     load_code_to_aui_map(std::string umls_path) {
@@ -211,6 +244,90 @@ class UMLS {
         result["A22725500"].push_back("A1415709");
         result["A13475665"].push_back("A1415709");
         result["A16077350"].push_back("A1415709");
+
+        return result;
+    }
+
+    absl::flat_hash_map<std::string, std::string> load_aui_to_definition_map(
+        std::string umls_path,
+        const absl::flat_hash_map<std::string,
+                                  std::pair<std::string, std::string>>&
+            aui_to_code_map) {
+
+        std::string mrdef = absl::Substitute("$0/$1", umls_path, "MRDEF.RRF");
+
+        std::ifstream infile(mrdef);
+
+        absl::flat_hash_map<std::string, std::string> result;
+
+        std::string line;
+        while (std::getline(infile, line)) {
+            std::vector<std::string_view> columns = absl::StrSplit(line, '|');
+
+            std::string aui(columns[1]);
+            std::string def(columns[5]);
+
+            auto find = aui_to_code_map.find(aui);
+            if (find == std::end(aui_to_code_map)) {
+                continue;
+            }
+
+            auto [iter, added] = result.insert(std::make_pair(aui, def));
+            if (!added) {
+                std::cout << "Got duplicate definition for aui " << aui 
+                          << "Existing: (" << iter->second << ") "
+                          << "New: (" << def << ")" << std::endl;
+                abort();
+            }
+        }
+
+        return result;
+    }
+
+    absl::flat_hash_map<std::string, std::pair<std::string, std::string>>
+    aui_to_text_description_map(
+        std::string umls_path,
+        const absl::flat_hash_map<std::string,
+                                  std::pair<std::string, std::string>>&
+            aui_to_code_map) {
+
+        auto aui_to_definition_map = load_aui_to_definition_map(umls_path, aui_to_code_map);
+
+        std::string mrconso =
+            absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
+
+        std::ifstream infile(mrconso);
+
+        absl::flat_hash_map<std::string, std::string> result;
+
+        std::string line;
+        std::string definition;
+        while (std::getline(infile, line)) {
+            std::vector<std::string_view> columns = absl::StrSplit(line, '|');
+
+            std::string aui(columns[7]);
+            std::string name(columns[14]);
+
+            auto find_aui = aui_to_code_map.find(aui);
+            auto find_def = aui_to_definition_map.find(aui);
+            if (find_aui == std::end(aui_to_code_map)) {
+                continue;
+            }
+
+            if (find_def == std::end(aui_to_definition_map)) {
+                definition = "NO_DEF";
+            } else {
+                definition = find_def->second;
+            }
+
+            auto [iter, added] = result.insert(std::make_pair(aui, std::make_pair(name, definition)));
+            if (!added) {
+                std::cout << "Got duplicate text description for aui " << aui 
+                          << "Existing: (" << iter->second.first << ": " << iter->second.second << ") "
+                          << "New: (" << def << ": " << definition << ")" << std::endl;
+                abort();
+            }
+        }
 
         return result;
     }
