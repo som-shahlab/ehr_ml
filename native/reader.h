@@ -216,6 +216,124 @@ class TermDictionary {
     bool is_mutable;
 };
 
+class OntologyCodeDictionary {
+    public:
+        OntologyCodeDictionary();
+
+        OntologyCodeDictionary(const char* begin, size_t size) {
+            nlohmann::json result = nlohmann::json::parse(begin, begin + size);
+
+            text_description.resize(result["descr"].size());
+
+            for (const auto& entry : result["descr"]) {
+                std::string code_str = entry[0].get<std::string>();
+                StringHolder code(code_str);
+                code.make_copy();
+
+                uint32_t index = entry[1];
+                std::string definition = entry[2].get<std::string>();
+                map_to_index.emplace(code, index);
+
+                if (index >= text_description.size()) {
+                    std::cout << "Text descriptions are not contiguous? " 
+                            << index << " " << text_description.size() << std::endl;
+                    abort();
+                }
+
+                text_description[index] = std::make_pair(code_str, definition);
+            }
+        }
+
+        OntologyCodeDictionary(std::vector<std::pair<std::string, std::string>> descr) 
+            : text_description(std::move(descr)) {
+            if (text_description.size() > std::numeric_limits<uint32_t>::max()) {
+                std::cout << "Creating a dictionary that's too large "
+                        << text_description.size() << std::endl;
+                abort();
+            }
+
+            for (size_t i = 0; i < text_description.size(); i++) {
+                StringHolder code(text_description[i].first);
+                code.make_copy();
+
+                map_to_index.emplace(code, i);
+            }
+        }
+
+        uint32_t add(std::string_view code, std::string_view definition) {
+            auto [iter, added] =
+                map_to_index.emplace(StringHolder(code), text_description.size());
+
+            if (added) {
+                text_description.push_back(std::make_pair(std::string(code), std::string(definition)));
+                iter->first.make_copy();
+
+                if (text_description.size() > std::numeric_limits<uint32_t>::max()) {
+                    std::cout << "Adding a word to a dictionary that is too large "
+                            << text_description.size() << std::endl;
+                    abort();
+                }
+            } else {
+                std::cout << "Got duplicate definition for code_str " << code 
+                          << "Existing: " << text_description[iter->second].second
+                          << "New: " << definition << std::endl;
+                abort();
+            }
+            return iter->second;
+        }
+
+        std::optional<uint32_t> map(std::string_view code) const {
+            auto iter = map_to_index.find(StringHolder(code));
+
+            if (iter == std::end(map_to_index)) {
+                return {};
+            } else {
+                return {iter->second};
+            }
+        }
+
+        std::optional<std::string_view> get_code_str(uint32_t idx) const {
+            if (idx >= text_description.size()) {
+                return {};
+            } else {
+                return {text_description[idx].first};
+            }
+        }
+
+        std::optional<std::string_view> get_definition(uint32_t idx) const {
+            if (idx >= text_description.size()) {
+                return {};
+            } else {
+                return {text_description[idx].second};
+            }
+        }
+
+        void clear() {
+            map_to_index.clear();
+            text_description.clear();
+        }
+
+        std::string to_json() const {
+            std::vector<std::tuple<std::string, uint32_t, std::string>> entries;
+
+            for (size_t i = 0; i < text_description.size(); i++) {
+                const auto& entry = text_description[i];
+                entries.push_back(std::make_tuple(entry.first, i, entry.second));
+            }
+
+            nlohmann::json result;
+            result["descr"] = entries;
+
+            return result.dump();
+        }
+
+        uint32_t size() const { return text_description.size(); }
+
+    private:
+        absl::flat_hash_map<StringHolder, uint32_t> map_to_index;
+        std::vector<std::tuple<std::string, std::string>> text_description;
+};
+
 template <class To, class From>
 typename std::enable_if<
     (sizeof(To) == sizeof(From)) && std::is_trivially_copyable<From>::value &&
@@ -526,6 +644,15 @@ class OntologyReader {
         return recorded_date_codes;
     }
 
+    const OntologyCodeDictionary& get_text_description_dictionary() {
+        if (!text_description_dictionary) {
+            auto [dict_start, dict_size] = reader.get_str("text_description_dictionary");
+            text_description_dictionary = OntologyCodeDictionary(dict_start, dict_size);
+        }
+
+        return *text_description_dictionary;
+    }
+
     uint32_t get_root_code() const { return root_code; }
 
    private:
@@ -557,6 +684,8 @@ class OntologyReader {
     ConstdbReader reader;
 
     std::optional<TermDictionary> dictionary;
+
+    std::optional<OntologyCodeDictionary> text_description_dictionary;
 
     std::optional<absl::flat_hash_map<uint32_t, std::vector<uint32_t>>>
         inverse_map;

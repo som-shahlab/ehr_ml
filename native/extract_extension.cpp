@@ -119,6 +119,7 @@ void create_ontology(std::string_view root_path, std::string umls_path,
     UMLS umls(umls_path);
 
     TermDictionary ontology_dictionary;
+    OntologyCodeDictionary aui_text_description_dictionary;
 
     std::string ontology_path = absl::Substitute("$0/ontology.db", root_path);
     ConstdbWriter ontology_writer(ontology_path.c_str());
@@ -165,10 +166,19 @@ void create_ontology(std::string_view root_path, std::string umls_path,
         if (result == std::nullopt) {
             subwords = {ontology_dictionary.map_or_add(
                 absl::Substitute("NO_MAP/$0", word))};
+            aui_text_description_dictionary.add(word, "NO_NAME/NO_DEF");
         } else {
             subwords =
                 compute_subwords(*result, umls, aui_to_subwords_map,
                                  code_to_parents_map, ontology_dictionary);
+            auto res = umls.get_full_description(result);
+            if (res) {
+                aui_text_description_dictionary.add(
+                    word, absl::Substitute("$1/$2", res->first, res->second);
+                )
+            } else {
+                aui_text_description_dictionary.add(word, "NO_NAME/NO_DEF");
+            }
         }
 
         ontology_writer.add_int(i, (const char*)subwords.data(),
@@ -193,6 +203,9 @@ void create_ontology(std::string_view root_path, std::string umls_path,
     std::string dictionary_str = ontology_dictionary.to_json();
     ontology_writer.add_str("dictionary", dictionary_str.data(),
                             dictionary_str.size());
+    std::string description_dictionary_str = aui_text_description_dictionary.to_json();
+    ontology_writer.add_str("text_description_dictionary", description_dictionary_str.data(),
+                            description_dictionary_str.size());
     ontology_writer.add_str("words_with_subwords",
                             (const char*)words_with_subwords.data(),
                             words_with_subwords.size() * sizeof(uint32_t));

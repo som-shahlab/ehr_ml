@@ -31,4 +31,6 @@ void register_ontology_extension(py::module& root) {
              &OntologyReader::get_recorded_date_codes, py::keep_alive<0, 1>())
         .def("get_dictionary", &OntologyReader::get_dictionary,
              py::return_value_policy::reference_internal);
+        .def("get_text_description_dictionary", &OntologyReader::get_text_description_dictionary,
+             py::return_value_policy::reference_internal);
 }
