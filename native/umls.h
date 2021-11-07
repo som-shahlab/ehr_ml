@@ -20,7 +20,7 @@ class UMLS {
             load_aui_to_parents_map(umls_path, aui_to_code_map);
 
         aui_to_text_description_map = 
-            aui_to_text_description_map(umls_path, aui_to_code_map);
+            aui_to_description_map(umls_path, aui_to_code_map);
     }
 
     std::optional<std::string> get_aui(const std::string& sab,
@@ -285,7 +285,7 @@ class UMLS {
     }
 
     absl::flat_hash_map<std::string, std::pair<std::string, std::string>>
-    aui_to_text_description_map(
+    aui_to_description_map(
         std::string umls_path,
         const absl::flat_hash_map<std::string,
                                   std::pair<std::string, std::string>>&
@@ -298,7 +298,7 @@ class UMLS {
 
         std::ifstream infile(mrconso);
 
-        absl::flat_hash_map<std::string, std::string> result;
+        absl::flat_hash_map<std::string, std::pair<std::string, std::string>> result;
 
         std::string line;
         std::string definition;
@@ -324,7 +324,7 @@ class UMLS {
             if (!added) {
                 std::cout << "Got duplicate text description for aui " << aui 
                           << "Existing: (" << iter->second.first << ": " << iter->second.second << ") "
-                          << "New: (" << def << ": " << definition << ")" << std::endl;
+                          << "New: (" << name << ": " << definition << ")" << std::endl;
                 abort();
             }
         }

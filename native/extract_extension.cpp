@@ -171,11 +171,11 @@ void create_ontology(std::string_view root_path, std::string umls_path,
             subwords =
                 compute_subwords(*result, umls, aui_to_subwords_map,
                                  code_to_parents_map, ontology_dictionary);
-            auto res = umls.get_full_description(result);
+            auto res = umls.get_full_description(*result);
             if (res) {
                 aui_text_description_dictionary.add(
-                    word, absl::Substitute("$1/$2", res->first, res->second);
-                )
+                    word, absl::Substitute("$1/$2", res->first, res->second)
+                );
             } else {
                 aui_text_description_dictionary.add(word, "NO_NAME/NO_DEF");
             }

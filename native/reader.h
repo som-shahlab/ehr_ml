@@ -260,6 +260,9 @@ class OntologyCodeDictionary {
             }
         }
 
+        OntologyCodeDictionary(const OntologyCodeDictionary& source)
+            : OntologyCodeDictionary(source.text_description) {}
+
         uint32_t add(std::string_view code, std::string_view definition) {
             auto [iter, added] =
                 map_to_index.emplace(StringHolder(code), text_description.size());
@@ -331,7 +334,7 @@ class OntologyCodeDictionary {
 
     private:
         absl::flat_hash_map<StringHolder, uint32_t> map_to_index;
-        std::vector<std::tuple<std::string, std::string>> text_description;
+        std::vector<std::pair<std::string, std::string>> text_description;
 };
 
 template <class To, class From>
