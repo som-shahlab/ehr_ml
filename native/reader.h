@@ -218,7 +218,7 @@ class TermDictionary {
 
 class OntologyCodeDictionary {
     public:
-        OntologyCodeDictionary();
+        OntologyCodeDictionary(){};
 
         OntologyCodeDictionary(const char* begin, size_t size) {
             nlohmann::json result = nlohmann::json::parse(begin, begin + size);
@@ -542,17 +542,17 @@ class ExtractReader {
 class OntologyReader {
    public:
     OntologyReader(const char* path) : reader(path, false) {
-        for (uint32_t subword = 0; subword < get_dictionary().size();
-             subword++) {
-            for (uint32_t parent : get_parents(subword)) {
-                children_map[parent].push_back(subword);
-            }
-        }
+        // for (uint32_t subword = 0; subword < get_dictionary().size();
+        //      subword++) {
+        //     for (uint32_t parent : get_parents(subword)) {
+        //         children_map[parent].push_back(subword);
+        //     }
+        // }
 
-        for (auto& item : children_map) {
-            std::sort(std::begin(item.second), std::end(item.second));
-        }
-
+        // for (auto& item : children_map) {
+        //     std::sort(std::begin(item.second), std::end(item.second));
+        // }
+        std::cout << "Entering Ontology Reader" << std::endl;
         auto [ptr, size] = reader.get_str("root");
         if (size != sizeof(uint32_t)) {
             std::cout << "Could not find the root code " << std::endl;
@@ -650,6 +650,7 @@ class OntologyReader {
     const OntologyCodeDictionary& get_text_description_dictionary() {
         if (!text_description_dictionary) {
             auto [dict_start, dict_size] = reader.get_str("text_description_dictionary");
+            std::cout << "Got test description dictionary of size " << dict_size << std::endl;
             text_description_dictionary = OntologyCodeDictionary(dict_start, dict_size);
         }
 

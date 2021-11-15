@@ -20,7 +20,7 @@ class UMLS {
             load_aui_to_parents_map(umls_path, aui_to_code_map);
 
         aui_to_text_description_map = 
-            aui_to_description_map(umls_path, aui_to_code_map);
+            aui_to_description_map(umls_path, code_to_aui_map);
     }
 
     std::optional<std::string> get_aui(const std::string& sab,
@@ -52,29 +52,10 @@ class UMLS {
         }
     }
 
-    std::optional<std::string> get_name(const std::string& aui) const {
-        auto iter = aui_to_text_description_map.find(aui);
-        if (iter == std::end(aui_to_text_description_map)) {
-            return std::nullopt;
-        } else {
-            return {iter->second.first};
-        }
-    }
-
     std::optional<std::string> get_definition(const std::string& aui) const {
         auto iter = aui_to_text_description_map.find(aui);
         if (iter == std::end(aui_to_text_description_map)) {
-            return std::nullopt;
-        } else {
-            return {iter->second.second};
-        }
-    }
-
-    std::optional<std::pair<std::string, std::string>> get_full_description(
-        const std::string& aui) const {
-        auto iter = aui_to_text_description_map.find(aui);
-        if (iter == std::end(aui_to_text_description_map)) {
-            return std::nullopt;
+            return std::nullopt; 
         } else {
             return {iter->second};
         }
@@ -87,7 +68,7 @@ class UMLS {
         aui_to_code_map;
     absl::flat_hash_map<std::string, std::vector<std::string>>
         aui_to_parents_map;
-    absl::flat_hash_map<std::string, std::pair<std::string, std::string>>
+    absl::flat_hash_map<std::string, std::string>
         aui_to_text_description_map;
 
     absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
@@ -248,15 +229,22 @@ class UMLS {
         return result;
     }
 
-    absl::flat_hash_map<std::string, std::string> load_aui_to_definition_map(
+    absl::flat_hash_map<std::string, std::string>
+    aui_to_description_map(
         std::string umls_path,
-        const absl::flat_hash_map<std::string,
-                                  std::pair<std::string, std::string>>&
-            aui_to_code_map) {
+        const absl::flat_hash_map<std::pair<std::string, std::string>,
+                                    std::string>&
+            code_to_aui_map) {
 
-        std::string mrdef = absl::Substitute("$0/$1", umls_path, "MRDEF.RRF");
+        // // auto aui_to_definition_map = load_aui_to_definition_map(umls_path, aui_to_code_map);
+        // absl::flat_hash_map<std::string, std::string> aui_to_definition_map;
+        // aui_to_definition_map.insert(std::make_pair(std::string("A17825389"), std::string("subclass of diabetes mellitus that is not insulin responsive or dependent; characterized initially by insulin resistance and hyperinsulinemia and eventually by glucose intolerance, hyperglycemia, and overt diabetes; type II diabetes mellitus is no longer considered a disease exclusively found in adults; patients seldom develop ketosis but often exhibit obesity")));
+        // // C0011860|A0484862|AT51220383||CSP|subclass of diabetes mellitus that is not insulin responsive or dependent; characterized initially by insulin resistance and hyperinsulinemia and eventually by glucose intolerance, hyperglycemia, and overt diabetes; type II diabetes mellitus is no longer considered a disease exclusively found in adults; patients seldom develop ketosis but often exhibit obesity.|N||
 
-        std::ifstream infile(mrdef);
+        std::string mrconso =
+            absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
+
+        std::ifstream infile(mrconso);
 
         absl::flat_hash_map<std::string, std::string> result;
 
@@ -264,68 +252,50 @@ class UMLS {
         while (std::getline(infile, line)) {
             std::vector<std::string_view> columns = absl::StrSplit(line, '|');
 
-            std::string aui(columns[1]);
-            std::string def(columns[5]);
+            std::string lat(columns[1]);
+            std::string isPref(columns[6]);
+            std::string aui(columns[7]);
+            std::string sab(columns[11]);
+            std::string code(columns[13]);
+            std::string name(columns[14]);
+            std::string suppress(columns[16]);
 
-            auto find = aui_to_code_map.find(aui);
-            if (find == std::end(aui_to_code_map)) {
+            // filter out entries with noisy UMLS attributes
+            if (isPref != "Y" || lat != "ENG") {
                 continue;
             }
 
-            auto [iter, added] = result.insert(std::make_pair(aui, def));
+            if (suppress != "O" && suppress != "Y") {
+                continue;
+            }
+
+            // filter out entries with short str name (<= 3 characters)
+            if (name.size() <= 3) {
+                continue;
+            }
+
+            // filter out entries without valid aui in our code_to_aui_map
+            auto find_aui = code_to_aui_map.find(std::make_pair(sab, code));
+            if (find_aui == std::end(code_to_aui_map)) {
+                continue;
+            }
+
+            auto [iter, added] = result.insert(std::make_pair(aui, name));
             if (!added) {
-                std::cout << "Got duplicate definition for aui " << aui 
-                          << "Existing: (" << iter->second << ") "
-                          << "New: (" << def << ")" << std::endl;
-                abort();
+                std::string prev_name = iter->second;
+                if (prev_name.size() <= name.size()) {
+                    continue;
+                } else {
+                    iter->second = name;
+                }
             }
         }
 
-        return result;
-    }
-
-    absl::flat_hash_map<std::string, std::pair<std::string, std::string>>
-    aui_to_description_map(
-        std::string umls_path,
-        const absl::flat_hash_map<std::string,
-                                  std::pair<std::string, std::string>>&
-            aui_to_code_map) {
-
-        auto aui_to_definition_map = load_aui_to_definition_map(umls_path, aui_to_code_map);
-
-        std::string mrconso =
-            absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
-
-        std::ifstream infile(mrconso);
-
-        absl::flat_hash_map<std::string, std::pair<std::string, std::string>> result;
-
-        std::string line;
-        std::string definition;
-        while (std::getline(infile, line)) {
-            std::vector<std::string_view> columns = absl::StrSplit(line, '|');
-
-            std::string aui(columns[7]);
-            std::string name(columns[14]);
-
-            auto find_aui = aui_to_code_map.find(aui);
-            auto find_def = aui_to_definition_map.find(aui);
-            if (find_aui == std::end(aui_to_code_map)) {
-                continue;
-            }
-
-            if (find_def == std::end(aui_to_definition_map)) {
-                definition = "NO_DEF";
-            } else {
-                definition = find_def->second;
-            }
-
-            auto [iter, added] = result.insert(std::make_pair(aui, std::make_pair(name, definition)));
-            if (!added) {
-                std::cout << "Got duplicate text description for aui " << aui 
-                          << "Existing: (" << iter->second.first << ": " << iter->second.second << ") "
-                          << "New: (" << name << ": " << definition << ")" << std::endl;
-                abort();
+        // add placeholder "NO_DEF" for aui with no definition
+        for (auto& iter : code_to_aui_map) {
+            auto find_aui = result.find(iter.second);
+            if (find_aui == result.end()) {
+                result.insert(std::make_pair(iter.second, "NO_DEF"));
             }
         }
 

@@ -166,18 +166,16 @@ void create_ontology(std::string_view root_path, std::string umls_path,
         if (result == std::nullopt) {
             subwords = {ontology_dictionary.map_or_add(
                 absl::Substitute("NO_MAP/$0", word))};
-            aui_text_description_dictionary.add(word, "NO_NAME/NO_DEF");
+            aui_text_description_dictionary.add(word, "NO_DEF");
         } else {
             subwords =
                 compute_subwords(*result, umls, aui_to_subwords_map,
                                  code_to_parents_map, ontology_dictionary);
-            auto res = umls.get_full_description(*result);
+            auto res = umls.get_definition(*result);
             if (res) {
-                aui_text_description_dictionary.add(
-                    word, absl::Substitute("$0/$1", res->first, res->second)
-                );
+                aui_text_description_dictionary.add(word, *res);
             } else {
-                aui_text_description_dictionary.add(word, "NO_NAME/NO_DEF");
+                aui_text_description_dictionary.add(word, "NO_DEF");
             }
         }
 
