@@ -174,7 +174,7 @@ void create_ontology(std::string_view root_path, std::string umls_path,
             auto res = umls.get_full_description(*result);
             if (res) {
                 aui_text_description_dictionary.add(
-                    word, absl::Substitute("$1/$2", res->first, res->second)
+                    word, absl::Substitute("$0/$1", res->first, res->second)
                 );
             } else {
                 aui_text_description_dictionary.add(word, "NO_NAME/NO_DEF");
