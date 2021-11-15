@@ -542,17 +542,16 @@ class ExtractReader {
 class OntologyReader {
    public:
     OntologyReader(const char* path) : reader(path, false) {
-        // for (uint32_t subword = 0; subword < get_dictionary().size();
-        //      subword++) {
-        //     for (uint32_t parent : get_parents(subword)) {
-        //         children_map[parent].push_back(subword);
-        //     }
-        // }
+        for (uint32_t subword = 0; subword < get_dictionary().size();
+             subword++) {
+            for (uint32_t parent : get_parents(subword)) {
+                children_map[parent].push_back(subword);
+            }
+        }
 
-        // for (auto& item : children_map) {
-        //     std::sort(std::begin(item.second), std::end(item.second));
-        // }
-        std::cout << "Entering Ontology Reader" << std::endl;
+        for (auto& item : children_map) {
+            std::sort(std::begin(item.second), std::end(item.second));
+        }
         auto [ptr, size] = reader.get_str("root");
         if (size != sizeof(uint32_t)) {
             std::cout << "Could not find the root code " << std::endl;
