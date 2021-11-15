@@ -236,11 +236,6 @@ class UMLS {
                                     std::string>&
             code_to_aui_map) {
 
-        // // auto aui_to_definition_map = load_aui_to_definition_map(umls_path, aui_to_code_map);
-        // absl::flat_hash_map<std::string, std::string> aui_to_definition_map;
-        // aui_to_definition_map.insert(std::make_pair(std::string("A17825389"), std::string("subclass of diabetes mellitus that is not insulin responsive or dependent; characterized initially by insulin resistance and hyperinsulinemia and eventually by glucose intolerance, hyperglycemia, and overt diabetes; type II diabetes mellitus is no longer considered a disease exclusively found in adults; patients seldom develop ketosis but often exhibit obesity")));
-        // // C0011860|A0484862|AT51220383||CSP|subclass of diabetes mellitus that is not insulin responsive or dependent; characterized initially by insulin resistance and hyperinsulinemia and eventually by glucose intolerance, hyperglycemia, and overt diabetes; type II diabetes mellitus is no longer considered a disease exclusively found in adults; patients seldom develop ketosis but often exhibit obesity.|N||
-
         std::string mrconso =
             absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
 
@@ -265,7 +260,7 @@ class UMLS {
                 continue;
             }
 
-            if (suppress != "O" && suppress != "Y") {
+            if (suppress == "O" || suppress == "Y") {
                 continue;
             }
 
@@ -280,7 +275,7 @@ class UMLS {
                 continue;
             }
 
-            auto [iter, added] = result.insert(std::make_pair(aui, name));
+            auto [iter, added] = result.insert(std::make_pair(find_aui->second, name));
             if (!added) {
                 std::string prev_name = iter->second;
                 if (prev_name.size() <= name.size()) {
