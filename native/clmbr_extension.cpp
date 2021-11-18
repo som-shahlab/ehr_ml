@@ -318,9 +318,9 @@ class PatientTimelineDataset {
    public:
     friend PTDatasetIterator;
 
-    PatientTimelineDataset(const char* timelines_path, const char* ontology_path,
-                  const char* info_path, py::tuple train_data,
-                  py::tuple val_data)
+    PatientTimelineDataset(const char* timelines_path,
+                           const char* ontology_path, const char* info_path,
+                           py::tuple train_data, py::tuple val_data)
         : PatientTimelineDataset(timelines_path, ontology_path, info_path) {
         train_map = create_label_map(train_data);
         train_lengths = create_lengths(train_map);
@@ -334,8 +334,8 @@ class PatientTimelineDataset {
                          });
     }
 
-    PatientTimelineDataset(const char* timelines_path, const char* ontology_path,
-                  const char* info_path)
+    PatientTimelineDataset(const char* timelines_path,
+                           const char* ontology_path, const char* info_path)
         : timelines(timelines_path, true), ontologies(ontology_path) {
         {
             for (uint32_t code : ontologies.get_recorded_date_codes()) {
@@ -415,19 +415,19 @@ class PatientTimelineDataset {
     std::unique_ptr<PTDatasetIterator> get_iterator(
         bool is_val, int batch_size, uint64_t seed, int threshold,
         float day_dropout = 0, float code_dropout = 0) const {
-        return std::make_unique<PTDatasetIterator>(
-            *this, is_val, batch_size, seed, threshold, day_dropout,
-            code_dropout);
+        return std::make_unique<PTDatasetIterator>(*this, is_val, batch_size,
+                                                   seed, threshold, day_dropout,
+                                                   code_dropout);
     }
 
     int num_batches(int batch_size, bool is_val = false) const {
         std::vector<std::pair<uint32_t, uint32_t>> lengths_vec;
-	  
+
         int result = 0;
 
         size_t current_index = 0;
 
-	lengths_vec = is_val ? val_lengths : train_lengths;
+        lengths_vec = is_val ? val_lengths : train_lengths;
 
         while (current_index < lengths_vec.size()) {
             int current_length = lengths_vec[current_index].second;
@@ -539,9 +539,9 @@ struct PTDatasetBatch {
 
 class PTDatasetIterator {
    public:
-    PTDatasetIterator(const PatientTimelineDataset& p, bool is_val_, int batch_size,
-                          uint64_t seed, int threshold_, float day_dropout_ = 0,
-                          float code_dropout_ = 0)
+    PTDatasetIterator(const PatientTimelineDataset& p, bool is_val_,
+                      int batch_size, uint64_t seed, int threshold_,
+                      float day_dropout_ = 0, float code_dropout_ = 0)
         : rng(seed),
           parent(p),
           is_val(is_val_),
@@ -721,7 +721,6 @@ class PTDatasetIterator {
             std::optional<uint32_t> end_age;
             std::optional<uint32_t> start_age;
 
-            
             std::vector<std::pair<uint32_t, bool>> current_labels;
             auto label_pointer = labels.find(patient_id);
             if (label_pointer != std::end(labels)) {
@@ -931,9 +930,13 @@ class PTDatasetIterator {
                         current_offset += 1;
                     }
 
-                    if (!is_drop && current_label_iter != std::end(current_labels) && current_label_iter->first == day_index) {
-                        batch.label_indices.push_back((current_offset - 2) + i * max_length);
-                        batch.label_values.push_back(current_label_iter->second);
+                    if (!is_drop &&
+                        current_label_iter != std::end(current_labels) &&
+                        current_label_iter->first == day_index) {
+                        batch.label_indices.push_back((current_offset - 2) +
+                                                      i * max_length);
+                        batch.label_values.push_back(
+                            current_label_iter->second);
                         current_label_iter++;
                     }
 
@@ -1012,9 +1015,10 @@ class PTDatasetIterator {
                 });
 
             if (day_index != length + 1 && day_index != length) {
-                std::cout << "Day index should count up to length or length + 1?"
-                          << patient_id << " " << day_index << " " << length
-                          << std::endl;
+                std::cout
+                    << "Day index should count up to length or length + 1?"
+                    << patient_id << " " << day_index << " " << length
+                    << std::endl;
                 abort();
             }
 
@@ -1160,7 +1164,6 @@ class PTDatasetIterator {
             target_indices_numpy, targets_numpy, target_seen_numpy,
             target_indices1_numpy, targets1_numpy, target1_seen_numpy);
 
-        
         npy_intp label_indices_numpy_dims[] = {
             (npy_intp)current_batch->label_indices.size()};
         py::handle label_indices_numpy =
@@ -1169,10 +1172,12 @@ class PTDatasetIterator {
 
         npy_intp label_values_numpy_dims[] = {
             (npy_intp)current_batch->label_values.size()};
-        py::handle label_values_numpy = PyArray_SimpleNewFromData(
-            1, label_values_numpy_dims, NPY_INT64, current_batch->label_values.data());
+        py::handle label_values_numpy =
+            PyArray_SimpleNewFromData(1, label_values_numpy_dims, NPY_INT64,
+                                      current_batch->label_values.data());
 
-        result["label"] = py::make_tuple(label_indices_numpy, label_values_numpy);
+        result["label"] =
+            py::make_tuple(label_indices_numpy, label_values_numpy);
 
         return result;
     }
@@ -1226,7 +1231,7 @@ class PTDatasetIterator {
 
     std::vector<std::pair<size_t, size_t>> indices;
     std::vector<std::pair<uint32_t, uint32_t>> patient_lengths;
-    
+
     std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>> labels;
 
     std::pair<absl::CivilDay, absl::CivilDay> dates;
@@ -1254,8 +1259,6 @@ void register_clmbr_extension(pybind11::module& root) {
 
     py::class_<PTDatasetIterator>(m, "PTDatasetIterator")
         .def("__iter__",
-             [](PTDatasetIterator& it) -> PTDatasetIterator& {
-                 return it;
-             })
+             [](PTDatasetIterator& it) -> PTDatasetIterator& { return it; })
         .def("__next__", &PTDatasetIterator::next);
 }

@@ -65,15 +65,16 @@ void file_iter(const std::string& location, std::string_view prefix, F f) {
     }
 }
 
-ConceptTable construct_concept_table(const std::string& location, char delimiter, bool use_quotes) {
+ConceptTable construct_concept_table(const std::string& location,
+                                     char delimiter, bool use_quotes) {
     ConceptTable result;
 
     std::vector<std::string_view> columns = {
         "concept_id", "vocabulary_id", "concept_code", "concept_class_id"};
 
     file_iter(location, "concept", [&](const auto& concept_file) {
-        csv_iterator(concept_file.c_str(), columns, delimiter, {}, use_quotes, true,
-                     [&result](const auto& row) {
+        csv_iterator(concept_file.c_str(), columns, delimiter, {}, use_quotes,
+                     true, [&result](const auto& row) {
                          uint32_t concept_id;
                          attempt_parse_or_die(row[0], concept_id);
 

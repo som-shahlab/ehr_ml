@@ -13,12 +13,11 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
+#include "csv.h"
 #include "parse_utils.h"
 #include "writer.h"
-#include "csv.h"
 
-const char* location =
-    "/local-scratch/nigam/secure/optum/optum_v8_raw/zip5/";
+const char* location = "/local-scratch/nigam/secure/optum/optum_v8_raw/zip5/";
 
 struct RawPatientRecord {
     uint64_t person_id;
@@ -143,7 +142,8 @@ class ClaimConverter : public Converter {
         auto claim_id = extract_claim_id(row[2]);
         patient_record.claims.push_back(std::make_pair(claim_id, day));
 
-        if (row[3] != "" && row[3] != "1" && row[3] != "UNK" && row[3] != "0" && row[3] != "NONE") {
+        if (row[3] != "" && row[3] != "1" && row[3] != "UNK" && row[3] != "0" &&
+            row[3] != "NONE") {
             uint32_t drug =
                 meta.dictionary.map_or_add(absl::Substitute("Drug/$0", row[3]));
             patient_record.observations.push_back(std::make_pair(day, drug));
@@ -300,28 +300,29 @@ void run_converter(C converter, Queue& queue) {
     RawPatientRecord current_record;
     current_record.person_id = 0;
 
-    csv_iterator(full_filename.c_str(), converter.get_columns(), '|', {}, true, [&](const auto& row) {
-        num_rows++;
+    csv_iterator(full_filename.c_str(), converter.get_columns(), '|', {}, true,
+                 [&](const auto& row) {
+                     num_rows++;
 
-        if (num_rows % 100000000 == 0) {
-            std::cout << absl::Substitute("Processed $0 rows for $1\n",
-                                          num_rows, filename);
-        }
+                     if (num_rows % 100000000 == 0) {
+                         std::cout << absl::Substitute(
+                             "Processed $0 rows for $1\n", num_rows, filename);
+                     }
 
-        uint64_t person_id;
-        attempt_parse_or_die(row[0], person_id);
+                     uint64_t person_id;
+                     attempt_parse_or_die(row[0], person_id);
 
-        if (person_id != current_record.person_id) {
-            if (current_record.person_id) {
-                queue.wait_enqueue({std::move(current_record)});
-            }
+                     if (person_id != current_record.person_id) {
+                         if (current_record.person_id) {
+                             queue.wait_enqueue({std::move(current_record)});
+                         }
 
-            current_record = {};
-            current_record.person_id = person_id;
-        }
+                         current_record = {};
+                         current_record.person_id = person_id;
+                     }
 
-        converter.augment_day(meta, current_record, row);
-    });
+                     converter.augment_day(meta, current_record, row);
+                 });
 
     if (current_record.person_id) {
         queue.wait_enqueue({std::move(current_record)});
@@ -700,8 +701,7 @@ std::vector<std::string> glob(const std::string& pattern) {
 }
 
 int main() {
-    std::string root_directory =
-        "/share/pi/nigam/secure/optum/ehr_ml/optum_v2";
+    std::string root_directory = "/share/pi/nigam/secure/optum/ehr_ml/optum_v2";
 
     int error = mkdir(root_directory.c_str(), 0700);
 

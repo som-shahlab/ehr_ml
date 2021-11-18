@@ -690,9 +690,10 @@ class PatientTimelineDataset {
     friend PTDatasetIterator;
 
     PatientTimelineDataset(const char* compressed_extract_path,
-                  const char* ontology_path, const char* info_path,
-                  py::tuple train_data, py::tuple val_data)
-      : PatientTimelineDataset(compressed_extract_path, ontology_path, info_path) {
+                           const char* ontology_path, const char* info_path,
+                           py::tuple train_data, py::tuple val_data)
+        : PatientTimelineDataset(compressed_extract_path, ontology_path,
+                                 info_path) {
         train_map = create_label_map(train_data);
         train_lengths = create_lengths(train_map);
 
@@ -705,8 +706,8 @@ class PatientTimelineDataset {
                          });
     }
 
-    PatientTimelineDataset(const char* timelines_path, const char* ontology_path,
-                  const char* info_path)
+    PatientTimelineDataset(const char* timelines_path,
+                           const char* ontology_path, const char* info_path)
         : timelines(timelines_path, true), ontologies(ontology_path) {
         {
             for (uint32_t code : ontologies.get_recorded_date_codes()) {
@@ -798,12 +799,12 @@ class PatientTimelineDataset {
 
     int num_batches(int batch_size, bool is_val = false) const {
         std::vector<std::pair<uint32_t, uint32_t>> lengths_vec;
-	
+
         int result = 0;
 
         size_t current_index = 0;
 
-	lengths_vec = is_val ? val_lengths : train_lengths;
+        lengths_vec = is_val ? val_lengths : train_lengths;
 
         while (current_index < lengths_vec.size()) {
             int current_length = lengths_vec[current_index].second;
@@ -927,9 +928,9 @@ class PTDatasetBatch {
 
 class PTDatasetIterator {
    public:
-    PTDatasetIterator(const PatientTimelineDataset& p, bool is_val_, int batch_size,
-                          uint64_t seed, float day_dropout_ = 0,
-                          float code_dropout_ = 0)
+    PTDatasetIterator(const PatientTimelineDataset& p, bool is_val_,
+                      int batch_size, uint64_t seed, float day_dropout_ = 0,
+                      float code_dropout_ = 0)
         : rng(seed),
           parent(p),
           is_val(is_val_),
@@ -1768,8 +1769,6 @@ void register_patient2vec_extension(pybind11::module& root) {
 
     py::class_<PTDatasetIterator>(m, "PTDatasetIterator")
         .def("__iter__",
-             [](PTDatasetIterator& it) -> PTDatasetIterator& {
-                 return it;
-             })
+             [](PTDatasetIterator& it) -> PTDatasetIterator& { return it; })
         .def("__next__", &PTDatasetIterator::next);
 }
