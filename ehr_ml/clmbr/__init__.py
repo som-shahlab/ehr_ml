@@ -162,8 +162,7 @@ def create_info_program() -> None:
             "Removed %d patient IDs from file %s"
             % (len(pids), args.excluded_patient_file)
         )
-    else:
-        assert args.exclude_patient_ratio is not None
+    elif args.exclude_patient_ratio is not None:
         assert 0 < args.exclude_patient_ratio and args.exclude_patient_ratio < 1
         train_pids = set([x[0] for x in result["train_patient_ids_with_length"]])
         val_pids = set([x[0] for x in result["val_patient_ids_with_length"]])
