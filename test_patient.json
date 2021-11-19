@@ -1,0 +1,909 @@
+{
+    "day 0": {
+        "age in days": "0",
+        "date": "1943-01-01",
+        "observation": {
+            "Ethnicity/Not Hispanic": "NO_DEF",
+            "Gender/M": "NO_DEF",
+            "Race/5": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 1": {
+        "age in days": "24018",
+        "date": "2008-10-04",
+        "observation": {
+            "CPT4/29405": "Application of below knee to toes cast",
+            "CPT4/83036": "HEMOGLOBIN GLYCOSYLATED A1C",
+            "ICD10CM/G57.90": "Unspecified mononeuropathy of unspecified lower limb",
+            "ICD10CM/S82.839B": "Other fracture of upper and lower end of unspecified fibula, initial encounter for open fracture type I or II",
+            "ICD10CM/S92.403A": "NO_DEF",
+            "ICD10CM/Z23": "Encounter for immunization"
+        },
+        "observation with values": []
+    },
+    "day 10": {
+        "age in days": "24123",
+        "date": "2009-01-17",
+        "observation": {
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+            "ICD10CM/R07.2": "NO_DEF",
+            "ICD10CM/Z23": "Encounter for immunization",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 11": {
+        "age in days": "24133",
+        "date": "2009-01-27",
+        "observation": {
+            "ATC/D01AE54": "undecylenic acid, combinations",
+            "ATC/D07XA01": "NO_DEF",
+            "ATC/D07XA02": "NO_DEF",
+            "ATC/D07XB05": "NO_DEF",
+            "ATC/D08AC52": "chlorhexidine, combinations",
+            "ATC/D08AX05": "isopropanol",
+            "ATC/D08AX53": "propanol, combinations",
+            "ATC/S02AA30": "NO_DEF",
+            "ATC/S03AA30": "antiinfectives, combinations"
+        },
+        "observation with values": []
+    },
+    "day 12": {
+        "age in days": "24135",
+        "date": "2009-01-29",
+        "observation": {
+            "ATC/N07AA51": "neostigmine, combinations",
+            "ATC/N07AX01": "NO_DEF",
+            "ATC/R01BA53": "NO_DEF",
+            "ATC/S01EA51": "epinephrine, combinations",
+            "ATC/S01EB01": "NO_DEF",
+            "ATC/S01EB51": "pilocarpine, combinations",
+            "ATC/S01ED51": "timolol, combinations",
+            "ATC/S01ED52": "betaxolol, combinations",
+            "ATC/S01GA51": "naphazoline, combinations",
+            "ATC/S01KA51": "hyaluronic acid, combinations"
+        },
+        "observation with values": []
+    },
+    "day 13": {
+        "age in days": "24173",
+        "date": "2009-03-08",
+        "observation": {
+            "CPT4/99254": "INITIAL INPATIENT CONSULT NEW/ESTAB PT 80 MIN",
+            "ICD10CM/R11.0": "Nausea NOS",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 14": {
+        "age in days": "24179",
+        "date": "2009-03-14",
+        "observation": {
+            "CPT4/72194": "CT PELVIS W/O & W/CONTRAST MATERIAL",
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/R10.9": "Unspecified abdominal pain"
+        },
+        "observation with values": []
+    },
+    "day 15": {
+        "age in days": "24189",
+        "date": "2009-03-24",
+        "observation": {
+            "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/D56.8": "Mixed thalassemia",
+            "ICD10CM/D63.8": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 16": {
+        "age in days": "24195",
+        "date": "2009-03-30",
+        "observation": {
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+            "ICD10CM/I63.50": "Cerebral infarction due to unspecified occlusion or stenosis of unspecified cerebral artery",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 17": {
+        "age in days": "24197",
+        "date": "2009-04-01",
+        "observation": {
+            "ATC/C03AX01": "hydrochlorothiazide, combinations",
+            "ATC/C09AA03": "NO_DEF",
+            "ATC/C09BA03": "lisinopril and diuretics",
+            "ATC/C09BB03": "lisinopril and amlodipine",
+            "ATC/C10BX07": "rosuvastatin, amlodipine and lisinopril"
+        },
+        "observation with values": []
+    },
+    "day 18": {
+        "age in days": "24208",
+        "date": "2009-04-12",
+        "observation": {
+            "ICD10CM/C78.00": "Secondary malignant neoplasm of unspecified lung",
+            "ICD10CM/C79.89": "NO_DEF",
+            "ICD10CM/E87.6": "Potassium [K] deficiency",
+            "ICD10CM/M15.9": "Generalized osteoarthritis NOS",
+            "ICD10CM/N18.3": "Chronic kidney disease, stage 3 (moderate)",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": [
+            "Visit/IP-6.0"
+        ]
+    },
+    "day 19": {
+        "age in days": "24211",
+        "date": "2009-04-15",
+        "observation": {
+            "CPT4/88175": "Cytopathology on vaginal specimen",
+            "CPT4/99215": "OFFICE OUTPATIENT VISIT 40 MINUTES",
+            "ICD10CM/E03.9": "Myxedema NOS",
+            "ICD10CM/E78.00": "(Pure) hypercholesterolemia NOS",
+            "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+            "ICD10CM/Z12.4": "Encounter for screening pap smear for malignant neoplasm of cervix",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 2": {
+        "age in days": "24022",
+        "date": "2008-10-08",
+        "observation": {
+            "CPT4/71010": "NO_DEF",
+            "CPT4/76700": "Ultrasound of abdomen",
+            "ICD10CM/I10": "hypertension (arterial) (benign) (essential) (malignant) (primary) (systemic)",
+            "ICD10CM/R10.10": "Upper abdominal pain, unspecified",
+            "ICD10CM/R10.813": "Right lower quadrant abdominal tenderness",
+            "ICD10CM/R10.9": "Unspecified abdominal pain",
+            "ICD10CM/R11.2": "Nausea with vomiting, unspecified"
+        },
+        "observation with values": []
+    },
+    "day 20": {
+        "age in days": "24237",
+        "date": "2009-05-11",
+        "observation": {
+            "CPT4/99222": "INITIAL HOSPITAL CARE/DAY 50 MINUTES",
+            "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+            "ICD10CM/I62.9": "Nontraumatic intracranial hemorrhage, unspecified",
+            "ICD10CM/N18.9": "Chronic uremia NOS",
+            "ICD10CM/Z49.01": "Toilet or cleansing of renal dialysis catheter",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 21": {
+        "age in days": "24242",
+        "date": "2009-05-16",
+        "observation": {
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+            "ICD10CM/N18.9": "Chronic uremia NOS",
+            "ICD10CM/Z49.32": "Encounter for peritoneal equilibration test",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 22": {
+        "age in days": "24259",
+        "date": "2009-06-02",
+        "observation": {
+            "CPT4/80048": "Measurement of creatinine",
+            "CPT4/80061": "LIPID PANEL",
+            "CPT4/80076": "HEPATIC FUNCTION PANEL",
+            "CPT4/82306": "Vitamin D-3 level",
+            "CPT4/84075": "Phosphatase, alkaline",
+            "CPT4/85025": "Automated platelet count",
+            "CPT4/85610": "PROTHROMBIN TIME",
+            "CPT4/87088": "Bacterial urine culture",
+            "CPT4/96372": "Subcutaneous diagnostic injection",
+            "ICD10CM/F73": "IQ level below 20-25",
+            "ICD10CM/I48.91": "Unspecified atrial fibrillation",
+            "ICD10CM/Z48.02": "Encounter for removal of sutures",
+            "ICD10CM/Z79.01": "Long term (current) use of anticoagulants",
+            "ICD10CM/Z79.84": "Long term (current) use of oral hypoglycemic drugs",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": [
+            "Visit/OP-0.0"
+        ]
+    },
+    "day 23": {
+        "age in days": "24262",
+        "date": "2009-06-05",
+        "observation": {
+            "CPT4/99284": "EMERGENCY DEPARTMENT VISIT HIGH/URGENT SEVERITY",
+            "ICD10CM/M46.1": "NO_DEF",
+            "ICD10CM/M50.30": "Other cervical disc degeneration, unspecified cervical region",
+            "ICD10CM/M54.5": "Lumbago NOS",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 24": {
+        "age in days": "24278",
+        "date": "2009-06-21",
+        "observation": {
+            "CPT4/90862": "NO_DEF",
+            "ICD10CM/F20.0": "NO_DEF",
+            "ICD10CM/F20.2": "Schizophrenic catalepsy"
+        },
+        "observation with values": []
+    },
+    "day 25": {
+        "age in days": "24280",
+        "date": "2009-06-23",
+        "observation": {
+            "CPT4/71101": "RADEX RIBS UNI W/POSTEROANT CH MINIMUM 3 VIEWS",
+            "CPT4/78480": "NO_DEF",
+            "CPT4/94060": "BRNCDILAT RSPSE SPMTRY PRE&POST-BRNCDILAT ADMN",
+            "ICD10CM/S69.80XA": "Other specified injuries of unspecified wrist, hand and finger(s), initial encounter",
+            "ICD10CM/W22.09XA": "Striking against other stationary object, initial encounter",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": [
+            "Visit/OP-0.0"
+        ]
+    },
+    "day 26": {
+        "age in days": "24283",
+        "date": "2009-06-26",
+        "observation": {
+            "ATC/G04CA03": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 27": {
+        "age in days": "24290",
+        "date": "2009-07-03",
+        "observation": {
+            "CPT4/77280": "THER RAD SIMULAJ-AIDED FIELD SETTING SIMPLE",
+            "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+            "HCPCS/G8447": "NO_DEF",
+            "ICD10CM/I47.2": "NO_DEF",
+            "ICD10CM/I49.9": "Arrhythmia (cardiac) NOS",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 28": {
+        "age in days": "24303",
+        "date": "2009-07-16",
+        "observation": {
+            "HCPCS/A0427": "Ambulance service, advanced life support, emergency transport, level 1 (als 1 - emergency)",
+            "ICD10CM/K85.90": "Acute pancreatitis without necrosis or infection, unspecified",
+            "ICD10CM/R10.815": "Periumbilic abdominal tenderness",
+            "ICD10CM/R10.84": "NO_DEF",
+            "ICD10CM/R11.10": "Vomiting, unspecified",
+            "ICD10CM/R63.4": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 29": {
+        "age in days": "24318",
+        "date": "2009-07-31",
+        "observation": {
+            "CPT4/80048": "Measurement of creatinine",
+            "CPT4/80053": "Measurement of albumin",
+            "CPT4/80061": "LIPID PANEL",
+            "CPT4/83036": "HEMOGLOBIN GLYCOSYLATED A1C",
+            "CPT4/84439": "Thyroxine; free",
+            "CPT4/84443": "Thyroid stimulating hormone (TSH)",
+            "CPT4/84460": "Liver enzyme (SGPT), level",
+            "CPT4/85025": "Automated platelet count",
+            "HCPCS/G0103": "Prostate cancer screening; prostate specific antigen test (psa)",
+            "ICD10CM/E07.9": "NO_DEF",
+            "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+            "ICD10CM/E67.8": "NO_DEF",
+            "ICD10CM/I49.3": "NO_DEF",
+            "ICD10CM/R39.12": "Weak urinary steam",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 3": {
+        "age in days": "24023",
+        "date": "2008-10-09",
+        "observation": {
+            "CPT4/20610": "Injection of major joint",
+            "CPT4/71020": "NO_DEF",
+            "CPT4/76514": "OPHTHALMIC US DX CORNEAL PACHYMETRY UNI/BI",
+            "CPT4/85025": "Automated platelet count",
+            "CPT4/96372": "Subcutaneous diagnostic injection",
+            "CPT4/99000": "HANDLG&/OR CONVEY OF SPEC FOR TR OFFICE TO LAB",
+            "HCPCS/G8445": "NO_DEF",
+            "HCPCS/G8447": "NO_DEF",
+            "HCPCS/J1200": "Injection, diphenhydramine hcl, up to 50 mg",
+            "ICD10CM/D64.9": "NO_DEF",
+            "ICD10CM/E03.9": "Myxedema NOS",
+            "ICD10CM/E16.3": "Hyperplasia of pancreatic endocrine cells with glucagon excess",
+            "ICD10CM/F41.9": "Anxiety NOS",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 30": {
+        "age in days": "24329",
+        "date": "2009-08-11",
+        "observation": {
+            "CPT4/84402": "Testosterone; free",
+            "CPT4/90862": "NO_DEF",
+            "ICD10CM/F31.81": "Bipolar disorder, type 2",
+            "ICD10CM/F32.4": "Major depressive disorder, single episode, in partial remission",
+            "ICD10CM/F42.2": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 31": {
+        "age in days": "24342",
+        "date": "2009-08-24",
+        "observation": {
+            "CPT4/72148": "MRI scan of lower spinal canal",
+            "ICD10CM/M47.819": "Spondylosis without myelopathy or radiculopathy, site unspecified",
+            "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+            "ICD10CM/M51.06": "Intervertebral disc disorders with myelopathy, lumbar region",
+            "ICD10CM/M62.81": "Muscle weakness (generalized)",
+            "ICD10CM/R19.09": "Other intra-abdominal and pelvic swelling, mass and lump"
+        },
+        "observation with values": []
+    },
+    "day 32": {
+        "age in days": "24349",
+        "date": "2009-08-31",
+        "observation": {
+            "ICD10CM/F06.0": "Organic hallucinatory state (nonalcoholic)",
+            "ICD10CM/K59.00": "Constipation, unspecified",
+            "ICD10CM/N81.5": "NO_DEF",
+            "ICD10CM/Z79.82": "Long term (current) use of aspirin",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": [
+            "Visit/IP-2.0"
+        ]
+    },
+    "day 33": {
+        "age in days": "24366",
+        "date": "2009-09-17",
+        "observation": {
+            "ICD10CM/F10.20": "Alcohol use disorder, severe",
+            "ICD10CM/F32.2": "Major depressive disorder, single episode, severe without psychotic features",
+            "ICD10CM/G40.901": "Epilepsy, unspecified, not intractable, with status epilepticus",
+            "ICD10CM/G47.33": "Obstructive sleep apnea hypopnea",
+            "ICD10CM/M12.9": "NO_DEF",
+            "ICD10CM/Z91.19": "Nonadherence to medical treatment"
+        },
+        "observation with values": [
+            "Visit/IP-3.0"
+        ]
+    },
+    "day 34": {
+        "age in days": "24380",
+        "date": "2009-10-01",
+        "observation": {
+            "CPT4/99212": "OFFICE OUTPATIENT VISIT 10 MINUTES",
+            "ICD10CM/A01.00": "Typhoid fever, unspecified",
+            "ICD10CM/A08.8": "NO_DEF",
+            "ICD10CM/R68.0": "NO_DEF",
+            "ICD10CM/Z79.4": "Long term (current) use of insulin"
+        },
+        "observation with values": []
+    },
+    "day 35": {
+        "age in days": "24384",
+        "date": "2009-10-05",
+        "observation": {
+            "CPT4/72131": "CT scan of lower spine",
+            "ICD10CM/M15.0": "Primary generalized (osteo)arthritis",
+            "ICD10CM/M25.519": "Pain in unspecified shoulder",
+            "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+            "ICD10CM/M51.9": "Unspecified thoracic, thoracolumbar and lumbosacral intervertebral disc disorder",
+            "ICD10CM/M54.5": "Lumbago NOS"
+        },
+        "observation with values": []
+    },
+    "day 36": {
+        "age in days": "24388",
+        "date": "2009-10-09",
+        "observation": {
+            "ATC/A02BX71": "carbenoxolone, combinations with psycholeptics",
+            "ATC/A02BX77": "gefarnate, combinations with psycholeptics",
+            "ATC/A03CA01": "isopropamide and psycholeptics",
+            "ATC/A03CA02": "clidinium and psycholeptics",
+            "ATC/A03CA03": "oxyphencyclimine and psycholeptics",
+            "ATC/A03CA04": "otilonium bromide and psycholeptics",
+            "ATC/A03CA05": "glycopyrronium bromide and psycholeptics",
+            "ATC/A03CA06": "bevonium and psycholeptics",
+            "ATC/A03CA07": "ambutonium and psycholeptics",
+            "ATC/A03CA08": "diphemanil and psycholeptics",
+            "ATC/A03CA09": "pipenzolate and psycholeptics",
+            "ATC/A03CA30": "emepronium and psycholeptics",
+            "ATC/A03CA34": "propantheline and psycholeptics",
+            "ATC/A03CB01": "methylscopolamine and psycholeptics",
+            "ATC/A03CB02": "belladonna total alkaloids and psycholeptics",
+            "ATC/A03CB03": "atropine and psycholeptics",
+            "ATC/A03CB04": "homatropine methylbromide and psycholeptics",
+            "ATC/A03CB31": "hyoscyamine and psycholeptics",
+            "ATC/C01BA71": "quinidine, combinations with psycholeptics",
+            "ATC/C01DA70": "organic nitrates in combination with psycholeptics",
+            "ATC/C02LA71": "reserpine and diuretics, combinations with psycholeptics",
+            "ATC/C02LG73": "picodralazine and diuretics, combinations with psycholeptics",
+            "ATC/C03BA82": "clorexolone, combinations with psycholeptics",
+            "ATC/M03BA71": "phenprobamate, combinations with psycholeptics",
+            "ATC/M03BA72": "carisoprodol, combinations with psycholeptics",
+            "ATC/M03BA73": "methocarbamol, combinations with psycholeptics",
+            "ATC/M03BB72": "chlormezanone, combinations with psycholeptics",
+            "ATC/M03BB73": "chlorzoxazone, combinations with psycholeptics",
+            "ATC/M09AA72": "quinine, combinations with psycholeptics",
+            "ATC/N02AB72": "pethidine, combinations with psycholeptics",
+            "ATC/N02AC74": "dextropropoxyphene, combinations with psycholeptics",
+            "ATC/N02BA71": "acetylsalicylic acid, combinations with psycholeptics",
+            "ATC/N02BA75": "salicylamide, combinations with psycholeptics",
+            "ATC/N02BA77": "ethenzamide, combinations with psycholeptics",
+            "ATC/N02BA79": "dipyrocetyl, combinations with psycholeptics",
+            "ATC/N02BB71": "phenazone, combinations with psycholeptics",
+            "ATC/N02BB72": "metamizole sodium, combinations with psycholeptics",
+            "ATC/N02BB73": "aminophenazone, combinations with psycholeptics",
+            "ATC/N02BB74": "propyphenazone, combinations with psycholeptics",
+            "ATC/N02BE71": "paracetamol, combinations with psycholeptics",
+            "ATC/N02BE73": "phenacetin, combinations with psycholeptics",
+            "ATC/N02BE74": "bucetin, combinations with psycholeptics",
+            "ATC/N02CA72": "ergotamine, combinations with psycholeptics",
+            "ATC/N05AB02": "NO_DEF",
+            "ATC/N06CA01": "amitriptyline and psycholeptics",
+            "ATC/N06CA02": "melitracen and psycholeptics",
+            "ATC/N06CA03": "fluoxetine and psycholeptics",
+            "ATC/R03DA74": "theophylline, combinations with psycholeptics"
+        },
+        "observation with values": []
+    },
+    "day 37": {
+        "age in days": "24408",
+        "date": "2009-10-29",
+        "observation": {
+            "CPT4/99223": "INITIAL HOSPITAL CARE/DAY 70 MINUTES",
+            "ICD10CM/K56.50": "Intestinal adhesions with obstruction NOS",
+            "ICD10CM/K56.600": "Incomplete intestinal obstruction, NOS"
+        },
+        "observation with values": []
+    },
+    "day 38": {
+        "age in days": "24417",
+        "date": "2009-11-07",
+        "observation": {
+            "ATC/A02BX71": "carbenoxolone, combinations with psycholeptics",
+            "ATC/A02BX77": "gefarnate, combinations with psycholeptics",
+            "ATC/A03CA01": "isopropamide and psycholeptics",
+            "ATC/A03CA02": "clidinium and psycholeptics",
+            "ATC/A03CA03": "oxyphencyclimine and psycholeptics",
+            "ATC/A03CA04": "otilonium bromide and psycholeptics",
+            "ATC/A03CA05": "glycopyrronium bromide and psycholeptics",
+            "ATC/A03CA06": "bevonium and psycholeptics",
+            "ATC/A03CA07": "ambutonium and psycholeptics",
+            "ATC/A03CA08": "diphemanil and psycholeptics",
+            "ATC/A03CA09": "pipenzolate and psycholeptics",
+            "ATC/A03CA30": "emepronium and psycholeptics",
+            "ATC/A03CA34": "propantheline and psycholeptics",
+            "ATC/A03CB01": "methylscopolamine and psycholeptics",
+            "ATC/A03CB02": "belladonna total alkaloids and psycholeptics",
+            "ATC/A03CB03": "atropine and psycholeptics",
+            "ATC/A03CB04": "homatropine methylbromide and psycholeptics",
+            "ATC/A03CB31": "hyoscyamine and psycholeptics",
+            "ATC/C01BA71": "quinidine, combinations with psycholeptics",
+            "ATC/C01DA70": "organic nitrates in combination with psycholeptics",
+            "ATC/C02LA71": "reserpine and diuretics, combinations with psycholeptics",
+            "ATC/C02LG73": "picodralazine and diuretics, combinations with psycholeptics",
+            "ATC/C03BA82": "clorexolone, combinations with psycholeptics",
+            "ATC/M03BA71": "phenprobamate, combinations with psycholeptics",
+            "ATC/M03BA72": "carisoprodol, combinations with psycholeptics",
+            "ATC/M03BA73": "methocarbamol, combinations with psycholeptics",
+            "ATC/M03BB72": "chlormezanone, combinations with psycholeptics",
+            "ATC/M03BB73": "chlorzoxazone, combinations with psycholeptics",
+            "ATC/M09AA72": "quinine, combinations with psycholeptics",
+            "ATC/N02AB72": "pethidine, combinations with psycholeptics",
+            "ATC/N02AC74": "dextropropoxyphene, combinations with psycholeptics",
+            "ATC/N02BA71": "acetylsalicylic acid, combinations with psycholeptics",
+            "ATC/N02BA75": "salicylamide, combinations with psycholeptics",
+            "ATC/N02BA77": "ethenzamide, combinations with psycholeptics",
+            "ATC/N02BA79": "dipyrocetyl, combinations with psycholeptics",
+            "ATC/N02BB71": "phenazone, combinations with psycholeptics",
+            "ATC/N02BB72": "metamizole sodium, combinations with psycholeptics",
+            "ATC/N02BB73": "aminophenazone, combinations with psycholeptics",
+            "ATC/N02BB74": "propyphenazone, combinations with psycholeptics",
+            "ATC/N02BE71": "paracetamol, combinations with psycholeptics",
+            "ATC/N02BE73": "phenacetin, combinations with psycholeptics",
+            "ATC/N02BE74": "bucetin, combinations with psycholeptics",
+            "ATC/N02CA72": "ergotamine, combinations with psycholeptics",
+            "ATC/N05AB06": "NO_DEF",
+            "ATC/N06CA01": "amitriptyline and psycholeptics",
+            "ATC/N06CA02": "melitracen and psycholeptics",
+            "ATC/N06CA03": "fluoxetine and psycholeptics",
+            "ATC/R03DA74": "theophylline, combinations with psycholeptics"
+        },
+        "observation with values": []
+    },
+    "day 39": {
+        "age in days": "24421",
+        "date": "2009-11-11",
+        "observation": {
+            "CPT4/93010": "ECG ROUTINE ECG W/LEAST 12 LDS I&R ONLY",
+            "ICD10CM/I49.3": "NO_DEF",
+            "ICD10CM/I49.8": "Ectopic rhythm disorder"
+        },
+        "observation with values": []
+    },
+    "day 4": {
+        "age in days": "24034",
+        "date": "2008-10-20",
+        "observation": {
+            "CPT4/99231": "SBSQ HOSPITAL CARE/DAY 15 MINUTES",
+            "ICD10CM/R31.0": "NO_DEF",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 40": {
+        "age in days": "24442",
+        "date": "2009-12-02",
+        "observation": {
+            "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+            "ICD10CM/C80.1": "Cancer NOS",
+            "ICD10CM/Z51.11": "Encounter for antineoplastic chemotherapy"
+        },
+        "observation with values": []
+    },
+    "day 41": {
+        "age in days": "24446",
+        "date": "2009-12-06",
+        "observation": {
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/R41.2": "NO_DEF",
+            "ICD10CM/Z92.25": "Personal history of immunosupression therapy",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 42": {
+        "age in days": "24494",
+        "date": "2010-01-23",
+        "observation": {
+            "CPT4/99309": "SBSQ NURSING FACIL CARE/DAY NEW PROBLEM 25 MIN",
+            "ICD10CM/G47.419": "Narcolepsy NOS",
+            "ICD10CM/G57.90": "Unspecified mononeuropathy of unspecified lower limb",
+            "ICD10CM/I87.2": "NO_DEF",
+            "ICD10CM/M79.609": "Pain in limb NOS",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 43": {
+        "age in days": "24521",
+        "date": "2010-02-19",
+        "observation": {
+            "CPT4/2027F": "OPTIC NERVE HEAD EVALUATION PERFORMED",
+            "CPT4/92014": "OPHTH MEDICAL XM&EVAL COMPRHNSV ESTAB PT 1/>",
+            "ICD10CM/E10.9": "Type 1 diabetes mellitus without complications",
+            "ICD10CM/H25.049": "Posterior subcapsular polar age-related cataract, unspecified eye",
+            "ICD10CM/H25.10": "Age-related nuclear cataract, unspecified eye",
+            "ICD10CM/H26.229": "Cataract secondary to ocular disorders (degenerative) (inflammatory), unspecified eye",
+            "ICD10CM/H43.819": "Vitreous degeneration, unspecified eye"
+        },
+        "observation with values": []
+    },
+    "day 44": {
+        "age in days": "24525",
+        "date": "2010-02-23",
+        "observation": {
+            "CPT4/84460": "Liver enzyme (SGPT), level",
+            "CPT4/99233": "SBSQ HOSPITAL CARE/DAY 35 MINUTES",
+            "ICD10CM/M10.00": "Idiopathic gout, unspecified site",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 45": {
+        "age in days": "24526",
+        "date": "2010-02-24",
+        "observation": {
+            "CPT4/99222": "INITIAL HOSPITAL CARE/DAY 50 MINUTES",
+            "HCPCS/Q9967": "Low osmolar contrast material, 300-399 mg/ml iodine concentration, per ml",
+            "ICD10CM/K21.9": "Esophageal reflux NOS",
+            "ICD10CM/K57.30": "Diverticular disease of colon NOS",
+            "ICD10CM/K57.32": "Diverticulitis of large intestine without perforation or abscess without bleeding",
+            "ICD10CM/N28.1": "Cyst (multiple) (solitary) of kidney (acquired)"
+        },
+        "observation with values": []
+    },
+    "day 46": {
+        "age in days": "24535",
+        "date": "2010-03-05",
+        "observation": {
+            "ATC/R03AC02": "salbutamol",
+            "ATC/R03AK01": "epinephrine and other drugs for obstructive airway diseases",
+            "ATC/R03AK02": "isoprenaline and other drugs for obstructive airway diseases",
+            "ATC/R03AK04": "salbutamol and sodium cromoglicate",
+            "ATC/R03AK13": "salbutamol and beclometasone",
+            "ATC/R03AL02": "salbutamol and ipratropium bromide",
+            "ATC/R03CC02": "NO_DEF",
+            "ATC/R03DA54": "theophylline, combinations excl. psycholeptics"
+        },
+        "observation with values": []
+    },
+    "day 47": {
+        "age in days": "24551",
+        "date": "2010-03-21",
+        "observation": {
+            "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+            "ICD10CM/F06.0": "Organic hallucinatory state (nonalcoholic)",
+            "ICD10CM/I50.814": "Right heart failure due to left heart failure",
+            "ICD10CM/N95.2": "Senile (atrophic) vaginitis",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 48": {
+        "age in days": "24595",
+        "date": "2010-05-04",
+        "observation": {
+            "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+            "ICD10CM/J30.0": "NO_DEF",
+            "ICD10CM/K21.9": "Esophageal reflux NOS",
+            "ICD10CM/M15.9": "Generalized osteoarthritis NOS",
+            "ICD10CM/M19.249": "Secondary osteoarthritis, unspecified hand",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 49": {
+        "age in days": "24600",
+        "date": "2010-05-09",
+        "observation": {
+            "ATC/C03AX01": "hydrochlorothiazide, combinations",
+            "ATC/C09AA03": "NO_DEF",
+            "ATC/C09BA03": "lisinopril and diuretics",
+            "ATC/C09BB03": "lisinopril and amlodipine",
+            "ATC/C10BX07": "rosuvastatin, amlodipine and lisinopril"
+        },
+        "observation with values": []
+    },
+    "day 5": {
+        "age in days": "24084",
+        "date": "2008-12-09",
+        "observation": {
+            "CPT4/99284": "EMERGENCY DEPARTMENT VISIT HIGH/URGENT SEVERITY",
+            "ICD10CM/J45.909": "Unspecified asthma, uncomplicated",
+            "ICD10CM/S01.00XA": "Unspecified open wound of scalp, initial encounter",
+            "ICD10CM/S01.512A": "Laceration without foreign body of oral cavity, initial encounter"
+        },
+        "observation with values": []
+    },
+    "day 50": {
+        "age in days": "24619",
+        "date": "2010-05-28",
+        "observation": {
+            "ATC/C01DA58": "isosorbide dinitrate, combinations",
+            "ATC/C02AA52": "reserpine, combinations",
+            "ATC/C02DB02": "NO_DEF",
+            "ATC/C02LG02": "hydralazine and diuretics",
+            "ATC/C03AX01": "hydrochlorothiazide, combinations"
+        },
+        "observation with values": []
+    },
+    "day 51": {
+        "age in days": "24620",
+        "date": "2010-05-29",
+        "observation": {
+            "CPT4/4048F": "DOC ANTIBIO GIVEN W/IN 1 HR PRIOR SURG/INCIS",
+            "CPT4/99223": "INITIAL HOSPITAL CARE/DAY 70 MINUTES",
+            "ICD10CM/G89.18": "Postoperative pain NOS",
+            "ICD10CM/K57.32": "Diverticulitis of large intestine without perforation or abscess without bleeding",
+            "ICD10CM/K57.33": "Diverticulitis of large intestine without perforation or abscess with bleeding",
+            "ICD10CM/L26": "Hebra's pityriasis"
+        },
+        "observation with values": []
+    },
+    "day 52": {
+        "age in days": "24634",
+        "date": "2010-06-12",
+        "observation": {
+            "ATC/A01AA51": "sodium fluoride, combinations",
+            "ATC/A02AF01": "magaldrate and antiflatulents",
+            "ATC/A02AF02": "ordinary salt combinations and antiflatulents",
+            "ATC/A06AB57": "cascara, combinations",
+            "ATC/A07BA01": "medicinal charcoal",
+            "ATC/A07BA51": "medicinal charcoal, combinations",
+            "ATC/A07FA51": "lactic acid producing organisms, combinations",
+            "ATC/A12CD51": "fluoride, combinations",
+            "ATC/C01DA52": "glyceryl trinitrate, combinations",
+            "ATC/G04BE52": "papaverine, combinations"
+        },
+        "observation with values": []
+    },
+    "day 53": {
+        "age in days": "24640",
+        "date": "2010-06-18",
+        "observation": {
+            "CPT4/82310": "CALCIUM TOTAL",
+            "CPT4/86803": "HEPATITIS C ANTIBODY",
+            "ICD10CM/D63.1": "Erythropoietin resistant anemia (EPO resistant anemia)",
+            "ICD10CM/E11.29": "Type 2 diabetes mellitus with renal tubular degeneration",
+            "ICD10CM/E83.50": "Unspecified disorder of calcium metabolism",
+            "ICD10CM/I13.0": "Hypertensive heart and chronic kidney disease with heart failure and stage 1 through stage 4 chronic kidney disease, or unspecified chronic kidney disease",
+            "ICD10CM/N18.6": "Chronic kidney disease requiring chronic dialysis"
+        },
+        "observation with values": []
+    },
+    "day 54": {
+        "age in days": "24648",
+        "date": "2010-06-26",
+        "observation": {
+            "ICD10CM/E46": "Protein-calorie imbalance NOS",
+            "ICD10CM/G60.9": "NO_DEF",
+            "ICD10CM/I47.2": "NO_DEF",
+            "ICD10CM/R33.9": "Retention of urine, unspecified",
+            "ICD10CM/W19.XXXA": "Unspecified fall, initial encounter",
+            "ICD10CM/Z90.710": "Acquired absence of uterus NOS",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": [
+            "Visit/IP-5.0"
+        ]
+    },
+    "day 55": {
+        "age in days": "24686",
+        "date": "2010-08-03",
+        "observation": {
+            "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+            "CPT4/80051": "ELECTROLYTE PANEL",
+            "CPT4/85610": "PROTHROMBIN TIME",
+            "ICD10CM/R94.4": "Abnormal renal function test",
+            "ICD10CM/Z79.01": "Long term (current) use of anticoagulants",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 56": {
+        "age in days": "24700",
+        "date": "2010-08-17",
+        "observation": {
+            "ATC/C10AB05": "NO_DEF",
+            "ATC/C10BA03": "pravastatin and fenofibrate",
+            "ATC/C10BA04": "simvastatin and fenofibrate"
+        },
+        "observation with values": []
+    },
+    "day 57": {
+        "age in days": "24713",
+        "date": "2010-08-30",
+        "observation": {
+            "CPT4/99233": "SBSQ HOSPITAL CARE/DAY 35 MINUTES",
+            "ICD10CM/N18.6": "Chronic kidney disease requiring chronic dialysis",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 58": {
+        "age in days": "24752",
+        "date": "2010-10-08",
+        "observation": {
+            "ATC/A04AD54": "chlorobutanol, combinations",
+            "ATC/A08AA56": "ephedrine, combinations",
+            "ATC/B03BA51": "cyanocobalamin, combinations",
+            "ATC/C01AB51": "proscillaridin, combinations",
+            "ATC/C01BA51": "quinidine, combinations excl. psycholeptics",
+            "ATC/C01DA52": "glyceryl trinitrate, combinations",
+            "ATC/C01DA55": "pentaerithrityl tetranitrate, combinations",
+            "ATC/C02AA52": "reserpine, combinations",
+            "ATC/C05BB56": "glucose, combinations",
+            "ATC/C05CA51": "rutoside, combinations",
+            "ATC/C10AD52": "nicotinic acid, combinations",
+            "ATC/G04BE52": "papaverine, combinations",
+            "ATC/J01CA51": "ampicillin, combinations",
+            "ATC/N01BA52": "procaine, combinations",
+            "ATC/N02AA59": "codeine, combinations excl. psycholeptics",
+            "ATC/N02BA57": "ethenzamide, combinations excl. psycholeptics",
+            "ATC/N02BB51": "phenazone, combinations excl. psycholeptics",
+            "ATC/N02BB52": "metamizole sodium, combinations excl. psycholeptics",
+            "ATC/N05BB51": "hydroxyzine, combinations",
+            "ATC/N05BC51": "NO_DEF",
+            "ATC/N05CX01": "meprobamate, combinations",
+            "ATC/N05CX02": "methaqualone, combinations",
+            "ATC/R01BA52": "pseudoephedrine, combinations",
+            "ATC/R01BA53": "NO_DEF",
+            "ATC/R03AK01": "epinephrine and other drugs for obstructive airway diseases",
+            "ATC/R03AK02": "isoprenaline and other drugs for obstructive airway diseases",
+            "ATC/R03CB51": "isoprenaline, combinations",
+            "ATC/R03CC53": "terbutaline, combinations",
+            "ATC/R03DA04": "NO_DEF",
+            "ATC/R03DA20": "combinations of xanthines",
+            "ATC/R03DA51": "diprophylline, combinations",
+            "ATC/R03DA54": "theophylline, combinations excl. psycholeptics",
+            "ATC/R03DA57": "theobromine, combinations",
+            "ATC/R03DA74": "theophylline, combinations with psycholeptics",
+            "ATC/R03DB04": "theophylline and adrenergics",
+            "ATC/R06AA52": "diphenhydramine, combinations",
+            "ATC/R06AA59": "doxylamine, combinations",
+            "ATC/R07AB52": "nikethamide, combinations"
+        },
+        "observation with values": []
+    },
+    "day 59": {
+        "age in days": "24776",
+        "date": "2010-11-01",
+        "observation": {
+            "ATC/A06AA51": "liquid paraffin, combinations",
+            "ATC/B01AB51": "heparin, combinations",
+            "ATC/B05BC02": "NO_DEF",
+            "ATC/C05BA53": "NO_DEF",
+            "ATC/C05BB56": "glucose, combinations",
+            "ATC/C10AD52": "nicotinic acid, combinations",
+            "ATC/D01AC60": "bifonazole, combinations",
+            "ATC/D02AE01": "NO_DEF",
+            "ATC/D02AE51": "carbamide, combinations",
+            "ATC/D05AC51": "dithranol, combinations",
+            "ATC/D07XA01": "NO_DEF",
+            "ATC/D07XB02": "NO_DEF",
+            "ATC/D07XB05": "NO_DEF",
+            "ATC/D08AJ58": "benzethonium chloride, combinations",
+            "ATC/D10AD51": "tretinoin, combinations",
+            "ATC/G03CA53": "estradiol, combinations",
+            "ATC/N01BB52": "lidocaine, combinations",
+            "ATC/R03DA54": "theophylline, combinations excl. psycholeptics",
+            "ATC/R03DA57": "theobromine, combinations"
+        },
+        "observation with values": []
+    },
+    "day 6": {
+        "age in days": "24111",
+        "date": "2009-01-05",
+        "observation": {
+            "CPT4/85025": "Automated platelet count",
+            "CPT4/88305": "LEVEL IV SURG PATHOLOGY GROSS&MICROSCOPIC EXAM",
+            "ICD10CM/C34.80": "Malignant neoplasm of overlapping sites of unspecified bronchus and lung",
+            "None/No matching concept": "NO_DEF"
+        },
+        "observation with values": []
+    },
+    "day 7": {
+        "age in days": "24113",
+        "date": "2009-01-07",
+        "observation": {
+            "ATC/N02BA51": "acetylsalicylic acid, combinations excl. psycholeptics",
+            "ATC/N02BE51": "paracetamol, combinations excl. psycholeptics",
+            "ATC/N04BA01": "NO_DEF",
+            "ATC/N04BA02": "levodopa and decarboxylase inhibitor",
+            "ATC/N04BA03": "levodopa, decarboxylase inhibitor and COMT inhibitor",
+            "ATC/N04BA05": "melevodopa and decarboxylase inhibitor",
+            "ATC/N04BA06": "etilevodopa and decarboxylase inhibitor"
+        },
+        "observation with values": []
+    },
+    "day 8": {
+        "age in days": "24118",
+        "date": "2009-01-12",
+        "observation": {
+            "ATC/N02BA51": "acetylsalicylic acid, combinations excl. psycholeptics",
+            "ATC/N02BE51": "paracetamol, combinations excl. psycholeptics",
+            "ATC/N04BA01": "NO_DEF",
+            "ATC/N04BA02": "levodopa and decarboxylase inhibitor",
+            "ATC/N04BA03": "levodopa, decarboxylase inhibitor and COMT inhibitor",
+            "ATC/N04BA05": "melevodopa and decarboxylase inhibitor",
+            "ATC/N04BA06": "etilevodopa and decarboxylase inhibitor"
+        },
+        "observation with values": []
+    },
+    "day 9": {
+        "age in days": "24119",
+        "date": "2009-01-13",
+        "observation": {
+            "CPT4/00120": "Anesthesia for procedure on inner ear",
+            "ICD10CM/Z48.03": "Encounter for change or removal of drains",
+            "ICD10CM/Z79.4": "Long term (current) use of insulin"
+        },
+        "observation with values": []
+    }
+}

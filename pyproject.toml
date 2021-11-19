@@ -15,6 +15,7 @@ clmbr_train_model = "ehr_ml.clmbr:train_model"
 clmbr_debug_model = "ehr_ml.clmbr:debug_model"
 patient2vec_train_model = 'ehr_ml.patient2vec:train_model'
 patient2vec_debug_model = 'ehr_ml.patient2vec:debug_model'
+create_patient_data = "ehr_ml.create_timelines:create_patient_data"
 
 [tool.poetry.dependencies]
 python = "^3.8"
