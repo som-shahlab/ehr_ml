@@ -3,6 +3,8 @@
 
 #include <boost/filesystem.hpp>
 
-void sort_csvs(boost::filesystem::path source_dir, boost::filesystem::path target_dir, char delimiter, bool use_quotes);
+void sort_csvs(boost::filesystem::path source_dir,
+               boost::filesystem::path target_dir, char delimiter,
+               bool use_quotes);
 
 #endif

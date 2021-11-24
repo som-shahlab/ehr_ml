@@ -5,12 +5,12 @@
 
 class UMLSTest : public ::testing::Test {
    public:
-    UMLSTest() : umls("/labs/shahlab/projects/ethanid/2019AB/META") {}
+    UMLSTest() : umls("/local-scratch/nigam/projects/clmbr/data/2020AB/META") {}
     UMLS umls;
 };
 
 TEST_F(UMLSTest, GetAui) {
-    auto code = umls.get_aui("ICD10CM", "E11");
+    auto code = umls.get_aui("ICD10CM", "E.1140");
 
     EXPECT_EQ(code.has_value(), true);
 

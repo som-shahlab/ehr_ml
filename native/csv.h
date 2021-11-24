@@ -54,7 +54,8 @@ inline void line_iter(const char* line, char delimiter, F f) {
 template <typename F>
 inline void csv_iterator(const char* filename,
                          std::vector<std::string_view> columns, char delimiter,
-                         std::optional<int> limit, bool quotes, bool case_sensitive, F f) {
+                         std::optional<int> limit, bool quotes,
+                         bool case_sensitive, F f) {
     gzFile file = gzopen(filename, "r");
     if (file == nullptr) {
         std::cout << absl::Substitute("Could not open $0 due to $1", filename,
@@ -90,7 +91,8 @@ inline void csv_iterator(const char* filename,
             if (case_sensitive) {
                 is_same = all_columns[index] == columns[i];
             } else {
-                is_same = absl::EqualsIgnoreCase(all_columns[index], columns[i]);
+                is_same =
+                    absl::EqualsIgnoreCase(all_columns[index], columns[i]);
             }
 
             if (is_same) {

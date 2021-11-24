@@ -1,6 +1,7 @@
 #ifndef UMLS_H_INCLUDED
 #define UMLS_H_INCLUDED
 
+#include <boost/filesystem.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -75,6 +76,13 @@ class UMLS {
     load_code_to_aui_map(std::string umls_path) {
         std::string mrconso =
             absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
+
+        if (!boost::filesystem::exists(mrconso)) {
+            std::cout << "Could not find the MRCONSO.RRF file in the provided "
+                         "umls_path "
+                      << umls_path << std::endl;
+            exit(-1);
+        }
 
         std::ifstream infile(mrconso);
 

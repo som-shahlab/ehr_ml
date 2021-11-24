@@ -148,8 +148,7 @@ class RxNorm {
                     continue;
                 }
                 for (const auto& atc_code : iter->second) {
-                    atc_codes.push_back(
-                        absl::Substitute("ATC/$0", atc_code));
+                    atc_codes.push_back(absl::Substitute("ATC/$0", atc_code));
                 }
             }
 
@@ -158,10 +157,10 @@ class RxNorm {
                 std::unique(std::begin(atc_codes), std::end(atc_codes)),
                 std::end(atc_codes));
 
-            text_to_atc_map.insert(std::make_pair(std::make_pair("RxNorm", rxcui), atc_codes));
+            text_to_atc_map.insert(
+                std::make_pair(std::make_pair("RxNorm", rxcui), atc_codes));
         }
     }
-
 
     std::vector<std::string> get_atc_codes(const std::string& sab,
                                            const std::string& code) const {

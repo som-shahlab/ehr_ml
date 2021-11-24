@@ -7,14 +7,16 @@
 #include <memory>
 #include <optional>
 
-#include "csv.h"
 #include "blockingconcurrentqueue.h"
+#include "csv.h"
 
-void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path target_file, char delimiter, bool use_quotes) {
-
+void sort_csv_file(boost::filesystem::path source_file,
+                   boost::filesystem::path target_file, char delimiter,
+                   bool use_quotes) {
     gzFile file = gzopen(source_file.c_str(), "r");
     if (file == nullptr) {
-        std::cout << absl::Substitute("Could not open $0 due to $1", source_file.string(),
+        std::cout << absl::Substitute("Could not open $0 due to $1",
+                                      source_file.string(),
                                       std::strerror(errno))
                   << std::endl;
         ;
@@ -44,15 +46,15 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
               });
 
     if (person_id_index == -1) {
-        std::cout<<"Could not find person_id for " << source_file << std::endl;
+        std::cout << "Could not find person_id for " << source_file
+                  << std::endl;
 
         boost::filesystem::copy_file(source_file, target_file);
-        
+
         gzclose(file);
 
         return;
     }
-
 
     std::vector<std::pair<uint64_t, std::string>> data_elements;
 
@@ -64,16 +66,17 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
 
         uint64_t person_id;
 
-        line_iter(
-            next_line, delimiter, true,
-            [&](int index, std::string_view column) {
-                if (index == person_id_index) {
-                    if (!absl::SimpleAtoi(column, &person_id)) {
-                        std::cout<<"Could not parse person id " << column << " " << source_file << std::endl;
-                        abort();
-                    }
-                }
-            });
+        line_iter(next_line, delimiter, true,
+                  [&](int index, std::string_view column) {
+                      if (index == person_id_index) {
+                          if (!absl::SimpleAtoi(column, &person_id)) {
+                              std::cout << "Could not parse person id "
+                                        << column << " " << source_file
+                                        << std::endl;
+                              abort();
+                          }
+                      }
+                  });
 
         data_elements.push_back(std::make_pair(person_id, next_line));
     }
@@ -87,7 +90,6 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
 
     gzwrite(targetFile, header_copy.data(), header_copy.size());
 
-
     for (auto& pid_and_value : data_elements) {
         auto& value = pid_and_value.second;
 
@@ -100,7 +102,8 @@ void sort_csv_file(boost::filesystem::path source_file, boost::filesystem::path 
 using WorkItem = std::pair<boost::filesystem::path, boost::filesystem::path>;
 using WorkQueue = moodycamel::BlockingConcurrentQueue<std::optional<WorkItem>>;
 
-void worker_thread(std::shared_ptr<WorkQueue> work_queue, char delimiter, bool use_quotes) {
+void worker_thread(std::shared_ptr<WorkQueue> work_queue, char delimiter,
+                   bool use_quotes) {
     while (true) {
         std::optional<WorkItem> result;
         work_queue->wait_dequeue(result);
@@ -116,21 +119,24 @@ void worker_thread(std::shared_ptr<WorkQueue> work_queue, char delimiter, bool u
     }
 }
 
-void sort_csvs(boost::filesystem::path source_dir, boost::filesystem::path target_dir, char delimiter, bool use_quotes) {
-
+void sort_csvs(boost::filesystem::path source_dir,
+               boost::filesystem::path target_dir, char delimiter,
+               bool use_quotes) {
     std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>>
         files_to_sort;
 
     std::shared_ptr<WorkQueue> work_queue = std::make_shared<WorkQueue>();
 
-    for (auto&& file : boost::filesystem::recursive_directory_iterator(source_dir)) {
+    for (auto&& file :
+         boost::filesystem::recursive_directory_iterator(source_dir)) {
         auto path = file.path();
 
         if (boost::filesystem::is_directory(path)) {
             continue;
         }
 
-        boost::filesystem::path target = target_dir / boost::filesystem::relative(file, source_dir);
+        boost::filesystem::path target =
+            target_dir / boost::filesystem::relative(file, source_dir);
         boost::filesystem::create_directories(target.parent_path());
         work_queue->enqueue(std::make_pair(path, target));
     }
@@ -140,7 +146,9 @@ void sort_csvs(boost::filesystem::path source_dir, boost::filesystem::path targe
     std::vector<std::thread> threads;
 
     for (int i = 0; i < num_threads; i++) {
-        std::thread thread([work_queue, delimiter, use_quotes]() { worker_thread(work_queue, delimiter, use_quotes); });
+        std::thread thread([work_queue, delimiter, use_quotes]() {
+            worker_thread(work_queue, delimiter, use_quotes);
+        });
 
         threads.push_back(std::move(thread));
 

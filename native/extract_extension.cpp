@@ -24,10 +24,10 @@ namespace py = pybind11;
 #include "csv.h"
 #include "gem.h"
 #include "reader.h"
+#include "rxnorm.h"
+#include "sort_csv.h"
 #include "umls.h"
 #include "writer.h"
-#include "sort_csv.h"
-#include "rxnorm.h"
 
 std::vector<std::string> map_terminology_type(std::string_view terminology) {
     if (terminology == "CPT4") {
@@ -352,7 +352,8 @@ class Converter {
 };
 
 template <typename C>
-void run_converter(C converter, Queue& queue, boost::filesystem::path file, char delimiter, bool use_quotes) {
+void run_converter(C converter, Queue& queue, boost::filesystem::path file,
+                   char delimiter, bool use_quotes) {
     Metadata meta;
 
     size_t num_rows = 0;
@@ -363,29 +364,30 @@ void run_converter(C converter, Queue& queue, boost::filesystem::path file, char
     std::vector<std::string_view> columns = converter.get_columns();
     columns.push_back("person_id");
 
-    csv_iterator(
-        file.c_str(), columns, delimiter, {}, true, false, [&](const auto& row) {
-            num_rows++;
+    csv_iterator(file.c_str(), columns, delimiter, {}, true, false,
+                 [&](const auto& row) {
+                     num_rows++;
 
-            if (num_rows % 100000000 == 0) {
-                std::cout << absl::Substitute("Processed $0 rows for $1\n",
-                                              num_rows, file.string());
-            }
+                     if (num_rows % 100000000 == 0) {
+                         std::cout
+                             << absl::Substitute("Processed $0 rows for $1\n",
+                                                 num_rows, file.string());
+                     }
 
-            uint64_t person_id;
-            attempt_parse_or_die(row[columns.size() - 1], person_id);
+                     uint64_t person_id;
+                     attempt_parse_or_die(row[columns.size() - 1], person_id);
 
-            if (person_id != current_record.person_id) {
-                if (current_record.person_id) {
-                    queue.wait_enqueue({std::move(current_record)});
-                }
+                     if (person_id != current_record.person_id) {
+                         if (current_record.person_id) {
+                             queue.wait_enqueue({std::move(current_record)});
+                         }
 
-                current_record = {};
-                current_record.person_id = person_id;
-            }
+                         current_record = {};
+                         current_record.person_id = person_id;
+                     }
 
-            converter.augment_day(meta, current_record, row);
-        });
+                     converter.augment_day(meta, current_record, row);
+                 });
 
     if (current_record.person_id) {
         queue.wait_enqueue({std::move(current_record)});
@@ -401,8 +403,13 @@ class DemographicsConverter : public Converter {
     std::string_view get_file_prefix() const { return "person"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"birth_DATETIME", "gender_source_concept_id",
-                "ethnicity_source_concept_id", "race_source_concept_id", "year_of_birth", "month_of_birth", "day_of_birth"};
+        return {"birth_DATETIME",
+                "gender_source_concept_id",
+                "ethnicity_source_concept_id",
+                "race_source_concept_id",
+                "year_of_birth",
+                "month_of_birth",
+                "day_of_birth"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
@@ -428,7 +435,6 @@ class DemographicsConverter : public Converter {
             birth = absl::CivilDay(year, month, day);
         }
         patient_record.birth_date = birth;
-        
 
         uint32_t gender_code = meta.dictionary.map_or_add(row[1]);
         patient_record.observations.push_back(
@@ -547,7 +553,8 @@ class MeasurementConverter : public Converter {
 
 template <typename C>
 std::pair<std::thread, std::shared_ptr<Queue>> generate_converter_thread(
-    const C& converter, boost::filesystem::path target, char delimiter, bool use_quotes) {
+    const C& converter, boost::filesystem::path target, char delimiter,
+    bool use_quotes) {
     std::shared_ptr<Queue> queue =
         std::make_shared<Queue>(10000);  // Ten thousand patient records
     std::thread thread([converter, queue, target, delimiter, use_quotes]() {
@@ -560,7 +567,8 @@ std::pair<std::thread, std::shared_ptr<Queue>> generate_converter_thread(
                       << error << std::endl;
             abort();
         }
-        run_converter(std::move(converter), *queue, target, delimiter, use_quotes);
+        run_converter(std::move(converter), *queue, target, delimiter,
+                      use_quotes);
     });
 
     return std::make_pair(std::move(thread), std::move(queue));
@@ -570,7 +578,7 @@ template <typename C>
 std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
 generate_converter_threads(
     const C& converter,
-    const std::vector<boost::filesystem::path>& possible_targets, 
+    const std::vector<boost::filesystem::path>& possible_targets,
     char delimiter, bool use_quotes) {
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>> results;
 
@@ -590,7 +598,8 @@ generate_converter_threads(
             }
         }
         if (found) {
-            results.push_back(generate_converter_thread(converter, target, delimiter, use_quotes));
+            results.push_back(generate_converter_thread(converter, target,
+                                                        delimiter, use_quotes));
         }
     }
 
@@ -688,10 +697,6 @@ class Merger {
                     for (const auto& obs : record.observations) {
                         total_record.observations.push_back(
                             std::make_pair(obs.first, offset(obs.second)));
-
-                        if (obs.first < total_record.birth_date) {
-                            total_record.birth_date = obs.first;
-                        }
                     }
 
                     for (const auto& obs : record.observations_with_values) {
@@ -707,10 +712,6 @@ class Merger {
 
                         total_record.observations_with_values.push_back(
                             std::make_pair(obs.first, obs_with_value.encode()));
-
-                        if (obs.first < total_record.birth_date) {
-                            total_record.birth_date = obs.first;
-                        }
                     }
 
                     converter_threads[index].second->wait_dequeue(queue_item);
@@ -770,15 +771,22 @@ class Merger {
                 final_record.birth_date = *total_record.birth_date;
 
                 for (const auto& observ : total_record.observations) {
-                    final_record.observations.push_back(std::make_pair(
-                        observ.first - final_record.birth_date, observ.second));
+                    auto delta = observ.first - final_record.birth_date;
+                    if (delta < 0) {
+                        delta = 0;
+                    }
+                    final_record.observations.push_back(
+                        std::make_pair(delta, observ.second));
                 }
 
                 for (const auto& observ :
                      total_record.observations_with_values) {
+                    auto delta = observ.first - final_record.birth_date;
+                    if (delta < 0) {
+                        delta = 0;
+                    }
                     final_record.observations_with_values.push_back(
-                        std::make_pair(observ.first - final_record.birth_date,
-                                       observ.second));
+                        std::make_pair(delta, observ.second));
                 }
 
                 return final_record;
@@ -883,8 +891,9 @@ TermDictionary counts_to_dict(
     return result;
 }
 
-std::vector<std::string> normalize(
-    std::string input_code, const ConceptTable& table, const GEMMapper& gem, const RxNorm& rxnorm) {
+std::vector<std::string> normalize(std::string input_code,
+                                   const ConceptTable& table,
+                                   const GEMMapper& gem, const RxNorm& rxnorm) {
     if (input_code == "" || input_code == "0") {
         return {};
     }
@@ -912,20 +921,24 @@ std::vector<std::string> normalize(
 
     std::optional<ConceptInfo> info_ptr = table.get_info(concept_id);
     if (!info_ptr) {
-        std::cout << "Could not find the concept id " << concept_id << std::endl;
+        std::cout << "Could not find the concept id " << concept_id
+                  << std::endl;
         abort();
     }
 
     ConceptInfo info = *info_ptr;
-    if (info.vocabulary_id == "RxNorm" || info.vocabulary_id == "NDC" || info.vocabulary_id == "HCPCS") {
+    if (info.vocabulary_id == "RxNorm" || info.vocabulary_id == "NDC" ||
+        info.vocabulary_id == "HCPCS") {
         // Need to map over to ATC to avoid painful issues
         results = rxnorm.get_atc_codes(info.vocabulary_id, info.concept_code);
 
         if (results.empty() && info.vocabulary_id == "HCPCS") {
             // If we fail to map to a drug, take it normally
-            results.push_back(absl::Substitute("$0/$1", info.vocabulary_id, info.concept_code));
+            results.push_back(absl::Substitute("$0/$1", info.vocabulary_id,
+                                               info.concept_code));
         } else {
-            std::cout<<"Could not map ? " << info.vocabulary_id << " " << info.concept_code << std::endl;
+            std::cout << "Could not map ? " << info.vocabulary_id << " "
+                      << info.concept_code << std::endl;
         }
     } else if (info.vocabulary_id == "ICD9Proc") {
         for (const auto& proc : gem.map_proc(info.concept_code)) {
@@ -937,14 +950,13 @@ std::vector<std::string> normalize(
         }
     } else if (good_items.find(info.vocabulary_id) != std::end(good_items)) {
         if (info.vocabulary_id == "Condition Type") {
-            std::string final =
-                absl::Substitute("$0/$1", info.concept_class_id,
-                                 info.concept_code);
+            std::string final = absl::Substitute("$0/$1", info.concept_class_id,
+                                                 info.concept_code);
 
             results.push_back(final);
         } else {
-            std::string final = absl::Substitute(
-                "$0/$1", info.vocabulary_id, info.concept_code);
+            std::string final = absl::Substitute("$0/$1", info.vocabulary_id,
+                                                 info.concept_code);
 
             results.push_back(final);
         }
@@ -961,8 +973,8 @@ std::vector<std::string> normalize(
 
 class Cleaner {
    public:
-    Cleaner(const ConceptTable& concepts, const GEMMapper& gem, const RxNorm& rxnorm,
-            const char* path)
+    Cleaner(const ConceptTable& concepts, const GEMMapper& gem,
+            const RxNorm& rxnorm, const char* path)
         : reader(path, false), iterator(reader.iter()) {
         patient_ids = reader.get_patient_ids();
         original_patient_ids = reader.get_original_patient_ids();
@@ -1122,7 +1134,9 @@ class Cleaner {
     size_t current_index;
 };
 
-void create_extract(std::string omop_source_dir, std::string target_directory, const ConceptTable& concepts, const GEMMapper& gem, const RxNorm& rxnorm, char delimiter, bool use_quotes) {
+void create_extract(std::string omop_source_dir, std::string target_directory,
+                    const ConceptTable& concepts, const GEMMapper& gem,
+                    const RxNorm& rxnorm, char delimiter, bool use_quotes) {
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
         converter_threads;
 
@@ -1134,7 +1148,8 @@ void create_extract(std::string omop_source_dir, std::string target_directory, c
     }
 
     auto helper = [&](const auto& c) {
-        auto results = generate_converter_threads(c, targets, delimiter, use_quotes);
+        auto results =
+            generate_converter_threads(c, targets, delimiter, use_quotes);
 
         for (auto& result : results) {
             converter_threads.push_back(std::move(result));
@@ -1169,16 +1184,17 @@ void create_extract(std::string omop_source_dir, std::string target_directory, c
     write_timeline(final_extract.c_str(),
                    Cleaner(concepts, gem, rxnorm, tmp_extract.c_str()));
 
-    
     boost::filesystem::remove(tmp_extract);
 }
 
-void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_dir,
-                             std::string gem_dir, std::string rxnorm_dir,
-                             std::string target_dir_str, char delimiter, bool use_quotes) {
-
-    boost::filesystem::path omop_source_dir = boost::filesystem::canonical(omop_source_dir_str);
-    boost::filesystem::path target_dir = boost::filesystem::weakly_canonical(target_dir_str);
+void perform_omop_extraction(std::string omop_source_dir_str,
+                             std::string umls_dir, std::string gem_dir,
+                             std::string rxnorm_dir, std::string target_dir_str,
+                             char delimiter, bool use_quotes) {
+    boost::filesystem::path omop_source_dir =
+        boost::filesystem::canonical(omop_source_dir_str);
+    boost::filesystem::path target_dir =
+        boost::filesystem::weakly_canonical(target_dir_str);
 
     if (!boost::filesystem::create_directory(target_dir)) {
         std::cout << absl::Substitute(
@@ -1193,17 +1209,20 @@ void perform_omop_extraction(std::string omop_source_dir_str, std::string umls_d
 
     sort_csvs(omop_source_dir, sorted_dir, delimiter, use_quotes);
 
-    ConceptTable concepts = construct_concept_table(omop_source_dir.string(), delimiter, use_quotes);
+    ConceptTable concepts = construct_concept_table(omop_source_dir.string(),
+                                                    delimiter, use_quotes);
 
     GEMMapper gem(gem_dir);
     RxNorm rxnorm(rxnorm_dir);
 
-    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem, rxnorm, delimiter, use_quotes);
+    create_extract(sorted_dir.string(), target_dir.string(), concepts, gem,
+                   rxnorm, delimiter, use_quotes);
 
-    boost::filesystem::remove_all(sorted_dir); 
+    boost::filesystem::remove_all(sorted_dir);
 
     create_index(target_dir.string());
-    create_ontology(target_dir.string(), umls_dir, omop_source_dir.string(), concepts);
+    create_ontology(target_dir.string(), umls_dir, omop_source_dir.string(),
+                    concepts);
 }
 
 void register_extract_extension(py::module& root) {

@@ -19,12 +19,12 @@ create_patient_data = "ehr_ml.create_timelines:create_patient_data"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "1.20.2"
+numpy = "1.21"
 scipy = "^1.6"
 scikit-learn = "^0.24"
 tqdm = "^4.60.0"
 embedding-dot = {git = "https://github.com/Lalaland/embedding_dot.git"}
-torch = "^1.8"
+torch = "^1.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

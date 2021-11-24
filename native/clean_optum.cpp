@@ -309,8 +309,7 @@ class Cleaner {
 int main() {
     std::cout << "Hello world" << std::endl;
 
-    std::string_view path =
-       "/share/pi/nigam/secure/optum/ehr_ml/optum_v1";
+    std::string_view path = "/share/pi/nigam/secure/optum/ehr_ml/optum_v1";
 
     std::string write_path = absl::Substitute("$0/$1", path, "clean");
     std::string read_path = absl::Substitute("$0/$1", path, "temp");
