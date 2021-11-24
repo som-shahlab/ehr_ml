@@ -127,6 +127,10 @@ def create_info_program() -> None:
     train_end_date = datetime.datetime.fromisoformat(args.train_end_date)
     val_end_date = datetime.datetime.fromisoformat(args.val_end_date)
 
+    if train_end_date == val_end_date:
+        logging.info("Could not creat info with the same train and validation end date")
+        exit(1)
+
     result = json.loads(
         create_info(
             timelines_path,
