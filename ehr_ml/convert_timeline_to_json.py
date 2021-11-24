@@ -4,6 +4,7 @@ import argparse
 import bisect
 import json
 import os
+from datetime import date
 
 from .extension.timeline import (
     ObservationWithValue,
@@ -19,9 +20,9 @@ from .extension.ontology import (
 __all__ = ["ObservationWithValue", "TimelineReader", "Patient", "PatientDay"]
 
 
-def create_patient_data() -> None:
+def inspect_timeline_with_descriptions() -> None:
     parser = argparse.ArgumentParser(
-        description="A tool for inspecting an ehr_ml extract"
+        description="A tool for inspecting per-patient timeline with text descriptions for codes"
     )
 
     parser.add_argument(
@@ -37,7 +38,7 @@ def create_patient_data() -> None:
     args = parser.parse_args()
 
     source_file = os.path.join(args.extract_dir, "extract.db")
-    timelines = TimelineReader(source_file)
+    timelines = TimelineReader(source_file, readall=False)
     if args.patient_id is not None:
         patient_id = int(args.patient_id)
     else:
@@ -51,8 +52,6 @@ def create_patient_data() -> None:
         exit(-1)
 
     patient = timelines.get_patient(patient_id)
-
-    print(f"Patient: {patient.patient_id}, (aka {original_patient_id})")
 
     def obs_with_value_to_str(obs_with_value: ObservationWithValue) -> str:
         code_text = timelines.get_dictionary().get_word(obs_with_value.code)
@@ -68,16 +67,21 @@ def create_patient_data() -> None:
 
     with open('test_patient.json', 'w', encoding='utf-8') as f:
         patient_timeline = {}
-        for i, day in enumerate(patient.days):
-            patient_timeline[f'day {i}'] = {
-                "date": str(day.date),
-                "age in days": str(day.age),
-                "observation": {
-                    str(timelines.get_dictionary().get_word(a)) : str(ontology.get_text_description_dictionary().get_definition(a))
-                    for a in day.observations
-                },
-                "observation with values": sorted([
-                    obs_with_value_to_str(a) for a in day.observations_with_values]),
-            }
+        patient_timeline['patient_id'] = patient_id
+        patient_timeline['days'] = []
+        for day in patient.days:
+            patient_timeline['days'].append({
+                    "date": date.isoformat(day.date),
+                    "age in days": str(day.age),
+                    "observation": {
+                        str(timelines.get_dictionary().get_word(a)) : str(ontology.get_text_description_dictionary().get_definition(a))
+                        for a in day.observations
+                    },
+                    "observation with values": {
+                        obs_with_value_to_str(a) : str(ontology.get_text_description_dictionary().get_definition(a.code))
+                        for a in day.observations_with_values
+                    },
+                }
+            )
 
         json.dump(patient_timeline, f, sort_keys=True, indent=4)
