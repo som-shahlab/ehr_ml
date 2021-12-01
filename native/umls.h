@@ -178,6 +178,12 @@ class UMLS {
         auto atc_fix_map = load_atc_fix_map(umls_path);
 
         std::string mrrel = absl::Substitute("$0/$1", umls_path, "MRREL.RRF");
+        if (!boost::filesystem::exists(mrrel)) {
+            std::cout << "Could not find the MRREL.RRF file in the provided "
+                         "umls_path "
+                      << umls_path << std::endl;
+            exit(-1);
+        }
 
         std::ifstream infile(mrrel);
 
