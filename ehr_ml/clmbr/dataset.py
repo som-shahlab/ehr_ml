@@ -92,10 +92,17 @@ def convert_patient_data(
 
     def get_date_index(pid: int, date_obj: datetime.date) -> int:
         patient = timelines.get_patient(pid)
-        for i, day in enumerate(patient.days):
-            if date_obj == day.date:
-                return i
-        assert 0, "should find correct date in timeline!"
+        
+        i = 0
+        for day in patient.days:
+            if day.date > date_obj:
+                break
+            i += 1
+
+        if i == 0:
+            assert 0, f"should find correct date in timeline! {pid} {date_obj}"
+        else:
+            return i - 1
 
     def convert_data(
         og_pid: int, date: Union[str, datetime.date]
