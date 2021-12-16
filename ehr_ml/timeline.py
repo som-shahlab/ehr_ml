@@ -29,12 +29,22 @@ def inspect_timelines() -> None:
         "patient_id", type=int, help="The patient id to inspect",
     )
 
+    parser.add_argument("--original_patient_id", default=False, action="store_true")
+
     args = parser.parse_args()
 
     source_file = os.path.join(args.extract_dir, "extract.db")
     timelines = TimelineReader(source_file)
     if args.patient_id is not None:
         patient_id = int(args.patient_id)
+        if args.original_patient_id:
+            location = bisect.bisect_left(timelines.get_original_patient_ids(), patient_id)
+            if timelines.get_original_patient_ids()[location] != patient_id:
+                print("Could not locate original patient ?", patient_id)
+                exit(-1)
+            
+            patient_id = timelines.get_patient_ids()[location]
+
     else:
         patient_id = timelines.get_patient_ids()[0]
 
