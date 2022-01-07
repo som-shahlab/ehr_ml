@@ -100,6 +100,12 @@ def create_info_program() -> None:
         default=3451235,
         help="Random seed (default 3451235)",
     )
+    parser.add_argument(
+        "--train_start_date", type=str, help="The start date for training", default='1900-01-01'
+    )
+    parser.add_argument(
+        "--val_start_date", type=str, help="The start date for validation", default='train_end_date'
+    )
     args = parser.parse_args()
 
     if args.save_dir is None:
@@ -107,6 +113,9 @@ def create_info_program() -> None:
         exit(1)
     else:
         save_dir = args.save_dir
+
+    if args.val_start_date == 'train_end_date':
+        args.val_start_date = args.train_end_date
 
     os.makedirs(save_dir, exist_ok=True)
 
@@ -124,11 +133,18 @@ def create_info_program() -> None:
     ontologies_path = os.path.join(args.input_data_dir, "ontology.db")
     timelines_path = os.path.join(args.input_data_dir, "extract.db")
 
+    train_start_date = datetime.datetime.fromisoformat(args.train_start_date)
     train_end_date = datetime.datetime.fromisoformat(args.train_end_date)
+    
+    if train_start_date >= train_end_date:
+        logging.info("Training start date is after training end date?")
+        exit(1)
+    
+    val_start_date = datetime.datetime.fromisoformat(args.val_start_date)
     val_end_date = datetime.datetime.fromisoformat(args.val_end_date)
-
-    if train_end_date == val_end_date:
-        logging.info("Could not creat info with the same train and validation end date")
+    
+    if val_start_date >= val_end_date:
+        logging.info("Validation start date is after training end date?")
         exit(1)
 
     result = json.loads(
@@ -142,10 +158,13 @@ def create_info_program() -> None:
     )
     result["extract_dir"] = args.input_data_dir
     result["extract_file"] = "extract.db"
-    result["train_start_date"] = "1900-01-01"
+
+    result["train_start_date"] = args.train_start_date
     result["train_end_date"] = args.train_end_date
-    result["val_start_date"] = args.train_end_date
+
+    result["val_start_date"] = args.val_start_date
     result["val_end_date"] = args.val_end_date
+
     result["seed"] = args.seed
     result["min_patient_count"] = args.min_patient_count
 
