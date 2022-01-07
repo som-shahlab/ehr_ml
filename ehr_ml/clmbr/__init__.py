@@ -85,6 +85,18 @@ def create_info_program() -> None:
         default=None,
     )
     parser.add_argument(
+        "--train_patient_file",
+        type=str,
+        help="If provided, this will contain all of the patients allowed to be used for training",
+        default=None,
+    )
+    parser.add_argument(
+        "--val_patient_file",
+        type=str,
+        help="If provided, this will contain all of the patients allowed to be used for validation",
+        default=None,
+    )
+    parser.add_argument(
         "--exclude_patient_ratio",
         type=float,
         default=None,
@@ -170,6 +182,9 @@ def create_info_program() -> None:
 
     def remove_pids(a, x):
         return [(p, c) for p, c in a if p not in x]
+    
+    def require_pids(a, x):
+        return [(p, c) for p, c in a if p in x]
 
     if args.excluded_patient_file is not None:
         with open(args.excluded_patient_file) as f:
@@ -212,6 +227,22 @@ def create_info_program() -> None:
             "Removed %d patient IDs using ratio %f"
             % (len(excluded_pids), args.exclude_patient_ratio)
         )
+
+    if args.train_patient_file is not None:
+        with open(args.train_patient_file) as f:
+            pids = {int(a) for a in f}
+
+            result["train_patient_ids_with_length"] = require_pids(
+                result["train_patient_ids_with_length"], pids
+            )
+    
+    if args.val_patient_file is not None:
+        with open(args.val_patient_file) as f:
+            pids = {int(a) for a in f}
+
+            result["val_patient_ids_with_length"] = require_pids(
+                result["val_patient_ids_with_length"], pids
+            )
 
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int:
         return len(
