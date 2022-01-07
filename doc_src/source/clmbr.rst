@@ -32,7 +32,7 @@ clmbr_create_info
 clmbr_create_info is a command line program for preprocessing the dataset before training.
 clmbr_create_info is responsible for two very important hyperparameters, the time splits and the minimum patient feature count.
 CLMBR operates under a time split assumption such that training data, validation data and test data come from different times.
-Everything before the train_end_date is training. Everything between train_end_date and val_end_date is for validation.
+Everything between train_start_date and train_end_date is training. Everything between val_start_date and val_end_date is for validation.
 Everything past the val_end_date is assumed to be the test set and is not touched by CLMBR, either for internal validation or training.
 
 The second major hyperparameter is the minimum patient count. This controls how many patients are required to have a feature before it is used in the model.
@@ -44,7 +44,8 @@ clmbr_create_info takes the following parameters:
     - val_end_date: The end date of the validation split
     - min_patient_count: The minimum patient count for each feature
     - banned_patient_file: A file containing a list of patient ids to exclude from the model
-
+    - train_start_date: The start date for representation learning training. Defaults to 1900-01-01
+    - val_start_date: The start date for representation learning validation. Defaults to train_end_date.
 
 clmbr_train_model
 
