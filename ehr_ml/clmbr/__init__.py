@@ -163,7 +163,9 @@ def create_info_program() -> None:
         create_info(
             timelines_path,
             ontologies_path,
+            train_start_date,
             train_end_date,
+            val_start_date,
             val_end_date,
             args.min_patient_count,
         )
@@ -179,6 +181,8 @@ def create_info_program() -> None:
 
     result["seed"] = args.seed
     result["min_patient_count"] = args.min_patient_count
+    
+    print('Starting point', len(result['val_patient_ids_with_length']))
 
     def remove_pids(a, x):
         return [(p, c) for p, c in a if p not in x]
@@ -227,6 +231,8 @@ def create_info_program() -> None:
             "Removed %d patient IDs using ratio %f"
             % (len(excluded_pids), args.exclude_patient_ratio)
         )
+    
+    print('After exclusion', len(result['val_patient_ids_with_length']))
 
     if args.train_patient_file is not None:
         with open(args.train_patient_file) as f:
@@ -243,6 +249,8 @@ def create_info_program() -> None:
             result["val_patient_ids_with_length"] = require_pids(
                 result["val_patient_ids_with_length"], pids
             )
+    
+    print('Final', len(result['val_patient_ids_with_length']))
 
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int:
         return len(

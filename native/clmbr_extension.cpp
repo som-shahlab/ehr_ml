@@ -51,7 +51,9 @@ class OnlineStatistics {
 };
 
 std::string create_info(const char* timeline_path, const char* ontology_path,
+                        absl::CivilDay train_start_date,
                         absl::CivilDay train_end_date,
+                        absl::CivilDay val_start_date,
                         absl::CivilDay val_end_date, int min_patient_count) {
     ExtractReader reader(timeline_path, true);
     OntologyReader ontologies(ontology_path);
@@ -85,12 +87,16 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
 
     for (auto patient_id : reader.get_patient_ids()) {
         patient_code_set.clear();
+        std::optional<uint32_t> train_start_age;
         std::optional<uint32_t> train_end_age;
+        std::optional<uint32_t> val_start_age;
         std::optional<uint32_t> val_end_age;
 
         uint32_t train_length = 0;
         uint32_t val_length = 0;
+
         uint32_t valid_val_count = 0;
+        uint32_t valid_train_count = 0;
 
         uint32_t last_age = 0;
 
@@ -106,9 +112,19 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
                             const std::vector<uint32_t>& observations,
                             const std::vector<ObservationWithValue>&
                                 observations_with_values) {
+                if (!train_start_age) {
+                    train_start_age =
+                        std::max(train_start_date - birth_day,
+                                 (absl::time_internal::cctz::diff_t)0);
+                }
                 if (!train_end_age) {
                     train_end_age =
                         std::max(train_end_date - birth_day,
+                                 (absl::time_internal::cctz::diff_t)0);
+                }
+                if (!val_start_age) {
+                    val_start_age =
+                        std::max(val_start_date - birth_day,
                                  (absl::time_internal::cctz::diff_t)0);
                 }
                 if (!val_end_age) {
@@ -151,12 +167,16 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
                     val_length++;
                 }
 
-                if (age >= *train_end_age && age < *val_end_age) {
+                if (age >= *val_start_age && age < *val_end_age) {
                     valid_val_count++;
+                }
+                
+                if (age >= *train_start_age && age < *train_end_age) {
+                    valid_train_count++;
                 }
             });
 
-        if (train_length >= 3) {
+        if (train_length >= 3 && valid_train_count > 0) {
             std::sort(std::begin(patient_code_set), std::end(patient_code_set));
             auto unique_end = std::unique(std::begin(patient_code_set),
                                           std::end(patient_code_set));
