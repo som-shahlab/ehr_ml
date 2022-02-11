@@ -287,7 +287,7 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
 std::vector<int64_t> convert_to_int(py::object data) {
     py::object int_data = py::reinterpret_steal<py::object>(
         (PyObject*)PyArray_FromAny(data.ptr(), PyArray_DescrFromType(NPY_INT64),
-                                   1, 1, NPY_ARRAY_CARRAY_RO, nullptr));
+                                   1, 1, NPY_ARRAY_CARRAY_RO | NPY_ARRAY_FORCECAST, nullptr));
     const int64_t* ptr =
         (const int64_t*)PyArray_DATA((PyArrayObject*)int_data.ptr());
     size_t size = PyArray_SHAPE((PyArrayObject*)int_data.ptr())[0];
