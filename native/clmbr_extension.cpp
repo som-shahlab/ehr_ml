@@ -952,8 +952,8 @@ class PTDatasetIterator {
 
                     if (!is_drop &&
                         current_label_iter != std::end(current_labels) &&
-                        current_label_iter->first == day_index) {
-                        batch.label_indices.push_back((current_offset - 2) +
+                        current_label_iter->first == day_index + 1) {
+                        batch.label_indices.push_back((current_offset - 1) +
                                                       i * max_length);
                         batch.label_values.push_back(
                             current_label_iter->second);
