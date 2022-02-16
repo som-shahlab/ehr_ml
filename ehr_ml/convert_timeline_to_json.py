@@ -20,9 +20,9 @@ from .extension.ontology import (
 __all__ = ["ObservationWithValue", "TimelineReader", "Patient", "PatientDay"]
 
 
-def inspect_timeline_with_descriptions() -> None:
+def convert_patient_to_json() -> None:
     parser = argparse.ArgumentParser(
-        description="A tool for inspecting per-patient timeline with text descriptions for codes"
+        description="A tool for dumping per-patient timeline to json with text descriptions for codes"
     )
 
     parser.add_argument(
@@ -33,6 +33,10 @@ def inspect_timeline_with_descriptions() -> None:
 
     parser.add_argument(
         "patient_id", type=int, help="The patient id to inspect",
+    )
+
+    parser.add_argument(
+        "output_file", type=str, help="The name of the output file (.json will be appended automatically)"
     )
 
     args = parser.parse_args()
@@ -65,7 +69,7 @@ def inspect_timeline_with_descriptions() -> None:
 
     ontology = OntologyReader(os.path.join(args.extract_dir, "ontology.db"))
 
-    with open('test_patient.json', 'w', encoding='utf-8') as f:
+    with open(args.output_file+'.json', 'w', encoding='utf-8') as f:
         patient_timeline = {}
         patient_timeline['patient_id'] = patient_id
         patient_timeline['days'] = []

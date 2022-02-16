@@ -15,7 +15,7 @@ clmbr_train_model = "ehr_ml.clmbr:train_model"
 clmbr_debug_model = "ehr_ml.clmbr:debug_model"
 patient2vec_train_model = 'ehr_ml.patient2vec:train_model'
 patient2vec_debug_model = 'ehr_ml.patient2vec:debug_model'
-inspect_patient_timeline = 'ehr_ml.convert_timeline_to_json:inspect_timeline_with_descriptions'
+convert_patient_to_json = 'ehr_ml.convert_timeline_to_json:convert_patient_to_json'
 
 [tool.poetry.dependencies]
 python = "^3.8"

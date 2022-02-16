@@ -34,7 +34,7 @@ void register_ontology_extension(py::module& root) {
         .def("get_text_description_dictionary", &OntologyReader::get_text_description_dictionary,
              py::return_value_policy::reference_internal);
     py::class_<OntologyCodeDictionary>(m, "OntologyCodeDictionary")
-        .def("get_code_str", &OntologyCodeDictionary::get_code_str, py::arg("code"))
+        .def("get_word", &OntologyCodeDictionary::get_word, py::arg("code"))
         .def("get_definition", &OntologyCodeDictionary::get_definition, py::arg("code"))
         .def("map", &OntologyCodeDictionary::map, py::arg("code"));
 }
