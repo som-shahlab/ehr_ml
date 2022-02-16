@@ -55,11 +55,12 @@ struct hash<StringHolder> {
 };
 }  // namespace std
 
-class TermDictionary {
+template <typename T>
+class Dictionary {
    public:
-    TermDictionary() { is_mutable = true; }
+    explicit Dictionary() { is_mutable = true; }
 
-    TermDictionary(const char* begin, size_t size,
+    explicit Dictionary(const char* begin, size_t size,
                    bool should_be_mutable = false) {
         is_mutable = should_be_mutable;
         nlohmann::json result = nlohmann::json::parse(begin, begin + size);
@@ -72,7 +73,7 @@ class TermDictionary {
             code.make_copy();
 
             uint32_t index = entry[1];
-            uint32_t count = entry[2];
+            T count = entry[2].get<T>();
             mapper.emplace(code, index);
 
             if (index >= reverse_mapper.size()) {
@@ -85,7 +86,7 @@ class TermDictionary {
         }
     }
 
-    TermDictionary(std::vector<std::pair<std::string, uint32_t>> vals)
+    explicit Dictionary(std::vector<std::pair<std::string, T>> vals)
         : reverse_mapper(std::move(vals)) {
         if (reverse_mapper.size() > std::numeric_limits<uint32_t>::max()) {
             std::cout << "Creating a dictionary that's too large "
@@ -101,8 +102,67 @@ class TermDictionary {
         }
     }
 
-    TermDictionary(const TermDictionary& source)
-        : TermDictionary(source.reverse_mapper) {}
+    explicit Dictionary(const Dictionary& source)
+        : Dictionary(source.reverse_mapper) {}
+
+    std::optional<uint32_t> map(std::string_view code) const {
+        auto iter = mapper.find(StringHolder(code));
+
+        if (iter == std::end(mapper)) {
+            return {};
+        } else {
+            return {iter->second};
+        }
+    }
+
+    std::optional<std::string_view> get_word(uint32_t code) const {
+        if (code >= reverse_mapper.size()) {
+            return {};
+        } else {
+            return {reverse_mapper[code].first};
+        }
+    }
+
+    void clear() {
+        if (!is_mutable) {
+            std::cout << absl::Substitute("Trying to clear an immutable map\n");
+            abort();
+        }
+
+        mapper.clear();
+        reverse_mapper.clear();
+    }
+
+    std::string to_json() const {
+        std::vector<std::tuple<std::string, uint32_t, T>> entries;
+
+        for (size_t i = 0; i < reverse_mapper.size(); i++) {
+            const auto& entry = reverse_mapper[i];
+            entries.push_back(std::make_tuple(entry.first, i, entry.second));
+        }
+
+        nlohmann::json result;
+        result["values"] = entries;
+
+        return result.dump();
+    }
+
+    std::vector<std::pair<std::string, uint32_t>> decompose() const {
+        return reverse_mapper;
+    }
+
+    uint32_t size() const { return reverse_mapper.size(); }
+
+   protected:
+    absl::flat_hash_map<StringHolder, uint32_t> mapper;
+    std::vector<std::pair<std::string, T>> reverse_mapper;
+    bool is_mutable;
+};
+
+class TermDictionary : public Dictionary<uint32_t>
+{
+   public:
+    using Dictionary::Dictionary;
 
     uint32_t map_or_add(std::string_view code, uint32_t count = 1) {
         auto [iter, added] =
@@ -139,52 +199,6 @@ class TermDictionary {
         return iter->second;
     }
 
-    std::optional<uint32_t> map(std::string_view code) const {
-        auto iter = mapper.find(StringHolder(code));
-
-        if (iter == std::end(mapper)) {
-            return {};
-        } else {
-            return {iter->second};
-        }
-    }
-
-    std::optional<std::string_view> get_word(uint32_t code) const {
-        if (code >= reverse_mapper.size()) {
-            return {};
-        } else {
-            return {reverse_mapper[code].first};
-        }
-    }
-
-    void clear() {
-        if (!is_mutable) {
-            std::cout << absl::Substitute("Trying to clear an immutable map\n");
-            abort();
-        }
-
-        mapper.clear();
-        reverse_mapper.clear();
-    }
-
-    std::string to_json() const {
-        std::vector<std::tuple<std::string, uint32_t, uint32_t>> entries;
-
-        for (size_t i = 0; i < reverse_mapper.size(); i++) {
-            const auto& entry = reverse_mapper[i];
-            entries.push_back(std::make_tuple(entry.first, i, entry.second));
-        }
-
-        nlohmann::json result;
-        result["values"] = entries;
-
-        return result.dump();
-    }
-
-    std::vector<std::pair<std::string, uint32_t>> decompose() const {
-        return reverse_mapper;
-    }
-
     std::pair<TermDictionary, std::vector<uint32_t>> optimize() const {
         std::vector<std::tuple<int32_t, uint32_t, std::string>> entries;
 
@@ -207,13 +221,43 @@ class TermDictionary {
 
         return std::make_pair(TermDictionary(new_reverse_mapper), mapper_vec);
     }
+};
 
-    uint32_t size() const { return reverse_mapper.size(); }
 
-   private:
-    absl::flat_hash_map<StringHolder, uint32_t> mapper;
-    std::vector<std::pair<std::string, uint32_t>> reverse_mapper;
-    bool is_mutable;
+class OntologyCodeDictionary : public Dictionary<std::string> 
+{
+   public:
+    using Dictionary::Dictionary;
+
+    uint32_t add(std::string_view code, std::string_view definition) {
+        auto [iter, added] =
+            mapper.emplace(StringHolder(code), reverse_mapper.size());
+
+        if (added) {
+            reverse_mapper.push_back(std::make_pair(std::string(code), std::string(definition)));
+            iter->first.make_copy();
+
+            if (reverse_mapper.size() > std::numeric_limits<uint32_t>::max()) {
+                std::cout << "Adding a word to a dictionary that is too large "
+                        << reverse_mapper.size() << std::endl;
+                abort();
+            }
+        } else {
+            std::cout << "Got duplicate definition for word " << code 
+                        << "Existing: " << reverse_mapper[iter->second].second
+                        << "New: " << definition << std::endl;
+            abort();
+        }
+        return iter->second;
+    }
+
+    std::optional<std::string_view> get_definition(uint32_t code) const {
+        if (code >= reverse_mapper.size()) {
+            return {};
+        } else {
+            return {reverse_mapper[code].second};
+        }
+    }
 };
 
 template <class To, class From>
@@ -431,7 +475,6 @@ class OntologyReader {
         for (auto& item : children_map) {
             std::sort(std::begin(item.second), std::end(item.second));
         }
-
         auto [ptr, size] = reader.get_str("root");
         if (size != sizeof(uint32_t)) {
             std::cout << "Could not find the root code " << std::endl;
@@ -526,6 +569,16 @@ class OntologyReader {
         return recorded_date_codes;
     }
 
+    const OntologyCodeDictionary& get_text_description_dictionary() {
+        if (!text_description_dictionary) {
+            auto [dict_start, dict_size] = reader.get_str("text_description_dictionary");
+            std::cout << "Got text description dictionary of size " << dict_size << std::endl;
+            text_description_dictionary = OntologyCodeDictionary(dict_start, dict_size);
+        }
+
+        return *text_description_dictionary;
+    }
+
     uint32_t get_root_code() const { return root_code; }
 
    private:
@@ -557,6 +610,8 @@ class OntologyReader {
     ConstdbReader reader;
 
     std::optional<TermDictionary> dictionary;
+
+    std::optional<OntologyCodeDictionary> text_description_dictionary;
 
     std::optional<absl::flat_hash_map<uint32_t, std::vector<uint32_t>>>
         inverse_map;

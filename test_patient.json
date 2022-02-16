@@ -1,0 +1,2078 @@
+{
+    "days": [
+        {
+            "age in days": "0",
+            "date": "1922-01-01",
+            "observation": {
+                "Ethnicity/Not Hispanic": "NO_DEF",
+                "Gender/M": "NO_DEF",
+                "Race/5": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31515",
+            "date": "2008-04-14",
+            "observation": {
+                "CPT4/77280": "THER RAD SIMULAJ-AIDED FIELD SETTING SIMPLE",
+                "CPT4/93000": "ECG ROUTINE ECG W/LEAST 12 LDS W/I&R",
+                "CPT4/94060": "BRNCDILAT RSPSE SPMTRY PRE&POST-BRNCDILAT ADMN",
+                "HCPCS/G8443": "NO_DEF",
+                "ICD10CM/C82.91": "Follicular lymphoma, unspecified, lymph nodes of head, face, and neck",
+                "ICD10CM/C83.73": "Burkitt lymphoma, intra-abdominal lymph nodes"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31523",
+            "date": "2008-04-22",
+            "observation": {
+                "CPT4/11100": "NO_DEF",
+                "ICD10CM/D37.8": "Neoplasm of uncertain behavior of anus NOS",
+                "ICD10CM/D48.5": "Neoplasm of uncertain behavior of anal skin"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31524",
+            "date": "2008-04-23",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/85007": "BLOOD COUNT SMEAR MCRSCP W/MNL DIFRNTL WBC COUNT",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31542",
+            "date": "2008-05-11",
+            "observation": {
+                "CPT4/83036": "HEMOGLOBIN GLYCOSYLATED A1C",
+                "CPT4/92014": "OPHTH MEDICAL XM&EVAL COMPRHNSV ESTAB PT 1/>",
+                "CPT4/92015": "DETERMINATION REFRACTIVE STATE",
+                "CPT4/97530": "THERAPEUT ACTVITY DIRECT PT CONTACT EACH 15 MIN",
+                "ICD10CM/H04.129": "Dry eye syndrome of unspecified lacrimal gland",
+                "ICD10CM/H40.1110": "Primary open-angle glaucoma, right eye, stage unspecified",
+                "ICD10CM/H52.4": "NO_DEF",
+                "ICD10CM/M12.9": "NO_DEF",
+                "ICD10CM/M25.579": "Pain in unspecified ankle and joints of unspecified foot",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31543",
+            "date": "2008-05-12",
+            "observation": {
+                "CPT4/3074F": "MOST RECENT SYSTOLIC BLOOD PRESSURE <130 MM HG",
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/80053": "Measurement of albumin",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31550",
+            "date": "2008-05-19",
+            "observation": {
+                "CPT4/72020": "X-ray of spine, 1 view",
+                "CPT4/80053": "Measurement of albumin",
+                "CPT4/85025": "Automated platelet count",
+                "CPT4/98941": "CHIROPRACTIC MANIPULATIVE TX SPINAL 3-4 REGIONS",
+                "ICD10CM/M47.812": "Spondylosis without myelopathy or radiculopathy, cervical region",
+                "ICD10CM/M48.10": "NO_DEF",
+                "ICD10CM/M50.20": "Other cervical disc displacement, unspecified cervical region",
+                "ICD10CM/M50.30": "Other cervical disc degeneration, unspecified cervical region",
+                "ICD10CM/Z12.5": "Encounter for screening for malignant neoplasm of prostate",
+                "ICD10CM/Z13.228": "Encounter for screening for other metabolic disorders"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31571",
+            "date": "2008-06-09",
+            "observation": {
+                "CPT4/80053": "Measurement of albumin",
+                "CPT4/80061": "LIPID PANEL",
+                "CPT4/82947": "Blood glucose (sugar) level",
+                "HCPCS/P9603": "Travel allowance one way in connection with medically necessary laboratory specimen collection drawn from home bound or nursing home bound patient; prorated miles actually travelled",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/E78.00": "(Pure) hypercholesterolemia NOS",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31572",
+            "date": "2008-06-10",
+            "observation": {
+                "CPT4/85018": "BLOOD COUNT HEMOGLOBIN",
+                "ICD10CM/G93.3": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31580",
+            "date": "2008-06-18",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/S43.429A": "Sprain of unspecified rotator cuff capsule, initial encounter"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31584",
+            "date": "2008-06-22",
+            "observation": {
+                "CPT4/28090": "Excision of cyst of tendon of foot",
+                "ICD10CM/M67.40": "Ganglion, unspecified site",
+                "ICD10CM/M77.50": "Other enthesopathy of unspecified foot and ankle"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31585",
+            "date": "2008-06-23",
+            "observation": {
+                "CPT4/99284": "EMERGENCY DEPARTMENT VISIT HIGH/URGENT SEVERITY",
+                "ICD10CM/E08.65": "Diabetes mellitus due to underlying condition with hyperglycemia",
+                "ICD10CM/E09.69": "Drug or chemical induced diabetes mellitus with other specified complication",
+                "ICD10CM/E11.618": "Type 2 diabetes mellitus with other diabetic arthropathy"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31592",
+            "date": "2008-06-30",
+            "observation": {
+                "CPT4/82306": "Vitamin D-3 level",
+                "ICD10CM/G25.89": "NO_DEF",
+                "ICD10CM/K20.9": "NO_DEF",
+                "ICD10CM/K21.9": "Esophageal reflux NOS",
+                "ICD10CM/K52.29": "Immediate gastrointestinal hypersensitivity"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31600",
+            "date": "2008-07-08",
+            "observation": {
+                "CPT4/97001": "NO_DEF",
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "ICD10CM/M25.439": "Effusion, unspecified wrist",
+                "ICD10CM/M62.40": "Contracture of muscle, unspecified site",
+                "ICD10CM/R26.2": "NO_DEF",
+                "ICD10CM/Z96.649": "Presence of unspecified artificial hip joint",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31606",
+            "date": "2008-07-14",
+            "observation": {
+                "CPT4/97035": "Application of ultrasound modality",
+                "ICD10CM/M47.817": "Spondylosis without myelopathy or radiculopathy, lumbosacral region",
+                "ICD10CM/M48.08": "NO_DEF",
+                "ICD10CM/M54.14": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31610",
+            "date": "2008-07-18",
+            "observation": {
+                "CPT4/29824": "ARTHROSCOPY SHOULDER DISTAL CLAVICULECTOMY",
+                "HCPCS/G0283": "Electrical stimulation (unattended), to one or more areas for indication(s) other than wound care, as part of a therapy plan of care",
+                "ICD10CM/M16.9": "Osteoarthritis of hip, unspecified",
+                "ICD10CM/M19.019": "Primary osteoarthritis, unspecified shoulder",
+                "ICD10CM/M24.019": "Loose body in unspecified shoulder",
+                "ICD10CM/M62.81": "Muscle weakness (generalized)"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31616",
+            "date": "2008-07-24",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "ICD10CM/M46.1": "NO_DEF",
+                "ICD10CM/M53.0": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31619",
+            "date": "2008-07-27",
+            "observation": {
+                "CPT4/80048": "Measurement of creatinine",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+                "ICD10CM/E13.10": "Other specified diabetes mellitus with ketoacidosis without coma",
+                "ICD10CM/Z79.4": "Long term (current) use of insulin"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31621",
+            "date": "2008-07-29",
+            "observation": {
+                "CPT4/82570": "CREATININE OTHER SOURCE",
+                "CPT4/85025": "Automated platelet count",
+                "ICD10CM/C75.0": "NO_DEF",
+                "ICD10CM/D63.0": "NO_DEF",
+                "ICD10CM/D64.9": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31628",
+            "date": "2008-08-05",
+            "observation": {
+                "CPT4/72158": "MRI SPINAL CANAL LUMBAR W/O & W/CONTR MATRL",
+                "ICD10CM/M51.26": "Other intervertebral disc displacement, lumbar region",
+                "ICD10CM/M51.9": "Unspecified thoracic, thoracolumbar and lumbosacral intervertebral disc disorder",
+                "ICD10CM/M96.1": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31629",
+            "date": "2008-08-06",
+            "observation": {
+                "CPT4/23415": "Release of coracoacromial ligament",
+                "CPT4/4048F": "DOC ANTIBIO GIVEN W/IN 1 HR PRIOR SURG/INCIS",
+                "ICD10CM/M54.5": "Lumbago NOS",
+                "ICD10CM/M75.30": "Calcific tendinitis of unspecified shoulder",
+                "ICD10CM/M79.A3": "Nontraumatic compartment syndrome of abdomen"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31632",
+            "date": "2008-08-09",
+            "observation": {
+                "CPT4/29826": "Shaving of shoulder bone using an endoscope",
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "ICD10CM/M15.0": "Primary generalized (osteo)arthritis",
+                "ICD10CM/M19.90": "Unspecified osteoarthritis, unspecified site",
+                "ICD10CM/M24.019": "Loose body in unspecified shoulder",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31633",
+            "date": "2008-08-10",
+            "observation": {
+                "CPT4/99309": "SBSQ NURSING FACIL CARE/DAY NEW PROBLEM 25 MIN",
+                "ICD10CM/E16.2": "NO_DEF",
+                "ICD10CM/E22.8": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31636",
+            "date": "2008-08-13",
+            "observation": {
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "ICD10CM/H33.319": "Horseshoe tear of retina without detachment, unspecified eye",
+                "ICD10CM/H35.039": "Hypertensive retinopathy, unspecified eye",
+                "ICD10CM/H35.049": "Retinal micro-aneurysms, unspecified, unspecified eye",
+                "ICD10CM/H57.02": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31645",
+            "date": "2008-08-22",
+            "observation": {
+                "CPT4/71020": "NO_DEF",
+                "ICD10CM/J98.11": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31655",
+            "date": "2008-09-01",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/L60.0": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31656",
+            "date": "2008-09-02",
+            "observation": {
+                "CPT4/80061": "LIPID PANEL",
+                "CPT4/82306": "Vitamin D-3 level",
+                "CPT4/85652": "SEDIMENTATION RATE RBC AUTOMATED",
+                "ICD10CM/M25.559": "Pain in unspecified hip",
+                "ICD10CM/N18.3": "Chronic kidney disease, stage 3 (moderate)",
+                "ICD10CM/R94.5": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31659",
+            "date": "2008-09-05",
+            "observation": {
+                "CPT4/82962": "GLUC BLD GLUC MNTR DEV CLEARED FDA SPEC HOME USE",
+                "ICD10CM/E10.65": "Type 1 diabetes mellitus with hyperglycemia",
+                "ICD10CM/E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+                "ICD10CM/E11.8": "Type 2 diabetes mellitus with unspecified complications"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31668",
+            "date": "2008-09-14",
+            "observation": {
+                "CPT4/99202": "OFFICE OUTPATIENT NEW 20 MINUTES",
+                "ICD10CM/D48.5": "Neoplasm of uncertain behavior of anal skin",
+                "ICD10CM/L51.2": "NO_DEF",
+                "ICD10CM/L57.0": "Keratosis NOS",
+                "ICD10CM/L57.8": "NO_DEF",
+                "ICD10CM/L98.1": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31674",
+            "date": "2008-09-20",
+            "observation": {
+                "CPT4/87086": "Bacterial colony count, urine",
+                "ICD10CM/N34.3": "NO_DEF",
+                "ICD10CM/N39.0": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31675",
+            "date": "2008-09-21",
+            "observation": {
+                "CPT4/1000F": "TOBACCO USE ASSESSED",
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/97112": "THER PX 1/> AREAS EACH 15 MIN NEUROMUSC REEDUCA",
+                "CPT4/97116": "Gait training including stair climbing",
+                "CPT4/97150": "Group therapeutic procedures",
+                "CPT4/97530": "THERAPEUT ACTVITY DIRECT PT CONTACT EACH 15 MIN",
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "HCPCS/G0008": "Administration of influenza virus vaccine",
+                "ICD10CM/G60.9": "NO_DEF",
+                "ICD10CM/M15.9": "Generalized osteoarthritis NOS",
+                "ICD10CM/M85.9": "NO_DEF",
+                "ICD10CM/Z23": "Encounter for immunization",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-9.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31676",
+            "date": "2008-09-22",
+            "observation": {
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "ICD10CM/G56.00": "Carpal tunnel syndrome, unspecified upper limb",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31679",
+            "date": "2008-09-25",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/90715": "TDAP VACCINE 7 YRS/> IM",
+                "HCPCS/G0008": "Administration of influenza virus vaccine",
+                "HCPCS/J1441": "NO_DEF",
+                "ICD10CM/D46.22": "RAEB 2",
+                "ICD10CM/D61.1": "NO_DEF",
+                "ICD10CM/R11.0": "Nausea NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31686",
+            "date": "2008-10-02",
+            "observation": {
+                "CPT4/82043": "URINE ALBUMIN QUANTITATIVE",
+                "CPT4/83036": "HEMOGLOBIN GLYCOSYLATED A1C",
+                "CPT4/83550": "IRON BINDING CAPACITY",
+                "CPT4/84439": "Thyroxine; free",
+                "CPT4/86235": "EXTRACTABLE NUCLEAR ANTIGEN ANTIBODY ANY METHOD",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/Z46.81": "Encounter for insulin pump titration",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31689",
+            "date": "2008-10-05",
+            "observation": {
+                "CPT4/80076": "HEPATIC FUNCTION PANEL",
+                "ICD10CM/M06.9": "NO_DEF",
+                "ICD10CM/M51.26": "Other intervertebral disc displacement, lumbar region",
+                "ICD10CM/Z08": "Encounter for follow-up examination after completed treatment for malignant neoplasm",
+                "ICD10CM/Z79.84": "Long term (current) use of oral hypoglycemic drugs",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31696",
+            "date": "2008-10-12",
+            "observation": {
+                "CPT4/76700": "Ultrasound of abdomen",
+                "HCPCS/G0179": "Physician re-certification for medicare-covered home health services under a home health plan of care (patient not present), including contacts with home health agency and review of reports of patient status required by physicians to affirm the initial implementation of the plan of care that meets patient's needs, per re-certification period",
+                "ICD10CM/R56.9": "Fit NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31698",
+            "date": "2008-10-14",
+            "observation": {
+                "CPT4/99245": "OFFICE CONSULTATION NEW/ESTAB PATIENT 80 MIN",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M50.30": "Other cervical disc degeneration, unspecified cervical region"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31711",
+            "date": "2008-10-27",
+            "observation": {
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "ICD10CM/Z79.01": "Long term (current) use of anticoagulants"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31712",
+            "date": "2008-10-28",
+            "observation": {
+                "CPT4/20610": "Injection of major joint",
+                "CPT4/81000": "URINLS DIP STICK/TABLET REAGNT NON-AUTO MICRSCPY",
+                "CPT4/99283": "EMERGENCY DEPARTMENT VISIT MODERATE SEVERITY",
+                "ICD10CM/M62.40": "Contracture of muscle, unspecified site",
+                "ICD10CM/M75.20": "Bicipital tendinitis, unspecified shoulder"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31715",
+            "date": "2008-10-31",
+            "observation": {
+                "CPT4/98942": "Chiropractic manipulative treatment",
+                "ICD10CM/M51.26": "Other intervertebral disc displacement, lumbar region",
+                "ICD10CM/M60.9": "NO_DEF",
+                "ICD10CM/M99.05": "Segmental and somatic dysfunction of pelvic region",
+                "ICD10CM/S33.101A": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31721",
+            "date": "2008-11-06",
+            "observation": {
+                "ICD10CM/D41.00": "Neoplasm of uncertain behavior of unspecified kidney",
+                "ICD10CM/D46.22": "RAEB 2",
+                "ICD10CM/D64.9": "NO_DEF",
+                "ICD10CM/G93.3": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31725",
+            "date": "2008-11-10",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/B07.9": "Viral wart, unspecified",
+                "ICD10CM/L57.0": "Keratosis NOS",
+                "ICD10CM/L73.2": "NO_DEF",
+                "ICD10CM/L82.1": "Seborrheic keratosis NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31731",
+            "date": "2008-11-16",
+            "observation": {
+                "CPT4/17003": "Destruction of 2-14 skin growths",
+                "CPT4/4040F": "PNEUMOCOCCAL VACCINE ADMIN RCVD PRIOR",
+                "CPT4/93005": "Tracing of routine ECG with at least 12 leads",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "HCPCS/J3150": "NO_DEF",
+                "ICD10CM/S51.809A": "Unspecified open wound of unspecified forearm, initial encounter",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31745",
+            "date": "2008-11-30",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/I50.814": "Right heart failure due to left heart failure",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31756",
+            "date": "2008-12-11",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "ICD10CM/F32.9": "Major depression NOS",
+                "ICD10CM/I10": "hypertension (arterial) (benign) (essential) (malignant) (primary) (systemic)",
+                "ICD10CM/N28.9": "Renal disease (acute) NOS",
+                "ICD10CM/R10.812": "Left upper quadrant abdominal tenderness",
+                "ICD10CM/R10.9": "Unspecified abdominal pain"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31782",
+            "date": "2009-01-06",
+            "observation": {
+                "CPT4/73030": "X-ray of shoulder",
+                "CPT4/97535": "Home management training",
+                "ICD10CM/M25.18": "Fistula, vertebrae"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31791",
+            "date": "2009-01-15",
+            "observation": {
+                "CPT4/73630": "X-ray of foot",
+                "ICD10CM/B35.1": "Ringworm of nails",
+                "ICD10CM/M19.90": "Unspecified osteoarthritis, unspecified site",
+                "ICD10CM/M20.10": "Hallux valgus (acquired), unspecified foot"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31792",
+            "date": "2009-01-16",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/97112": "THER PX 1/> AREAS EACH 15 MIN NEUROMUSC REEDUCA",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/M46.1": "NO_DEF",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M54.5": "Lumbago NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31798",
+            "date": "2009-01-22",
+            "observation": {
+                "CPT4/74170": "CT ABDOMEN W/O & W/CONTRAST MATERIAL",
+                "CPT4/82553": "CREATINE KINASE MB FRACTION ONLY",
+                "CPT4/82948": "GLUCOSE BLOOD REAGENT STRIP",
+                "CPT4/85018": "BLOOD COUNT HEMOGLOBIN",
+                "CPT4/99284": "EMERGENCY DEPARTMENT VISIT HIGH/URGENT SEVERITY",
+                "HCPCS/J1940": "Injection, furosemide, up to 20 mg",
+                "ICD10CM/F41.9": "Anxiety NOS",
+                "ICD10CM/I50.814": "Right heart failure due to left heart failure",
+                "ICD10CM/M25.579": "Pain in unspecified ankle and joints of unspecified foot",
+                "ICD10CM/M62.81": "Muscle weakness (generalized)",
+                "ICD10CM/R26.2": "NO_DEF",
+                "ICD10CM/S82.201A": "NO_DEF",
+                "ICD10CM/S82.401A": "NO_DEF",
+                "ICD10CM/Z90.79": "Acquired absence of other genital organ(s)"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31799",
+            "date": "2009-01-23",
+            "observation": {
+                "CPT4/74020": "NO_DEF",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/R10.12": "NO_DEF",
+                "ICD10CM/R10.32": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31800",
+            "date": "2009-01-24",
+            "observation": {
+                "CPT4/97012": "Application of mechanical traction",
+                "CPT4/97124": "THER PX 1/> AREAS EACH 15 MINUTES MASSAGE",
+                "CPT4/98941": "CHIROPRACTIC MANIPULATIVE TX SPINAL 3-4 REGIONS",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "HCPCS/G0283": "Electrical stimulation (unattended), to one or more areas for indication(s) other than wound care, as part of a therapy plan of care",
+                "ICD10CM/M47.812": "Spondylosis without myelopathy or radiculopathy, cervical region",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M50.20": "Other cervical disc displacement, unspecified cervical region",
+                "ICD10CM/M51.24": "Other intervertebral disc displacement, thoracic region",
+                "ICD10CM/M51.34": "Other intervertebral disc degeneration, thoracic region"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31803",
+            "date": "2009-01-27",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "CPT4/99215": "OFFICE OUTPATIENT VISIT 40 MINUTES",
+                "ICD10CM/F41.9": "Anxiety NOS",
+                "ICD10CM/M05.00": "Felty's syndrome, unspecified site",
+                "ICD10CM/M06.9": "NO_DEF",
+                "ICD10CM/M81.0": "Senile osteoporosis without current pathological fracture",
+                "ICD10CM/R32": "Enuresis NOS",
+                "ICD10CM/R73.03": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31806",
+            "date": "2009-01-30",
+            "observation": {
+                "CPT4/20600": "Injection of joint",
+                "ICD10CM/M76.60": "Achilles tendinitis, unspecified leg",
+                "ICD10CM/M77.50": "Other enthesopathy of unspecified foot and ankle"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31809",
+            "date": "2009-02-02",
+            "observation": {
+                "CPT4/73718": "MRI scan of leg",
+                "CPT4/97150": "Group therapeutic procedures",
+                "CPT4/97530": "THERAPEUT ACTVITY DIRECT PT CONTACT EACH 15 MIN",
+                "ICD10CM/J30.0": "NO_DEF",
+                "ICD10CM/M12.239": "Villonodular synovitis (pigmented), unspecified wrist",
+                "ICD10CM/M25.569": "Pain in unspecified knee",
+                "ICD10CM/M62.81": "Muscle weakness (generalized)"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31810",
+            "date": "2009-02-03",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/80076": "HEPATIC FUNCTION PANEL",
+                "CPT4/84100": "ASSAY OF PHOSPHORUS INORGANIC",
+                "CPT4/86900": "Blood group typing (ABO)",
+                "CPT4/93350": "ECHO TTHRC R-T 2D W/WO M-MODE COMPLETE REST&ST",
+                "CPT4/96360": "IV INFUSION HYDRATION INITIAL 31 MIN-1 HOUR",
+                "CPT4/97605": "NEGATIVE PRESSURE WOUND THERAPY DME </= 50 SQ CM",
+                "HCPCS/J7120": "Ringers lactate infusion, up to 1000 cc",
+                "ICD10CM/C90.21": "Extramedullary plasmacytoma in remission"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31811",
+            "date": "2009-02-04",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/K21.9": "Esophageal reflux NOS",
+                "ICD10CM/K22.8": "Hemorrhage of esophagus NOS"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31818",
+            "date": "2009-02-11",
+            "observation": {
+                "CPT4/82565": "CREATININE BLOOD",
+                "CPT4/84403": "Testosterone; total",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "HCPCS/J3420": "Injection, vitamin b-12 cyanocobalamin, up to 1000 mcg",
+                "ICD10CM/M17.10": "Unilateral primary osteoarthritis, unspecified knee",
+                "ICD10CM/M67.50": "Plica syndrome, unspecified knee",
+                "ICD10CM/S43.109A": "NO_DEF",
+                "ICD10CM/S83.219A": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31827",
+            "date": "2009-02-20",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/81001": "URNLS DIP STICK/TABLET REAGENT AUTO MICROSCOPY",
+                "CPT4/84100": "ASSAY OF PHOSPHORUS INORGANIC",
+                "CPT4/84165": "Protein measurement, serum",
+                "ICD10CM/R71.8": "Abnormal red-cell volume NOS",
+                "ICD10CM/Z00.6": "Examination of participant or control in clinical research program",
+                "ICD10CM/Z79.84": "Long term (current) use of oral hypoglycemic drugs"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31834",
+            "date": "2009-02-27",
+            "observation": {
+                "CPT4/51741": "COMPLEX UROFLOMETRY",
+                "ICD10CM/N40.1": "Enlarged prostate with LUTS"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31836",
+            "date": "2009-03-01",
+            "observation": {
+                "HCPCS/J1100": "Injection, dexamethasone sodium phosphate, 1 mg",
+                "ICD10CM/M11.89": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31838",
+            "date": "2009-03-03",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/E03.9": "Myxedema NOS",
+                "ICD10CM/I50.814": "Right heart failure due to left heart failure",
+                "ICD10CM/Z46.81": "Encounter for insulin pump titration"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31841",
+            "date": "2009-03-06",
+            "observation": {
+                "CPT4/99203": "OFFICE OUTPATIENT NEW 30 MINUTES",
+                "HCPCS/J1030": "Injection, methylprednisolone acetate, 40 mg",
+                "HCPCS/J2001": "Injection, lidocaine hcl for intravenous infusion, 10 mg",
+                "ICD10CM/M17.9": "Osteoarthritis of knee, unspecified",
+                "ICD10CM/M25.519": "Pain in unspecified shoulder",
+                "ICD10CM/M65.20": "Calcific tendinitis, unspecified site",
+                "ICD10CM/M75.00": "Adhesive capsulitis of unspecified shoulder",
+                "ICD10CM/M75.30": "Calcific tendinitis of unspecified shoulder",
+                "ICD10CM/N18.3": "Chronic kidney disease, stage 3 (moderate)",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31845",
+            "date": "2009-03-10",
+            "observation": {
+                "CPT4/95117": "PROF SVCS ALLG IMMNTX X W/PRV ALLGIC XTRCS NJXS",
+                "ICD10CM/J30.1": "Allergy NOS due to pollen",
+                "ICD10CM/J30.2": "NO_DEF",
+                "ICD10CM/J34.3": "NO_DEF",
+                "ICD10CM/J39.2": "NO_DEF",
+                "ICD10CM/K21.9": "Esophageal reflux NOS"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31853",
+            "date": "2009-03-18",
+            "observation": {
+                "CPT4/72148": "MRI scan of lower spinal canal",
+                "ICD10CM/M12.9": "NO_DEF",
+                "ICD10CM/M25.559": "Pain in unspecified hip",
+                "ICD10CM/M46.40": "Discitis, unspecified, site unspecified",
+                "ICD10CM/M54.89": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31855",
+            "date": "2009-03-20",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/E11.311": "Type 2 diabetes mellitus with unspecified diabetic retinopathy with macular edema",
+                "ICD10CM/E11.40": "Type 2 diabetes mellitus with diabetic neuropathy, unspecified",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/L60.0": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31865",
+            "date": "2009-03-30",
+            "observation": {
+                "CPT4/87086": "Bacterial colony count, urine",
+                "CPT4/98940": "CHIROPRACTIC MANIPULATIVE TX SPINAL 1-2 REGIONS",
+                "ICD10CM/E78.00": "(Pure) hypercholesterolemia NOS",
+                "ICD10CM/G30.9": "NO_DEF",
+                "ICD10CM/M25.60": "Stiffness of unspecified joint, not elsewhere classified",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+                "ICD10CM/M62.40": "Contracture of muscle, unspecified site",
+                "ICD10CM/M93.20": "Osteochondritis dissecans of unspecified site",
+                "ICD10CM/N30.40": "NO_DEF",
+                "ICD10CM/N39.0": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31876",
+            "date": "2009-04-10",
+            "observation": {
+                "CPT4/97140": "Manual therapy techniques",
+                "ICD10CM/M75.120": "Complete rotator cuff tear or rupture of unspecified shoulder, not specified as traumatic",
+                "ICD10CM/M76.899": "Other specified enthesopathies of unspecified lower limb, excluding foot"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31885",
+            "date": "2009-04-19",
+            "observation": {
+                "HCPCS/G0283": "Electrical stimulation (unattended), to one or more areas for indication(s) other than wound care, as part of a therapy plan of care",
+                "ICD10CM/M51.34": "Other intervertebral disc degeneration, thoracic region",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31886",
+            "date": "2009-04-20",
+            "observation": {
+                "CPT4/76705": "Real time ultrasound of abdomen",
+                "ICD10CM/R10.84": "NO_DEF",
+                "ICD10CM/R10.9": "Unspecified abdominal pain"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31891",
+            "date": "2009-04-25",
+            "observation": {
+                "CPT4/73562": "X-ray of knee, 3 views",
+                "CPT4/74150": "CT scan abdomen",
+                "CPT4/81001": "URNLS DIP STICK/TABLET REAGENT AUTO MICROSCOPY",
+                "CPT4/82272": "BLOOD OCCULT PEROXIDASE ACTV QUAL FECES 1-3 SPEC",
+                "CPT4/82274": "Stool analysis for blood",
+                "CPT4/82715": "FAT DIFFIAL FECES QUANTITATIVE",
+                "CPT4/87015": "CONCENTRATION INFECTIOUS AGENTS",
+                "CPT4/87045": "Aerobic bacterial culture of stool",
+                "CPT4/87046": "CUL BACT STOOL AEROBIC ADDL PATHOGENS&ID EA",
+                "CPT4/87177": "Smear for parasites",
+                "CPT4/87209": "Special stain for parasites",
+                "CPT4/87324": "IAAD IA CLOSTRIDIUM DIFFICILE TOXIN",
+                "CPT4/87328": "IAAD IA CRYPTOSPORIDIUM",
+                "CPT4/87329": "IAAD IA GIARDIA",
+                "CPT4/87899": "IAADIADOO NOT OTHERWISE SPECIFIED",
+                "CPT4/89055": "White blood cell measure, stool specimen",
+                "CPT4/94360": "NO_DEF",
+                "CPT4/96372": "Subcutaneous diagnostic injection",
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/97530": "THERAPEUT ACTVITY DIRECT PT CONTACT EACH 15 MIN",
+                "HCPCS/J1200": "Injection, diphenhydramine hcl, up to 50 mg",
+                "HCPCS/J1650": "Injection, enoxaparin sodium, 10 mg",
+                "HCPCS/J2175": "Injection, meperidine hydrochloride, per 100 mg",
+                "ICD10CM/M17.9": "Osteoarthritis of knee, unspecified",
+                "ICD10CM/M24.669": "Ankylosis, unspecified knee",
+                "ICD10CM/M70.60": "Trochanteric bursitis, unspecified hip",
+                "ICD10CM/M71.20": "Synovial cyst of popliteal space [Baker], unspecified knee",
+                "ICD10CM/M79.609": "Pain in limb NOS",
+                "ICD10CM/S83.90XA": "Sprain of unspecified site of unspecified knee, initial encounter",
+                "ICD10CM/S89.80XA": "Other specified injuries of unspecified lower leg, initial encounter",
+                "ICD10CM/Z86.73": "Personal history of stroke NOS without residual deficits",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-20.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31896",
+            "date": "2009-04-30",
+            "observation": {
+                "CPT4/90658": "IIV3 VACCINE SPLIT VIRUS 0.5 ML DOSAGE IM USE",
+                "CPT4/99212": "OFFICE OUTPATIENT VISIT 10 MINUTES",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/Z20.6": "Contact with and (suspected) exposure to human immunodeficiency virus [HIV]",
+                "ICD10CM/Z23": "Encounter for immunization"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31900",
+            "date": "2009-05-04",
+            "observation": {
+                "CPT4/97010": "Application of hot or cold packs",
+                "CPT4/97026": "Application of infrared modality",
+                "CPT4/97032": "APPL MODALITY 1/> AREAS ELEC STIMJ EA 15 MIN",
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/97112": "THER PX 1/> AREAS EACH 15 MIN NEUROMUSC REEDUCA",
+                "CPT4/97116": "Gait training including stair climbing",
+                "CPT4/97542": "Wheelchair management",
+                "ICD10CM/M67.88": "Other specified disorders of synovium and tendon, other site"
+            },
+            "observation with values": {
+                "Visit/OP-12.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "31930",
+            "date": "2009-06-03",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/97112": "THER PX 1/> AREAS EACH 15 MIN NEUROMUSC REEDUCA",
+                "CPT4/99283": "EMERGENCY DEPARTMENT VISIT MODERATE SEVERITY",
+                "ICD10CM/S93.409A": "Sprain of unspecified ligament of unspecified ankle, initial encounter",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31931",
+            "date": "2009-06-04",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/M17.10": "Unilateral primary osteoarthritis, unspecified knee",
+                "ICD10CM/M17.5": "Secondary osteoarthritis of knee NOS",
+                "ICD10CM/M19.239": "Secondary osteoarthritis, unspecified wrist",
+                "ICD10CM/M25.569": "Pain in unspecified knee"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31946",
+            "date": "2009-06-19",
+            "observation": {
+                "CPT4/98941": "CHIROPRACTIC MANIPULATIVE TX SPINAL 3-4 REGIONS",
+                "ICD10CM/M51.24": "Other intervertebral disc displacement, thoracic region",
+                "ICD10CM/S02.91XK": "Unspecified fracture of skull, subsequent encounter for fracture with nonunion",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31948",
+            "date": "2009-06-21",
+            "observation": {
+                "CPT4/99215": "OFFICE OUTPATIENT VISIT 40 MINUTES",
+                "ICD10CM/T30.0": "Burn NOS",
+                "ICD10CM/T31.22": "Burns involving 20-29% of body surface with 20-29% third degree burns"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31954",
+            "date": "2009-06-27",
+            "observation": {
+                "ICD10CM/E28.9": "NO_DEF",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/M79.609": "Pain in limb NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31964",
+            "date": "2009-07-07",
+            "observation": {
+                "CPT4/73221": "MRI of wrist joint",
+                "ICD10CM/M25.519": "Pain in unspecified shoulder",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31967",
+            "date": "2009-07-10",
+            "observation": {
+                "CPT4/76700": "Ultrasound of abdomen",
+                "ICD10CM/E86.0": "NO_DEF",
+                "ICD10CM/K57.30": "Diverticular disease of colon NOS",
+                "ICD10CM/K59.03": "Drug induced constipation",
+                "ICD10CM/R10.811": "Right upper quadrant abdominal tenderness",
+                "ICD10CM/R10.84": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31969",
+            "date": "2009-07-12",
+            "observation": {
+                "CPT4/81003": "Automated urinalysis test",
+                "CPT4/83036": "HEMOGLOBIN GLYCOSYLATED A1C",
+                "CPT4/85610": "PROTHROMBIN TIME",
+                "CPT4/99000": "HANDLG&/OR CONVEY OF SPEC FOR TR OFFICE TO LAB",
+                "HCPCS/G8445": "NO_DEF",
+                "HCPCS/P9603": "Travel allowance one way in connection with medically necessary laboratory specimen collection drawn from home bound or nursing home bound patient; prorated miles actually travelled",
+                "ICD10CM/E03.9": "Myxedema NOS",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/Z99.0": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "31996",
+            "date": "2009-08-08",
+            "observation": {
+                "CPT4/99203": "OFFICE OUTPATIENT NEW 30 MINUTES",
+                "ICD10CM/M20.10": "Hallux valgus (acquired), unspecified foot",
+                "ICD10CM/M20.40": "Other hammer toe(s) (acquired), unspecified foot"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32000",
+            "date": "2009-08-12",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "ICD10CM/D50.9": "NO_DEF",
+                "ICD10CM/D61.01": "Blackfan-Diamond syndrome"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32005",
+            "date": "2009-08-17",
+            "observation": {
+                "ATC/A02BX71": "carbenoxolone, combinations with psycholeptics",
+                "ATC/A02BX77": "gefarnate, combinations with psycholeptics",
+                "ATC/A03CA01": "isopropamide and psycholeptics",
+                "ATC/A03CA02": "clidinium and psycholeptics",
+                "ATC/A03CA03": "oxyphencyclimine and psycholeptics",
+                "ATC/A03CA04": "otilonium bromide and psycholeptics",
+                "ATC/A03CA05": "glycopyrronium bromide and psycholeptics",
+                "ATC/A03CA06": "bevonium and psycholeptics",
+                "ATC/A03CA07": "ambutonium and psycholeptics",
+                "ATC/A03CA08": "diphemanil and psycholeptics",
+                "ATC/A03CA09": "pipenzolate and psycholeptics",
+                "ATC/A03CA30": "emepronium and psycholeptics",
+                "ATC/A03CA34": "propantheline and psycholeptics",
+                "ATC/A03CB01": "methylscopolamine and psycholeptics",
+                "ATC/A03CB02": "belladonna total alkaloids and psycholeptics",
+                "ATC/A03CB03": "atropine and psycholeptics",
+                "ATC/A03CB04": "homatropine methylbromide and psycholeptics",
+                "ATC/A03CB31": "hyoscyamine and psycholeptics",
+                "ATC/C01BA71": "quinidine, combinations with psycholeptics",
+                "ATC/C01DA70": "organic nitrates in combination with psycholeptics",
+                "ATC/C02LA71": "reserpine and diuretics, combinations with psycholeptics",
+                "ATC/C02LG73": "picodralazine and diuretics, combinations with psycholeptics",
+                "ATC/C03BA82": "clorexolone, combinations with psycholeptics",
+                "ATC/M03BA71": "phenprobamate, combinations with psycholeptics",
+                "ATC/M03BA72": "carisoprodol, combinations with psycholeptics",
+                "ATC/M03BA73": "methocarbamol, combinations with psycholeptics",
+                "ATC/M03BB72": "chlormezanone, combinations with psycholeptics",
+                "ATC/M03BB73": "chlorzoxazone, combinations with psycholeptics",
+                "ATC/M09AA72": "quinine, combinations with psycholeptics",
+                "ATC/N02AB72": "pethidine, combinations with psycholeptics",
+                "ATC/N02AC74": "dextropropoxyphene, combinations with psycholeptics",
+                "ATC/N02BA71": "acetylsalicylic acid, combinations with psycholeptics",
+                "ATC/N02BA75": "salicylamide, combinations with psycholeptics",
+                "ATC/N02BA77": "ethenzamide, combinations with psycholeptics",
+                "ATC/N02BA79": "dipyrocetyl, combinations with psycholeptics",
+                "ATC/N02BB71": "phenazone, combinations with psycholeptics",
+                "ATC/N02BB72": "metamizole sodium, combinations with psycholeptics",
+                "ATC/N02BB73": "aminophenazone, combinations with psycholeptics",
+                "ATC/N02BB74": "propyphenazone, combinations with psycholeptics",
+                "ATC/N02BE71": "paracetamol, combinations with psycholeptics",
+                "ATC/N02BE73": "phenacetin, combinations with psycholeptics",
+                "ATC/N02BE74": "bucetin, combinations with psycholeptics",
+                "ATC/N02CA72": "ergotamine, combinations with psycholeptics",
+                "ATC/N05BA06": "NO_DEF",
+                "ATC/N05BA56": "lorazepam, combinations",
+                "ATC/N06CA01": "amitriptyline and psycholeptics",
+                "ATC/N06CA02": "melitracen and psycholeptics",
+                "ATC/N06CA03": "fluoxetine and psycholeptics",
+                "ATC/R03DA74": "theophylline, combinations with psycholeptics",
+                "CPT4/72193": "CT scan pelvis with contrast",
+                "CPT4/82565": "CREATININE BLOOD",
+                "CPT4/83036": "HEMOGLOBIN GLYCOSYLATED A1C",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/C54.8": "Malignant neoplasm of overlapping sites of corpus uteri"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "32013",
+            "date": "2009-08-25",
+            "observation": {
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "CPT4/99232": "SBSQ HOSPITAL CARE/DAY 25 MINUTES",
+                "CPT4/99238": "HOSPITAL DISCHARGE DAY MANAGEMENT 30 MIN/<",
+                "ICD10CM/M48.00": "NO_DEF",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M53.3": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32015",
+            "date": "2009-08-27",
+            "observation": {
+                "CPT4/71010": "NO_DEF",
+                "CPT4/72192": "CT scan pelvis",
+                "CPT4/74150": "CT scan abdomen",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/C83.16": "Mantle cell lymphoma, intrapelvic lymph nodes",
+                "ICD10CM/C85.80": "Other specified types of non-Hodgkin lymphoma, unspecified site",
+                "ICD10CM/M50.30": "Other cervical disc degeneration, unspecified cervical region",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+                "ICD10CM/M54.14": "NO_DEF",
+                "ICD10CM/Z79.84": "Long term (current) use of oral hypoglycemic drugs"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32025",
+            "date": "2009-09-06",
+            "observation": {
+                "CPT4/10060": "Incision and drainage of carbuncle",
+                "CPT4/82550": "CREATINE KINASE TOTAL",
+                "CPT4/94640": "PRESSURIZED/NONPRESSURIZED INHALATION TREATMENT",
+                "HCPCS/C1894": "Introducer/sheath, other than guiding, other than intracardiac electrophysiological, non-laser",
+                "HCPCS/G0206": "NO_DEF",
+                "ICD10CM/D78.01": "Intraoperative hemorrhage and hematoma of the spleen complicating a procedure on the spleen",
+                "ICD10CM/T81.30XA": "Disruption of wound, unspecified, initial encounter",
+                "ICD10CM/T81.83XA": "Persistent postprocedural fistula, initial encounter",
+                "ICD10CM/Z86.73": "Personal history of stroke NOS without residual deficits",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "32032",
+            "date": "2009-09-13",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/76700": "Ultrasound of abdomen",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/E78.00": "(Pure) hypercholesterolemia NOS",
+                "ICD10CM/K59.00": "Constipation, unspecified",
+                "ICD10CM/K74.0": "NO_DEF",
+                "ICD10CM/K75.1": "NO_DEF",
+                "ICD10CM/R94.5": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32040",
+            "date": "2009-09-21",
+            "observation": {
+                "CPT4/64475": "NO_DEF",
+                "ICD10CM/M46.1": "NO_DEF",
+                "ICD10CM/M47.817": "Spondylosis without myelopathy or radiculopathy, lumbosacral region"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32042",
+            "date": "2009-09-23",
+            "observation": {
+                "CPT4/99232": "SBSQ HOSPITAL CARE/DAY 25 MINUTES",
+                "HCPCS/G8553": "NO_DEF",
+                "ICD10CM/K21.9": "Esophageal reflux NOS",
+                "ICD10CM/K57.30": "Diverticular disease of colon NOS",
+                "ICD10CM/K57.32": "Diverticulitis of large intestine without perforation or abscess without bleeding"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32046",
+            "date": "2009-09-27",
+            "observation": {
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "ICD10CM/G47.52": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32050",
+            "date": "2009-10-01",
+            "observation": {
+                "CPT4/72110": "RADEX SPINE LUMBOSACRAL MINIMUM 4 VIEWS",
+                "ICD10CM/D64.9": "NO_DEF",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M48.9": "NO_DEF",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+                "ICD10CM/M54.10": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32058",
+            "date": "2009-10-09",
+            "observation": {
+                "CPT4/99233": "SBSQ HOSPITAL CARE/DAY 35 MINUTES",
+                "ICD10CM/I21.11": "Inferoposterior transmural (Q wave) infarction (acute)",
+                "ICD10CM/I21.4": "Non-Q wave myocardial infarction NOS",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/I50.21": "Acute systolic (congestive) heart failure",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32062",
+            "date": "2009-10-13",
+            "observation": {
+                "CPT4/70544": "MRA of head without contrast",
+                "ICD10CM/D72.829": "Elevated leukocytes, unspecified",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "32068",
+            "date": "2009-10-19",
+            "observation": {
+                "ATC/A10BH51": "sitagliptin and simvastatin",
+                "ATC/C10AA01": "NO_DEF",
+                "ATC/C10AD52": "nicotinic acid, combinations",
+                "ATC/C10BA02": "simvastatin and ezetimibe",
+                "ATC/C10BA04": "simvastatin and fenofibrate",
+                "ATC/C10BX01": "simvastatin and acetylsalicylic acid",
+                "ATC/C10BX04": "simvastatin, acetylsalicylic acid and ramipril",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/J44.0": "Chronic obstructive pulmonary disease with (acute) lower respiratory infection",
+                "ICD10CM/M25.569": "Pain in unspecified knee",
+                "ICD10CM/M34.81": "Systemic sclerosis with lung involvement",
+                "ICD10CM/M47.812": "Spondylosis without myelopathy or radiculopathy, cervical region",
+                "ICD10CM/R06.9": "Unspecified abnormalities of breathing"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32076",
+            "date": "2009-10-27",
+            "observation": {
+                "CPT4/17000": "Destruction of skin growth",
+                "CPT4/99051": "SVC PRV OFFICE REG SCHEDD EVN WKEND/HOLIDAY HRS",
+                "CPT4/99212": "OFFICE OUTPATIENT VISIT 10 MINUTES",
+                "HCPCS/G8443": "NO_DEF",
+                "ICD10CM/M19.90": "Unspecified osteoarthritis, unspecified site",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+                "ICD10CM/M54.08": "NO_DEF",
+                "ICD10CM/M66.259": "Spontaneous rupture of extensor tendons, unspecified thigh",
+                "ICD10CM/M75.80": "Other shoulder lesions, unspecified shoulder"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32077",
+            "date": "2009-10-28",
+            "observation": {
+                "ATC/C03AX01": "hydrochlorothiazide, combinations",
+                "ATC/C07AG01": "NO_DEF",
+                "ATC/C07BG01": "labetalol and thiazides",
+                "ATC/C07CG01": "labetalol and other diuretics",
+                "ATC/N05BB51": "hydroxyzine, combinations",
+                "CPT4/82306": "Vitamin D-3 level",
+                "CPT4/84443": "Thyroid stimulating hormone (TSH)",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/E10.51": "Type 1 diabetes mellitus with diabetic peripheral angiopathy without gangrene",
+                "ICD10CM/E11.65": "Type 2 diabetes mellitus with hyperglycemia"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32085",
+            "date": "2009-11-05",
+            "observation": {
+                "CPT4/93224": "XTRNL ECG & 48 HR RECORD SCAN STOR W/R&I",
+                "CPT4/93306": "ECHO TTHRC R-T 2D W/WOM-MODE COMPL SPEC&COLR D",
+                "CPT4/99232": "SBSQ HOSPITAL CARE/DAY 25 MINUTES",
+                "ICD10CM/E03.9": "Myxedema NOS",
+                "ICD10CM/E78.00": "(Pure) hypercholesterolemia NOS",
+                "ICD10CM/G93.3": "NO_DEF",
+                "ICD10CM/I21.09": "Anteroapical transmural (Q wave) infarction (acute)",
+                "ICD10CM/S09.8XXA": "Other specified injuries of head, initial encounter",
+                "ICD10CM/W19.XXXA": "Unspecified fall, initial encounter",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32088",
+            "date": "2009-11-08",
+            "observation": {
+                "ATC/A03DA01": "tropenzilone and analgesics",
+                "ATC/A03DA02": "pitofenone and analgesics",
+                "ATC/A03DA03": "bevonium and analgesics",
+                "ATC/A03DA04": "ciclonium and analgesics",
+                "ATC/A03DA05": "camylofin and analgesics",
+                "ATC/A03DA06": "trospium and analgesics",
+                "ATC/A03DA07": "tiemonium iodide and analgesics",
+                "ATC/A03DB04": "butylscopolamine and analgesics",
+                "ATC/A04AD51": "scopolamine, combinations",
+                "ATC/A06AD61": "lactulose, combinations",
+                "ATC/A07DA53": "loperamide, combinations",
+                "ATC/A08AA56": "ephedrine, combinations",
+                "ATC/B03BA51": "cyanocobalamin, combinations",
+                "ATC/G04BE52": "papaverine, combinations",
+                "ATC/M01AB55": "diclofenac, combinations",
+                "ATC/M01AE51": "ibuprofen, combinations",
+                "ATC/M01AE53": "ketoprofen, combinations",
+                "ATC/M03BA51": "phenprobamate, combinations excl. psycholeptics",
+                "ATC/M03BA52": "carisoprodol, combinations excl. psycholeptics",
+                "ATC/M03BA53": "methocarbamol, combinations excl. psycholeptics",
+                "ATC/M03BB52": "chlormezanone, combinations excl. psycholeptics",
+                "ATC/M03BB53": "chlorzoxazone, combinations excl. psycholeptics",
+                "ATC/M03BC51": "orphenadrine, combinations",
+                "ATC/M03BX55": "thiocolchicoside, combinations",
+                "ATC/N01BA52": "procaine, combinations",
+                "ATC/N01BB52": "lidocaine, combinations",
+                "ATC/N02AA58": "dihydrocodeine, combinations",
+                "ATC/N02AA59": "codeine, combinations excl. psycholeptics",
+                "ATC/N02AB52": "pethidine, combinations excl. psycholeptics",
+                "ATC/N02AC04": "NO_DEF",
+                "ATC/N02AC52": "methadone, combinations excl. psycholeptics",
+                "ATC/N02AC54": "dextropropoxyphene, combinations excl. psycholeptics",
+                "ATC/N02AC74": "dextropropoxyphene, combinations with psycholeptics",
+                "ATC/N02AJ01": "dihydrocodeine and paracetamol",
+                "ATC/N02AJ06": "codeine and paracetamol",
+                "ATC/N02AJ13": "tramadol and paracetamol",
+                "ATC/N02AJ17": "oxycodone and paracetamol",
+                "ATC/N02BA51": "acetylsalicylic acid, combinations excl. psycholeptics",
+                "ATC/N02BA55": "salicylamide, combinations excl. psycholeptics",
+                "ATC/N02BA57": "ethenzamide, combinations excl. psycholeptics",
+                "ATC/N02BB51": "phenazone, combinations excl. psycholeptics",
+                "ATC/N02BB52": "metamizole sodium, combinations excl. psycholeptics",
+                "ATC/N02BB53": "aminophenazone, combinations excl. psycholeptics",
+                "ATC/N02BE01": "paracetamol",
+                "ATC/N02BE51": "paracetamol, combinations excl. psycholeptics",
+                "ATC/N02BE53": "phenacetin, combinations excl. psycholeptics",
+                "ATC/N02BE54": "bucetin, combinations excl. psycholeptics",
+                "ATC/N02BE71": "paracetamol, combinations with psycholeptics",
+                "ATC/N02CA51": "dihydroergotamine, combinations",
+                "ATC/N02CA52": "ergotamine, combinations excl. psycholeptics",
+                "ATC/N05BC51": "NO_DEF",
+                "ATC/N05CX01": "meprobamate, combinations",
+                "ATC/N05CX02": "methaqualone, combinations",
+                "ATC/N07XX59": "dextromethorphan, combinations",
+                "ATC/P01AX52": "emetine, combinations",
+                "ATC/R01BA51": "phenylpropanolamine, combinations",
+                "ATC/R01BA52": "pseudoephedrine, combinations",
+                "ATC/R01BA53": "NO_DEF",
+                "ATC/R03DA51": "diprophylline, combinations",
+                "ATC/R03DA57": "theobromine, combinations",
+                "ATC/R06AA52": "diphenhydramine, combinations",
+                "ATC/R06AA54": "clemastine, combinations",
+                "ATC/R06AA57": "diphenylpyraline, combinations",
+                "ATC/R06AA59": "doxylamine, combinations",
+                "ATC/R06AB51": "brompheniramine, combinations",
+                "ATC/R06AB52": "dexchlorpheniramine, combinations",
+                "ATC/R06AB54": "chlorphenamine, combinations",
+                "ATC/R06AB56": "dexbrompheniramine, combinations",
+                "ATC/R06AD52": "promethazine, combinations",
+                "ATC/R06AE51": "buclizine, combinations"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32096",
+            "date": "2009-11-16",
+            "observation": {
+                "CPT4/93880": "DUPLEX SCAN EXTRACRANIAL ART COMPL BI STUDY",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32098",
+            "date": "2009-11-18",
+            "observation": {
+                "ATC/C02AA52": "reserpine, combinations",
+                "ATC/C02LA01": "reserpine and diuretics",
+                "ATC/C02LA02": "rescinnamine and diuretics",
+                "ATC/C02LA03": "deserpidine and diuretics",
+                "ATC/C02LA04": "methoserpidine and diuretics",
+                "ATC/C02LA07": "bietaserpine and diuretics",
+                "ATC/C02LA08": "rauwolfia alkaloids, whole root and diuretics",
+                "ATC/C02LA09": "syrosingopine and diuretics",
+                "ATC/C02LA50": "combination of rauwolfia alkaloids and diuretics incl. other combinations",
+                "ATC/C02LA71": "reserpine and diuretics, combinations with psycholeptics",
+                "ATC/C02LB01": "methyldopa (levorotatory) and diuretics",
+                "ATC/C02LC01": "clonidine and diuretics",
+                "ATC/C02LC05": "moxonidine and diuretics",
+                "ATC/C02LC51": "clonidine and diuretics, combinations with other drugs",
+                "ATC/C02LE01": "prazosin and diuretics",
+                "ATC/C02LF01": "guanethidine and diuretics",
+                "ATC/C02LG01": "dihydralazine and diuretics",
+                "ATC/C02LG02": "hydralazine and diuretics",
+                "ATC/C02LG03": "picodralazine and diuretics",
+                "ATC/C02LG73": "picodralazine and diuretics, combinations with psycholeptics",
+                "ATC/C02LK01": "veratrum and diuretics",
+                "ATC/C02LL01": "pargyline and diuretics",
+                "ATC/C02LX01": "pinacidil and diuretics",
+                "ATC/C03AA03": "NO_DEF",
+                "ATC/C03AB03": "hydrochlorothiazide and potassium",
+                "ATC/C03AX01": "hydrochlorothiazide, combinations",
+                "ATC/C03DB02": "NO_DEF",
+                "ATC/C03EA01": "hydrochlorothiazide and potassium-sparing agents",
+                "ATC/C03EA02": "trichlormethiazide and potassium-sparing agents",
+                "ATC/C03EA03": "epitizide and potassium-sparing agents",
+                "ATC/C03EA04": "altizide and potassium-sparing agents",
+                "ATC/C03EA05": "mebutizide and potassium-sparing agents",
+                "ATC/C03EA06": "chlortalidone and potassium-sparing agents",
+                "ATC/C03EA07": "cyclopenthiazide and potassium-sparing agents",
+                "ATC/C03EA12": "metolazone and potassium-sparing agents",
+                "ATC/C03EA13": "bendroflumethiazide and potassium-sparing agents",
+                "ATC/C03EA14": "butizide and potassium-sparing agents",
+                "ATC/C03EB01": "furosemide and potassium-sparing agents",
+                "ATC/C03EB02": "bumetanide and potassium-sparing agents",
+                "ATC/C07BA02": "oxprenolol and thiazides",
+                "ATC/C07BA05": "propranolol and thiazides",
+                "ATC/C07BA06": "timolol and thiazides",
+                "ATC/C07BA07": "sotalol and thiazides",
+                "ATC/C07BA12": "nadolol and thiazides",
+                "ATC/C07BA68": "metipranolol and thiazides, combinations",
+                "ATC/C07BB02": "metoprolol and thiazides",
+                "ATC/C07BB03": "atenolol and thiazides",
+                "ATC/C07BB04": "acebutolol and thiazides",
+                "ATC/C07BB06": "bevantolol and thiazides",
+                "ATC/C07BB07": "bisoprolol and thiazides",
+                "ATC/C07BB12": "nebivolol and thiazides",
+                "ATC/C07BB52": "metoprolol and thiazides, combinations",
+                "ATC/C07BG01": "labetalol and thiazides",
+                "ATC/C07CA02": "oxprenolol and other diuretics",
+                "ATC/C07CA03": "pindolol and other diuretics",
+                "ATC/C07CA17": "bopindolol and other diuretics",
+                "ATC/C07CA23": "penbutolol and other diuretics",
+                "ATC/C07CB02": "metoprolol and other diuretics",
+                "ATC/C07CB03": "atenolol and other diuretics",
+                "ATC/C07CB53": "atenolol and other diuretics, combinations",
+                "ATC/C07CG01": "labetalol and other diuretics",
+                "ATC/C07DA06": "timolol, thiazides and other diuretics",
+                "ATC/C07DB01": "atenolol, thiazides and other diuretics",
+                "ATC/C08DA51": "verapamil, combinations",
+                "ATC/C08GA01": "nifedipine and diuretics",
+                "ATC/C08GA02": "amlodipine and diuretics",
+                "ATC/C09BA01": "captopril and diuretics",
+                "ATC/C09BA02": "enalapril and diuretics",
+                "ATC/C09BA03": "lisinopril and diuretics",
+                "ATC/C09BA04": "perindopril and diuretics",
+                "ATC/C09BA05": "ramipril and diuretics",
+                "ATC/C09BA06": "quinapril and diuretics",
+                "ATC/C09BA07": "benazepril and diuretics",
+                "ATC/C09BA08": "cilazapril and diuretics",
+                "ATC/C09BA09": "fosinopril and diuretics",
+                "ATC/C09BA12": "delapril and diuretics",
+                "ATC/C09BA13": "moexipril and diuretics",
+                "ATC/C09BA15": "zofenopril and diuretics",
+                "ATC/C09BX03": "ramipril, amlodipine and hydrochlorothiazide",
+                "ATC/C09DA01": "losartan and diuretics",
+                "ATC/C09DA02": "eprosartan and diuretics",
+                "ATC/C09DA03": "valsartan and diuretics",
+                "ATC/C09DA04": "irbesartan and diuretics",
+                "ATC/C09DA06": "candesartan and diuretics",
+                "ATC/C09DA07": "telmisartan and diuretics",
+                "ATC/C09DA08": "olmesartan medoxomil and diuretics",
+                "ATC/C09DA09": "azilsartan medoxomil and diuretics",
+                "ATC/C09DA10": "fimasartan and diuretics",
+                "ATC/C09DX01": "valsartan, amlodipine and hydrochlorothiazide",
+                "ATC/C09DX03": "olmesartan medoxomil, amlodipine and hydrochlorothiazide",
+                "ATC/C09DX06": "candesartan, amlodipine and hydrochlorothiazide",
+                "ATC/C09DX07": "irbesartan, amlodipine and hydrochlorothiazide",
+                "ATC/C09XA52": "aliskiren and hydrochlorothiazide",
+                "ATC/C09XA54": "aliskiren, amlodipine and hydrochlorothiazide"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32103",
+            "date": "2009-11-23",
+            "observation": {
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "ICD10CM/Z12.11": "Encounter for screening colonoscopy NOS",
+                "ICD10CM/Z12.4": "Encounter for screening pap smear for malignant neoplasm of cervix",
+                "ICD10CM/Z13.79": "Encounter for other screening for genetic and chromosomal anomalies"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32108",
+            "date": "2009-11-28",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "CPT4/99232": "SBSQ HOSPITAL CARE/DAY 25 MINUTES",
+                "ICD10CM/I74.5": "NO_DEF",
+                "ICD10CM/I87.2": "NO_DEF",
+                "ICD10CM/R10.811": "Right upper quadrant abdominal tenderness",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32114",
+            "date": "2009-12-04",
+            "observation": {
+                "CPT4/81003": "Automated urinalysis test",
+                "HCPCS/G0180": "Physician certification for medicare-covered home health services under a home health plan of care (patient not present), including contacts with home health agency and review of reports of patient status required by physicians to affirm the initial implementation of the plan of care that meets patient's needs, per certification period",
+                "ICD10CM/F01.51": "Vascular dementia with violent behavior",
+                "ICD10CM/F06.0": "Organic hallucinatory state (nonalcoholic)",
+                "ICD10CM/F43.20": "Adjustment disorder, unspecified",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32119",
+            "date": "2009-12-09",
+            "observation": {
+                "HCPCS/A6207": "Contact layer, sterile, more than 16 sq. in. but less than or equal to 48 sq. in., each dressing",
+                "ICD10CM/E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+                "ICD10CM/G60.9": "NO_DEF",
+                "ICD10CM/L89.90": "Healing pressure ulcer of unspecified site NOS"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "32123",
+            "date": "2009-12-13",
+            "observation": {
+                "CPT4/70450": "CT scan head or brain",
+                "ICD10CM/I49.1": "Atrial premature beats",
+                "ICD10CM/I49.8": "Ectopic rhythm disorder"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32127",
+            "date": "2009-12-17",
+            "observation": {
+                "CPT4/11100": "NO_DEF",
+                "CPT4/99211": "OFFICE OUTPATIENT VISIT 5 MINUTES",
+                "HCPCS/G8553": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32130",
+            "date": "2009-12-20",
+            "observation": {
+                "CPT4/62264": "PRQ LYSIS EPIDURAL ADHESIONS MULT SESSIONS 1 DAY",
+                "ICD10CM/M46.00": "NO_DEF",
+                "ICD10CM/M47.819": "Spondylosis without myelopathy or radiculopathy, site unspecified",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M51.26": "Other intervertebral disc displacement, lumbar region",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32132",
+            "date": "2009-12-22",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "HCPCS/A9552": "Fluorodeoxyglucose f-18 fdg, diagnostic, per study dose, up to 45 millicuries",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "32134",
+            "date": "2009-12-24",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "CPT4/99231": "SBSQ HOSPITAL CARE/DAY 15 MINUTES",
+                "CPT4/99238": "HOSPITAL DISCHARGE DAY MANAGEMENT 30 MIN/<",
+                "ICD10CM/E11.40": "Type 2 diabetes mellitus with diabetic neuropathy, unspecified",
+                "ICD10CM/E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+                "ICD10CM/E66.9": "Obesity NOS",
+                "ICD10CM/L03.039": "Cellulitis of unspecified toe",
+                "ICD10CM/L60.1": "NO_DEF",
+                "ICD10CM/L97.509": "Non-pressure chronic ulcer of other part of unspecified foot with unspecified severity",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32138",
+            "date": "2009-12-28",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/99245": "OFFICE CONSULTATION NEW/ESTAB PATIENT 80 MIN",
+                "ICD10CM/M15.0": "Primary generalized (osteo)arthritis",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M53.82": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32140",
+            "date": "2009-12-30",
+            "observation": {
+                "CPT4/11750": "EXCISION NAIL MATRIX PERMANENT REMOVAL",
+                "ICD10CM/L60.0": "NO_DEF",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32143",
+            "date": "2010-01-02",
+            "observation": {
+                "CPT4/93000": "ECG ROUTINE ECG W/LEAST 12 LDS W/I&R",
+                "CPT4/99307": "SBSQ NURSING FACILITY CARE/DAY E/M STABLE 10 MIN",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/I25.811": "Atherosclerosis of native coronary artery of transplanted heart NOS",
+                "ICD10CM/Z95.1": "Presence of coronary artery bypass graft",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32153",
+            "date": "2010-01-12",
+            "observation": {
+                "CPT4/72100": "RADEX SPINE LUMBOSACRAL 2/3 VIEWS",
+                "ICD10CM/M53.1": "NO_DEF",
+                "ICD10CM/M54.89": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32167",
+            "date": "2010-01-26",
+            "observation": {
+                "CPT4/84443": "Thyroid stimulating hormone (TSH)",
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "HCPCS/G0283": "Electrical stimulation (unattended), to one or more areas for indication(s) other than wound care, as part of a therapy plan of care",
+                "ICD10CM/M15.0": "Primary generalized (osteo)arthritis",
+                "ICD10CM/M19.229": "Secondary osteoarthritis, unspecified elbow"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32182",
+            "date": "2010-02-10",
+            "observation": {
+                "CPT4/81003": "Automated urinalysis test",
+                "CPT4/87088": "Bacterial urine culture",
+                "CPT4/87186": "SUSCEPTIBLTY STDY ANTIMICRBIAL MICRO/AGAR DILUTJ",
+                "ICD10CM/N34.3": "NO_DEF",
+                "ICD10CM/N39.0": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32191",
+            "date": "2010-02-19",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/93010": "ECG ROUTINE ECG W/LEAST 12 LDS I&R ONLY",
+                "ICD10CM/G93.3": "NO_DEF",
+                "ICD10CM/I49.5": "Tachycardia-bradycardia syndrome",
+                "ICD10CM/I50.814": "Right heart failure due to left heart failure",
+                "ICD10CM/Z51.89": "Encounter for other specified aftercare",
+                "ICD10CM/Z79.01": "Long term (current) use of anticoagulants",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32205",
+            "date": "2010-03-05",
+            "observation": {
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/I11.9": "NO_DEF",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/J44.1": "Decompensated COPD",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32214",
+            "date": "2010-03-14",
+            "observation": {
+                "CPT4/3342F": "MAMMO ASSESSMENT CAT BENIGN DOCD",
+                "CPT4/97001": "NO_DEF",
+                "HCPCS/G0202": "NO_DEF",
+                "HCPCS/G0283": "Electrical stimulation (unattended), to one or more areas for indication(s) other than wound care, as part of a therapy plan of care",
+                "ICD10CM/E11.21": "Type 2 diabetes mellitus with diabetic nephropathy",
+                "ICD10CM/E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+                "ICD10CM/G93.41": "NO_DEF",
+                "ICD10CM/Z12.31": "Encounter for screening mammogram for malignant neoplasm of breast",
+                "ICD10CM/Z12.82": "Encounter for screening for malignant neoplasm of nervous system",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32219",
+            "date": "2010-03-19",
+            "observation": {
+                "CPT4/90658": "IIV3 VACCINE SPLIT VIRUS 0.5 ML DOSAGE IM USE",
+                "CPT4/96372": "Subcutaneous diagnostic injection",
+                "ICD10CM/Z20.9": "Contact with and (suspected) exposure to unspecified communicable disease",
+                "ICD10CM/Z23": "Encounter for immunization"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32235",
+            "date": "2010-04-04",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "CPT4/97140": "Manual therapy techniques",
+                "ICD10CM/M65.20": "Calcific tendinitis, unspecified site",
+                "ICD10CM/M75.80": "Other shoulder lesions, unspecified shoulder"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32244",
+            "date": "2010-04-13",
+            "observation": {
+                "CPT4/98940": "CHIROPRACTIC MANIPULATIVE TX SPINAL 1-2 REGIONS",
+                "ICD10CM/M41.00": "NO_DEF",
+                "ICD10CM/M96.1": "NO_DEF",
+                "ICD10CM/M99.05": "Segmental and somatic dysfunction of pelvic region",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32246",
+            "date": "2010-04-15",
+            "observation": {
+                "CPT4/95811": "POLYSOM 6/>YRS SLEEP W/CPAP 4/> ADDL PARAM ATTND",
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "ICD10CM/D46.22": "RAEB 2",
+                "ICD10CM/D64.9": "NO_DEF",
+                "ICD10CM/G47.33": "Obstructive sleep apnea hypopnea",
+                "ICD10CM/Q85.01": "Neurofibromatosis, type 1",
+                "ICD10CM/Z51.11": "Encounter for antineoplastic chemotherapy",
+                "ICD10CM/Z77.120": "Contact with and (suspected) exposure to mold (toxic)"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32247",
+            "date": "2010-04-16",
+            "observation": {
+                "CPT4/99205": "OFFICE OUTPATIENT NEW 60 MINUTES",
+                "ICD10CM/C83.54": "Lymphoblastic (diffuse) lymphoma, lymph nodes of axilla and upper limb",
+                "ICD10CM/C85.82": "Other specified types of non-Hodgkin lymphoma, intrathoracic lymph nodes"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32249",
+            "date": "2010-04-18",
+            "observation": {
+                "CPT4/98941": "CHIROPRACTIC MANIPULATIVE TX SPINAL 3-4 REGIONS",
+                "ICD10CM/M43.27": "Fusion of spine, lumbosacral region",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+                "ICD10CM/M93.90": "Osteochondropathy, unspecified of unspecified site",
+                "ICD10CM/M99.05": "Segmental and somatic dysfunction of pelvic region",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32253",
+            "date": "2010-04-22",
+            "observation": {
+                "CPT4/82491": "NO_DEF",
+                "CPT4/92250": "Photography of the retina",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/E78.00": "(Pure) hypercholesterolemia NOS",
+                "ICD10CM/G47.30": "Sleep apnea NOS",
+                "ICD10CM/H02.839": "Dermatochalasis of unspecified eye, unspecified eyelid",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32254",
+            "date": "2010-04-23",
+            "observation": {
+                "ATC/M03BX08": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32259",
+            "date": "2010-04-28",
+            "observation": {
+                "CPT4/11101": "NO_DEF",
+                "CPT4/72052": "RADEX SPINE CERVICAL 6 OR MORE VIEWS",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "HCPCS/G8445": "NO_DEF",
+                "ICD10CM/M17.10": "Unilateral primary osteoarthritis, unspecified knee",
+                "ICD10CM/M19.90": "Unspecified osteoarthritis, unspecified site",
+                "ICD10CM/M47.812": "Spondylosis without myelopathy or radiculopathy, cervical region",
+                "ICD10CM/M48.02": "NO_DEF"
+            },
+            "observation with values": {
+                "Visit/OP-0.0": "NO_DEF"
+            }
+        },
+        {
+            "age in days": "32267",
+            "date": "2010-05-06",
+            "observation": {
+                "CPT4/73140": "X-ray of finger",
+                "CPT4/90732": "PPSV23 VACCINE 2 YRS OR OLDER FOR SUBQ/IM USE",
+                "CPT4/96372": "Subcutaneous diagnostic injection",
+                "CPT4/99204": "OFFICE OUTPATIENT NEW 45 MINUTES",
+                "HCPCS/G8553": "NO_DEF",
+                "ICD10CM/M47.817": "Spondylosis without myelopathy or radiculopathy, lumbosacral region",
+                "ICD10CM/M48.061": "Spinal stenosis, lumbar region NOS",
+                "ICD10CM/M51.26": "Other intervertebral disc displacement, lumbar region",
+                "ICD10CM/M54.5": "Lumbago NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32275",
+            "date": "2010-05-14",
+            "observation": {
+                "CPT4/97110": "THERAPEUTIC PX 1/> AREAS EACH 15 MIN EXERCISES",
+                "ICD10CM/M15.0": "Primary generalized (osteo)arthritis",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32277",
+            "date": "2010-05-16",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/81002": "Urinalysis, manual test",
+                "CPT4/84550": "Uric acid; blood",
+                "ICD10CM/M15.0": "Primary generalized (osteo)arthritis",
+                "ICD10CM/M19.019": "Primary osteoarthritis, unspecified shoulder",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32284",
+            "date": "2010-05-23",
+            "observation": {
+                "CPT4/96415": "Infusion of chemotherapy into a vein",
+                "CPT4/99214": "OFFICE OUTPATIENT VISIT 25 MINUTES",
+                "HCPCS/J7050": "Infusion, normal saline solution, 250 cc",
+                "ICD10CM/M06.9": "NO_DEF",
+                "ICD10CM/M08.40": "Pauciarticular juvenile rheumatoid arthritis, unspecified site"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32296",
+            "date": "2010-06-04",
+            "observation": {
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/80053": "Measurement of albumin",
+                "CPT4/85025": "Automated platelet count",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "HCPCS/G8447": "NO_DEF",
+                "ICD10CM/H60.60": "Unspecified chronic otitis externa, unspecified ear",
+                "ICD10CM/H65.20": "Chronic serous otitis media, unspecified ear",
+                "ICD10CM/H66.009": "Acute suppurative otitis media without spontaneous rupture of ear drum, unspecified ear",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32300",
+            "date": "2010-06-08",
+            "observation": {
+                "CPT4/93613": "INTRACARDIAC ELECTROPHYSIOLOGIC 3D MAPPING",
+                "CPT4/93618": "INDUCTION ARRHYTHMIA ELECTRICAL PACING",
+                "CPT4/93620": "COMPRE ELECTROPHYSIOLOGIC ARRHYTHMIA INDUCTION",
+                "CPT4/93621": "COMPRE ELECTROPHYSIOL XM W/LEFT ATRIAL PACNG/REC",
+                "CPT4/93662": "Ultrasound evaluation of heart blood vessel",
+                "ICD10CM/I47.1": "Nodal (paroxysmal) tachycardia",
+                "ICD10CM/I49.5": "Tachycardia-bradycardia syndrome"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32303",
+            "date": "2010-06-11",
+            "observation": {
+                "CPT4/98940": "CHIROPRACTIC MANIPULATIVE TX SPINAL 1-2 REGIONS",
+                "ICD10CM/M42.00": "NO_DEF",
+                "ICD10CM/M99.05": "Segmental and somatic dysfunction of pelvic region",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32322",
+            "date": "2010-06-30",
+            "observation": {
+                "CPT4/51741": "COMPLEX UROFLOMETRY",
+                "CPT4/52235": "CYSTOURETHROSCOPY W/DEST &/RMVL MED BLADDER TUM",
+                "ICD10CM/C67.0": "NO_DEF",
+                "ICD10CM/C67.9": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32325",
+            "date": "2010-07-03",
+            "observation": {
+                "CPT4/99285": "EMERGENCY DEPT VISIT HIGH SEVERITY&THREAT FUNCJ",
+                "ICD10CM/S33.8XXA": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32340",
+            "date": "2010-07-18",
+            "observation": {
+                "CPT4/17110": "Destruction of benign lesion",
+                "CPT4/3075F": "MOST RECENT SYSTOLIC BLOOD PRESS 130-139MM HG",
+                "CPT4/94760": "NONINVASIVE EAR/PULSE OXIMETRY SINGLE DETER",
+                "CPT4/98941": "CHIROPRACTIC MANIPULATIVE TX SPINAL 3-4 REGIONS",
+                "HCPCS/J3301": "Injection, triamcinolone acetonide, not otherwise specified, 10 mg",
+                "ICD10CM/E11.9": "Type 2 diabetes mellitus without complications",
+                "ICD10CM/G89.11": "Acute pain due to trauma",
+                "ICD10CM/S13.4XXA": "Sprain of ligaments of cervical spine, initial encounter",
+                "ICD10CM/S23.420A": "Sprain of sternoclavicular (joint) (ligament), initial encounter"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32346",
+            "date": "2010-07-24",
+            "observation": {
+                "CPT4/1000F": "TOBACCO USE ASSESSED",
+                "CPT4/36415": "COLLECTION VENOUS BLOOD VENIPUNCTURE",
+                "CPT4/99222": "INITIAL HOSPITAL CARE/DAY 50 MINUTES",
+                "HCPCS/G8445": "NO_DEF",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32373",
+            "date": "2010-08-20",
+            "observation": {
+                "CPT4/80061": "LIPID PANEL",
+                "CPT4/84443": "Thyroid stimulating hormone (TSH)",
+                "CPT4/99213": "OFFICE OUTPATIENT VISIT 15 MINUTES",
+                "ICD10CM/M51.34": "Other intervertebral disc degeneration, thoracic region",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32374",
+            "date": "2010-08-21",
+            "observation": {
+                "CPT4/11721": "Debridement of 6 or more nails",
+                "ICD10CM/B35.1": "Ringworm of nails",
+                "ICD10CM/I70.209": "Unspecified atherosclerosis of native arteries of extremities, unspecified extremity",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32377",
+            "date": "2010-08-24",
+            "observation": {
+                "CPT4/99202": "OFFICE OUTPATIENT NEW 20 MINUTES",
+                "ICD10CM/L66.3": "NO_DEF",
+                "ICD10CM/R21": "rash NOS"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32387",
+            "date": "2010-09-03",
+            "observation": {
+                "CPT4/71250": "CT scan chest",
+                "CPT4/82947": "Blood glucose (sugar) level",
+                "ICD10CM/J06.9": "Upper respiratory infection NOS",
+                "ICD10CM/N18.3": "Chronic kidney disease, stage 3 (moderate)",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32388",
+            "date": "2010-09-04",
+            "observation": {
+                "CPT4/99204": "OFFICE OUTPATIENT NEW 45 MINUTES",
+                "ICD10CM/M17.9": "Osteoarthritis of knee, unspecified",
+                "ICD10CM/Z87.39": "Personal history of other diseases of the musculoskeletal system and connective tissue"
+            },
+            "observation with values": {}
+        },
+        {
+            "age in days": "32391",
+            "date": "2010-09-07",
+            "observation": {
+                "CPT4/73000": "X-ray of clavicle",
+                "CPT4/97035": "Application of ultrasound modality",
+                "CPT4/97140": "Manual therapy techniques",
+                "ICD10CM/I25.10": "Atherosclerotic heart disease NOS",
+                "ICD10CM/M25.50": "Pain in unspecified joint",
+                "ICD10CM/M25.569": "Pain in unspecified knee",
+                "ICD10CM/M51.36": "Other intervertebral disc degeneration, lumbar region",
+                "None/No matching concept": "NO_DEF"
+            },
+            "observation with values": {}
+        }
+    ],
+    "patient_id": 6
+}

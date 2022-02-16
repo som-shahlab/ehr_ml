@@ -19,6 +19,9 @@ class UMLS {
 
         aui_to_parents_map =
             load_aui_to_parents_map(umls_path, aui_to_code_map);
+
+        aui_to_text_description_map = 
+            aui_to_description_map(umls_path, code_to_aui_map);
     }
 
     std::optional<std::string> get_aui(const std::string& sab,
@@ -50,6 +53,15 @@ class UMLS {
         }
     }
 
+    std::optional<std::string> get_definition(const std::string& aui) const {
+        auto iter = aui_to_text_description_map.find(aui);
+        if (iter == std::end(aui_to_text_description_map)) {
+            return std::nullopt; 
+        } else {
+            return {iter->second};
+        }
+    }
+
    private:
     absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
         code_to_aui_map;
@@ -57,6 +69,8 @@ class UMLS {
         aui_to_code_map;
     absl::flat_hash_map<std::string, std::vector<std::string>>
         aui_to_parents_map;
+    absl::flat_hash_map<std::string, std::string>
+        aui_to_text_description_map;
 
     absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
     load_code_to_aui_map(std::string umls_path) {
@@ -225,6 +239,74 @@ class UMLS {
         result["A22725500"].push_back("A1415709");
         result["A13475665"].push_back("A1415709");
         result["A16077350"].push_back("A1415709");
+
+        return result;
+    }
+
+    absl::flat_hash_map<std::string, std::string>
+    aui_to_description_map(
+        std::string umls_path,
+        const absl::flat_hash_map<std::pair<std::string, std::string>,
+                                    std::string>&
+            code_to_aui_map) {
+
+        std::string mrconso =
+            absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
+
+        std::ifstream infile(mrconso);
+
+        absl::flat_hash_map<std::string, std::string> result;
+
+        std::string line;
+        while (std::getline(infile, line)) {
+            std::vector<std::string_view> columns = absl::StrSplit(line, '|');
+
+            std::string lat(columns[1]);
+            std::string isPref(columns[6]);
+            std::string aui(columns[7]);
+            std::string sab(columns[11]);
+            std::string code(columns[13]);
+            std::string name(columns[14]);
+            std::string suppress(columns[16]);
+
+            // filter out entries with noisy UMLS attributes
+            if (isPref != "Y" || lat != "ENG") {
+                continue;
+            }
+
+            if (suppress == "O" || suppress == "Y") {
+                continue;
+            }
+
+            // filter out entries with short str name (<= 3 characters)
+            if (name.size() <= 3) {
+                continue;
+            }
+
+            // filter out entries without valid aui in our code_to_aui_map
+            auto find_aui = code_to_aui_map.find(std::make_pair(sab, code));
+            if (find_aui == std::end(code_to_aui_map)) {
+                continue;
+            }
+
+            auto [iter, added] = result.insert(std::make_pair(find_aui->second, name));
+            if (!added) {
+                std::string prev_name = iter->second;
+                if (prev_name.size() <= name.size()) {
+                    continue;
+                } else {
+                    iter->second = name;
+                }
+            }
+        }
+
+        // add placeholder "NO_DEF" for aui with no definition
+        for (auto& iter : code_to_aui_map) {
+            auto find_aui = result.find(iter.second);
+            if (find_aui == result.end()) {
+                result.insert(std::make_pair(iter.second, "NO_DEF"));
+            }
+        }
 
         return result;
     }
