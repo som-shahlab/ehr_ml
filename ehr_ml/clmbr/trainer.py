@@ -158,8 +158,8 @@ class Trainer:
             is_val=is_val,
             batch_size=config["eval_batch_size"],
             seed=0,
-            day_dropout=config["day_dropout"],
-            code_dropout=config["code_dropout"],
+            day_dropout=0,
+            code_dropout=0,
         ) as batches:
             for batch, _ in zip(batches, range(num_batches)):
                 with torch.no_grad():
