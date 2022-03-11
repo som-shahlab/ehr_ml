@@ -182,6 +182,8 @@ class DataLoader:
         self.data_thread.join()
 
     def __next__(self) -> Any:
+        if self.stopped:
+            raise RuntimeError("Iterating over a DataLoader after it has already been used")
         next_item = self.batch_queue.get()
         if next_item is None:
             self.stopped = True
