@@ -29,6 +29,8 @@ namespace py = pybind11;
 #include "umls.h"
 #include "writer.h"
 
+#include <sys/resource.h>
+
 std::vector<std::string> map_terminology_type(std::string_view terminology) {
     if (terminology == "CPT4") {
         return {"CPT"};
@@ -751,7 +753,7 @@ class Merger {
 
                     if (rand() % ignored_patients == 0) {
                         std::cout << "You are ignoring a patient "
-                                  << total_record.person_id << " so far "
+                                  << total_record.person_id << ", you have ignored "
                                   << ignored_patients << " out of "
                                   << total_patients << std::endl;
                     }
@@ -760,7 +762,7 @@ class Merger {
                 } else {
                     if (rand() % total_patients == 0) {
                         std::cout << "You finished a patient "
-                                  << total_record.person_id << " out of "
+                                  << total_record.person_id << ", total finished so far: "
                                   << total_patients << std::endl;
                     }
                 }
@@ -1137,6 +1139,7 @@ class Cleaner {
 void create_extract(std::string omop_source_dir, std::string target_directory,
                     const ConceptTable& concepts, const GEMMapper& gem,
                     const RxNorm& rxnorm, char delimiter, bool use_quotes) {
+
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
         converter_threads;
 
@@ -1191,6 +1194,26 @@ void perform_omop_extraction(std::string omop_source_dir_str,
                              std::string umls_dir, std::string gem_dir,
                              std::string rxnorm_dir, std::string target_dir_str,
                              char delimiter, bool use_quotes) {
+
+    struct rlimit current_limit;
+
+    if (getrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
+        perror("Could not get the limit on the number of files");
+        abort();
+    }
+
+    current_limit.rlim_cur = current_limit.rlim_max;
+    
+    if (setrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
+        perror("Could not set the limit on the number of files");
+        abort();
+    }
+    
+    if (getrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
+        perror("Could not get the limit on the number of files");
+        abort();
+    }
+    
     boost::filesystem::path omop_source_dir =
         boost::filesystem::canonical(omop_source_dir_str);
     boost::filesystem::path target_dir =
@@ -1204,9 +1227,8 @@ void perform_omop_extraction(std::string omop_source_dir_str,
     }
 
     boost::filesystem::path sorted_dir = target_dir / "sorted";
-
     boost::filesystem::create_directory(sorted_dir);
-
+    
     sort_csvs(omop_source_dir, sorted_dir, delimiter, use_quotes);
 
     ConceptTable concepts = construct_concept_table(omop_source_dir.string(),

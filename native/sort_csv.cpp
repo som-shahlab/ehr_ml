@@ -46,9 +46,6 @@ void sort_csv_file(boost::filesystem::path source_file,
               });
 
     if (person_id_index == -1) {
-        std::cout << "Could not find person_id for " << source_file
-                  << std::endl;
-
         boost::filesystem::copy_file(source_file, target_file);
 
         gzclose(file);
