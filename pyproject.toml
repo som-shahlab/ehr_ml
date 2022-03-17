@@ -19,7 +19,7 @@ convert_patient_to_json = 'ehr_ml.convert_timeline_to_json:convert_patient_to_js
 
 [tool.poetry.dependencies]
 python = "^3.8"
-numpy = "1.20"
+numpy = "1.21"
 scipy = "^1.6"
 scikit-learn = "^0.24"
 tqdm = "^4.60.0"

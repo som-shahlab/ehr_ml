@@ -118,7 +118,7 @@ void create_ontology(std::string_view root_path, std::string umls_path,
 
     auto entries = dictionary.decompose();
 
-    UMLS umls(umls_path);
+    UMLS umls(absl::Substitute("$0/META", umls_path));
 
     TermDictionary ontology_dictionary;
     OntologyCodeDictionary aui_text_description_dictionary;
@@ -464,6 +464,13 @@ class StandardConceptTableConverter : public Converter {
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
+        if (row[1] == "") {
+            std::cout<<"Got invalid code " << std::endl;
+            abort();
+        }
+        if (row[1] == "0") {
+            return;
+        }
         patient_record.observations.push_back(std::make_pair(
             parse_date(row[0]), meta.dictionary.map_or_add(row[1])));
     }
@@ -510,13 +517,20 @@ class MeasurementConverter : public Converter {
     std::string_view get_file_prefix() const { return "measurement"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"measurement_DATE", "measurement_concept_id", "value_as_number",
+        return {"measurement_DATE", "measurement_source_concept_id", "value_as_number",
                 "value_source_value"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
         std::string_view code = row[1];
+        if (code == "") {
+            std::cout<<"Got invalid code" << std::endl;
+            abort();
+        }
+        if (code == "0") {
+            return;
+        }
         std::string_view value;
 
         if (row[3] != "") {
@@ -653,12 +667,6 @@ class Merger {
             heap.push_back(HeapItem(i, std::move(nextItem)));
         }
 
-        shift = 0;
-
-        while ((((size_t)1) << shift) < converter_threads.size()) {
-            shift++;
-        }
-
         std::make_heap(std::begin(heap), std::end(heap));
 
         if (heap.size() == 0) {
@@ -692,24 +700,29 @@ class Merger {
                         total_record.birth_date = record.birth_date;
                     }
 
-                    auto offset = [&](uint32_t val) {
-                        return (val << shift) + index;
+                    auto offset = [&](uint32_t val, absl::flat_hash_map<std::pair<size_t, uint32_t>, uint32_t>& m) {
+                        auto iter = m.find(std::make_pair(index, val));
+                        if (iter == std::end(m)) {
+                            auto res = m.insert(std::make_pair(std::make_pair(index, val), m.size()));
+                            iter = res.first;
+                        }
+                        return iter->second;
                     };
 
                     for (const auto& obs : record.observations) {
                         total_record.observations.push_back(
-                            std::make_pair(obs.first, offset(obs.second)));
+                            std::make_pair(obs.first, offset(obs.second, mapper)));
                     }
 
                     for (const auto& obs : record.observations_with_values) {
                         ObservationWithValue obs_with_value(obs.second.first,
                                                             obs.second.second);
 
-                        obs_with_value.code = offset(obs_with_value.code);
+                        obs_with_value.code = offset(obs_with_value.code, mapper);
 
                         if (obs_with_value.is_text) {
                             obs_with_value.text_value =
-                                offset(obs_with_value.text_value);
+                                offset(obs_with_value.text_value, value_mapper);
                         }
 
                         total_record.observations_with_values.push_back(
@@ -795,7 +808,9 @@ class Merger {
             } else {
                 Metadata total_metadata;
 
-                std::vector<std::pair<std::string, uint32_t>> dictionary;
+                std::vector<std::vector<std::pair<std::string, uint32_t>>> dictionaries(heap.size());
+                std::vector<std::vector<std::pair<std::string, uint32_t>>> value_dictionaries(heap.size());
+                
                 std::vector<std::pair<std::string, uint32_t>> value_dictionary;
 
                 for (auto& heap_item : heap) {
@@ -803,32 +818,23 @@ class Merger {
 
                     size_t index = heap_item.index;
                     Metadata& meta = std::get<Metadata>(queue_item);
-
-                    auto offset = [&](uint32_t val) {
-                        return (val << shift) + index;
-                    };
-
-                    auto process =
-                        [&](const TermDictionary& source,
-                            std::vector<std::pair<std::string, uint32_t>>&
-                                target) {
-                            auto vals = source.decompose();
-                            size_t target_size = vals.size() << shift;
-                            target.resize(std::max(target_size, target.size()));
-
-                            for (size_t i = 0; i < vals.size(); i++) {
-                                target[offset(i)] = std::move(vals[i]);
-                            }
-                        };
-
-                    process(meta.dictionary, dictionary);
-                    process(meta.value_dictionary, value_dictionary);
+                    dictionaries[index] = meta.dictionary.decompose();
+                    value_dictionaries[index] = meta.value_dictionary.decompose();
                 }
 
-                total_metadata.dictionary =
-                    TermDictionary(std::move(dictionary));
-                total_metadata.value_dictionary =
-                    TermDictionary(std::move(value_dictionary));
+
+                auto process = [&](const absl::flat_hash_map<std::pair<size_t, uint32_t>, uint32_t>& m, const std::vector<std::vector<std::pair<std::string, uint32_t>>>& dicts) {
+                    std::vector<std::pair<std::string, uint32_t>> dict(m.size());
+
+                    for (const auto& item : m) {
+                        dict[item.second] = dicts[item.first.first][item.first.second];
+                    }
+
+                    return TermDictionary(dict);
+                };
+
+                total_metadata.dictionary = process(mapper, dictionaries);
+                total_metadata.value_dictionary = process(value_mapper, value_dictionaries);
 
                 std::cout << "Done with " << lost_patients
                           << " lost patients and " << ignored_patients
@@ -854,11 +860,12 @@ class Merger {
     int lost_patients = 0;
     int ignored_patients = 0;
     int total_patients = 0;
-    size_t shift;
     std::vector<size_t> contributing_indexes;
     std::vector<HeapItem> heap;
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
         converter_threads;
+    absl::flat_hash_map<std::pair<size_t, uint32_t>, uint32_t> mapper;
+    absl::flat_hash_map<std::pair<size_t, uint32_t>, uint32_t> value_mapper;
 };
 
 std::function<std::optional<PatientRecord>()> convert_vector_to_iter(
@@ -1017,7 +1024,6 @@ class Cleaner {
             for (const auto& entry : lost_counts) {
                 lost_entries.push_back(
                     std::make_pair(-entry.second, entry.first));
-                // std::cout<<entry.first << " " << entry.second << std::endl;
             }
             std::sort(std::begin(lost_entries), std::end(lost_entries));
 
@@ -1209,16 +1215,12 @@ void perform_omop_extraction(std::string omop_source_dir_str,
         abort();
     }
     
-    if (getrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
-        perror("Could not get the limit on the number of files");
-        abort();
-    }
-    
     boost::filesystem::path omop_source_dir =
         boost::filesystem::canonical(omop_source_dir_str);
     boost::filesystem::path target_dir =
         boost::filesystem::weakly_canonical(target_dir_str);
 
+/*
     if (!boost::filesystem::create_directory(target_dir)) {
         std::cout << absl::Substitute(
             "Could not make result directory $0, got error $1\n",
@@ -1230,19 +1232,21 @@ void perform_omop_extraction(std::string omop_source_dir_str,
     boost::filesystem::create_directory(sorted_dir);
     
     sort_csvs(omop_source_dir, sorted_dir, delimiter, use_quotes);
+    */
 
     ConceptTable concepts = construct_concept_table(omop_source_dir.string(),
                                                     delimiter, use_quotes);
 
     GEMMapper gem(gem_dir);
     RxNorm rxnorm(rxnorm_dir);
-
+/*
     create_extract(sorted_dir.string(), target_dir.string(), concepts, gem,
                    rxnorm, delimiter, use_quotes);
 
     boost::filesystem::remove_all(sorted_dir);
 
     create_index(target_dir.string());
+*/
     create_ontology(target_dir.string(), umls_dir, omop_source_dir.string(),
                     concepts);
 }
