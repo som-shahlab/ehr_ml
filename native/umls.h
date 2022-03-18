@@ -20,7 +20,7 @@ class UMLS {
         aui_to_parents_map =
             load_aui_to_parents_map(umls_path, aui_to_code_map);
 
-        aui_to_text_description_map = 
+        aui_to_text_description_map =
             aui_to_description_map(umls_path, code_to_aui_map);
     }
 
@@ -56,7 +56,7 @@ class UMLS {
     std::optional<std::string> get_definition(const std::string& aui) const {
         auto iter = aui_to_text_description_map.find(aui);
         if (iter == std::end(aui_to_text_description_map)) {
-            return std::nullopt; 
+            return std::nullopt;
         } else {
             return {iter->second};
         }
@@ -69,8 +69,7 @@ class UMLS {
         aui_to_code_map;
     absl::flat_hash_map<std::string, std::vector<std::string>>
         aui_to_parents_map;
-    absl::flat_hash_map<std::string, std::string>
-        aui_to_text_description_map;
+    absl::flat_hash_map<std::string, std::string> aui_to_text_description_map;
 
     absl::flat_hash_map<std::pair<std::string, std::string>, std::string>
     load_code_to_aui_map(std::string umls_path) {
@@ -243,13 +242,10 @@ class UMLS {
         return result;
     }
 
-    absl::flat_hash_map<std::string, std::string>
-    aui_to_description_map(
+    absl::flat_hash_map<std::string, std::string> aui_to_description_map(
         std::string umls_path,
         const absl::flat_hash_map<std::pair<std::string, std::string>,
-                                    std::string>&
-            code_to_aui_map) {
-
+                                  std::string>& code_to_aui_map) {
         std::string mrconso =
             absl::Substitute("$0/$1", umls_path, "MRCONSO.RRF");
 
@@ -289,7 +285,8 @@ class UMLS {
                 continue;
             }
 
-            auto [iter, added] = result.insert(std::make_pair(find_aui->second, name));
+            auto [iter, added] =
+                result.insert(std::make_pair(find_aui->second, name));
             if (!added) {
                 std::string prev_name = iter->second;
                 if (prev_name.size() <= name.size()) {

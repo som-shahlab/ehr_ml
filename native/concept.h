@@ -33,8 +33,28 @@ class ConceptTable {
         return iter->second;
     }
 
+    std::optional<uint32_t> get_custom_map(uint32_t concept_id) const {
+        auto iter = custom_maps.find(concept_id);
+        if (iter != std::end(custom_maps)) {
+            return {iter->second};
+        } else {
+            return {};
+        }
+    }
+
+    void set_custom_map(uint32_t concept_id, uint32_t maps_to) {
+        auto res = custom_maps.insert(std::make_pair(concept_id, maps_to));
+
+        if (!res.second) {
+            std::cout << "Got duplicate for " << concept_id << std::endl;
+            abort();
+        }
+    }
+
    private:
     absl::flat_hash_map<uint32_t, ConceptInfo> concepts;
+
+    absl::flat_hash_map<uint32_t, uint32_t> custom_maps;
 };
 
 bool has_prefix(std::string_view a, std::string_view b) {
@@ -85,6 +105,27 @@ ConceptTable construct_concept_table(const std::string& location,
 
                          result.add_concept(concept_id, std::move(info));
                      });
+    });
+
+    columns = {
+        "concept_id_1",
+        "concept_id_2",
+        "relationship_id",
+        "load_table_id",
+    };
+
+    file_iter(location, "concept_relationship", [&](const auto& concept_file) {
+        csv_iterator(
+            concept_file.c_str(), columns, delimiter, {}, use_quotes, true,
+            [&result](const auto& row) {
+                if (row[2] != "Maps to" || row[3] != "custom_mapping") {
+                    return;
+                }
+                uint32_t concept_id_1, concept_id_2;
+                attempt_parse_or_die(row[0], concept_id_1);
+                attempt_parse_or_die(row[1], concept_id_2);
+                result.set_custom_map(concept_id_1, concept_id_2);
+            });
     });
 
     return result;

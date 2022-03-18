@@ -61,8 +61,10 @@ class RxNorm {
         }
 
         absl::flat_hash_set<std::string> valid_relationships = {
-            "has_ingredient", "tradename_of", "has_ingredients",
-            "consists_of",    "has_part",     "has_precise_ingredient"};
+            "has_ingredient",        "tradename_of",
+            "has_ingredients",       "has_form",
+            "consists_of",           "has_part",
+            "has_precise_ingredient"};
 
         absl::flat_hash_map<std::string, std::vector<std::string>> children_map;
         rxnorm_util(path, "RXNREL.RRF", [&](const auto& columns) {
@@ -102,18 +104,15 @@ class RxNorm {
             std::string_view sab = columns[11];
             std::string_view code = columns[13];
 
-            rxcuis.push_back(std::string(cui));
-
-            if (sab != "ATC") {
-                return;
+            if (sab == "RXNORM") {
+                rxcuis.push_back(std::string(cui));
+            } else if (sab == "ATC") {
+                atc_map[std::string(cui)].push_back(std::string(code));
             }
-
-            auto [iter, added] = atc_map.insert(
-                std::make_pair(std::string(cui), std::vector<std::string>()));
-            (void)added;
-
-            iter->second.push_back(std::string(code));
         });
+        std::sort(std::begin(rxcuis), std::end(rxcuis));
+        rxcuis.erase(std::unique(std::begin(rxcuis), std::end(rxcuis)),
+                     std::end(rxcuis));
 
         for (const auto& entry : text_to_rxcui_map) {
             const auto& key = entry.first;
@@ -157,8 +156,10 @@ class RxNorm {
                 std::unique(std::begin(atc_codes), std::end(atc_codes)),
                 std::end(atc_codes));
 
-            text_to_atc_map.insert(
-                std::make_pair(std::make_pair("RxNorm", rxcui), atc_codes));
+            if (atc_codes.size() > 0) {
+                text_to_atc_map.insert(
+                    std::make_pair(std::make_pair("RxNorm", rxcui), atc_codes));
+            }
         }
     }
 

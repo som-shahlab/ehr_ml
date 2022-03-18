@@ -7,6 +7,8 @@
 
 namespace py = pybind11;
 
+#include <sys/resource.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -28,8 +30,6 @@ namespace py = pybind11;
 #include "sort_csv.h"
 #include "umls.h"
 #include "writer.h"
-
-#include <sys/resource.h>
 
 std::vector<std::string> map_terminology_type(std::string_view terminology) {
     if (terminology == "CPT4") {
@@ -203,8 +203,10 @@ void create_ontology(std::string_view root_path, std::string umls_path,
     std::string dictionary_str = ontology_dictionary.to_json();
     ontology_writer.add_str("dictionary", dictionary_str.data(),
                             dictionary_str.size());
-    std::string description_dictionary_str = aui_text_description_dictionary.to_json();
-    ontology_writer.add_str("text_description_dictionary", description_dictionary_str.data(),
+    std::string description_dictionary_str =
+        aui_text_description_dictionary.to_json();
+    ontology_writer.add_str("text_description_dictionary",
+                            description_dictionary_str.data(),
                             description_dictionary_str.size());
     ontology_writer.add_str("words_with_subwords",
                             (const char*)words_with_subwords.data(),
@@ -465,7 +467,7 @@ class StandardConceptTableConverter : public Converter {
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
         if (row[1] == "") {
-            std::cout<<"Got invalid code " << std::endl;
+            std::cout << "Got invalid code " << std::endl;
             abort();
         }
         if (row[1] == "0") {
@@ -517,15 +519,15 @@ class MeasurementConverter : public Converter {
     std::string_view get_file_prefix() const { return "measurement"; }
 
     std::vector<std::string_view> get_columns() const {
-        return {"measurement_DATE", "measurement_source_concept_id", "value_as_number",
-                "value_source_value"};
+        return {"measurement_DATE", "measurement_source_concept_id",
+                "value_as_number", "value_source_value"};
     }
 
     void augment_day(Metadata& meta, RawPatientRecord& patient_record,
                      const std::vector<std::string_view>& row) const {
         std::string_view code = row[1];
         if (code == "") {
-            std::cout<<"Got invalid code" << std::endl;
+            std::cout << "Got invalid code" << std::endl;
             abort();
         }
         if (code == "0") {
@@ -700,25 +702,30 @@ class Merger {
                         total_record.birth_date = record.birth_date;
                     }
 
-                    auto offset = [&](uint32_t val, absl::flat_hash_map<std::pair<size_t, uint32_t>, uint32_t>& m) {
-                        auto iter = m.find(std::make_pair(index, val));
-                        if (iter == std::end(m)) {
-                            auto res = m.insert(std::make_pair(std::make_pair(index, val), m.size()));
-                            iter = res.first;
-                        }
-                        return iter->second;
-                    };
+                    auto offset =
+                        [&](uint32_t val,
+                            absl::flat_hash_map<std::pair<size_t, uint32_t>,
+                                                uint32_t>& m) {
+                            auto iter = m.find(std::make_pair(index, val));
+                            if (iter == std::end(m)) {
+                                auto res = m.insert(std::make_pair(
+                                    std::make_pair(index, val), m.size()));
+                                iter = res.first;
+                            }
+                            return iter->second;
+                        };
 
                     for (const auto& obs : record.observations) {
-                        total_record.observations.push_back(
-                            std::make_pair(obs.first, offset(obs.second, mapper)));
+                        total_record.observations.push_back(std::make_pair(
+                            obs.first, offset(obs.second, mapper)));
                     }
 
                     for (const auto& obs : record.observations_with_values) {
                         ObservationWithValue obs_with_value(obs.second.first,
                                                             obs.second.second);
 
-                        obs_with_value.code = offset(obs_with_value.code, mapper);
+                        obs_with_value.code =
+                            offset(obs_with_value.code, mapper);
 
                         if (obs_with_value.is_text) {
                             obs_with_value.text_value =
@@ -766,17 +773,19 @@ class Merger {
 
                     if (rand() % ignored_patients == 0) {
                         std::cout << "You are ignoring a patient "
-                                  << total_record.person_id << ", you have ignored "
-                                  << ignored_patients << " out of "
-                                  << total_patients << std::endl;
+                                  << total_record.person_id
+                                  << ", you have ignored " << ignored_patients
+                                  << " out of " << total_patients << std::endl;
                     }
 
                     continue;
                 } else {
                     if (rand() % total_patients == 0) {
-                        std::cout << "You finished a patient "
-                                  << total_record.person_id << ", total finished so far: "
-                                  << total_patients << std::endl;
+                        std::cout
+                            << "You finished a patient "
+                            << total_record.person_id
+                            << ", total finished so far: " << total_patients
+                            << std::endl;
                     }
                 }
 
@@ -808,9 +817,11 @@ class Merger {
             } else {
                 Metadata total_metadata;
 
-                std::vector<std::vector<std::pair<std::string, uint32_t>>> dictionaries(heap.size());
-                std::vector<std::vector<std::pair<std::string, uint32_t>>> value_dictionaries(heap.size());
-                
+                std::vector<std::vector<std::pair<std::string, uint32_t>>>
+                    dictionaries(heap.size());
+                std::vector<std::vector<std::pair<std::string, uint32_t>>>
+                    value_dictionaries(heap.size());
+
                 std::vector<std::pair<std::string, uint32_t>> value_dictionary;
 
                 for (auto& heap_item : heap) {
@@ -819,22 +830,30 @@ class Merger {
                     size_t index = heap_item.index;
                     Metadata& meta = std::get<Metadata>(queue_item);
                     dictionaries[index] = meta.dictionary.decompose();
-                    value_dictionaries[index] = meta.value_dictionary.decompose();
+                    value_dictionaries[index] =
+                        meta.value_dictionary.decompose();
                 }
 
+                auto process =
+                    [&](const absl::flat_hash_map<std::pair<size_t, uint32_t>,
+                                                  uint32_t>& m,
+                        const std::vector<
+                            std::vector<std::pair<std::string, uint32_t>>>&
+                            dicts) {
+                        std::vector<std::pair<std::string, uint32_t>> dict(
+                            m.size());
 
-                auto process = [&](const absl::flat_hash_map<std::pair<size_t, uint32_t>, uint32_t>& m, const std::vector<std::vector<std::pair<std::string, uint32_t>>>& dicts) {
-                    std::vector<std::pair<std::string, uint32_t>> dict(m.size());
+                        for (const auto& item : m) {
+                            dict[item.second] =
+                                dicts[item.first.first][item.first.second];
+                        }
 
-                    for (const auto& item : m) {
-                        dict[item.second] = dicts[item.first.first][item.first.second];
-                    }
-
-                    return TermDictionary(dict);
-                };
+                        return TermDictionary(dict);
+                    };
 
                 total_metadata.dictionary = process(mapper, dictionaries);
-                total_metadata.value_dictionary = process(value_mapper, value_dictionaries);
+                total_metadata.value_dictionary =
+                    process(value_mapper, value_dictionaries);
 
                 std::cout << "Done with " << lost_patients
                           << " lost patients and " << ignored_patients
@@ -920,11 +939,10 @@ std::vector<std::string> normalize(std::string input_code,
                                         "ICD10PCS",
                                         "Condition Type",
                                         "Visit",
-                                        "CMS Place of Service"};
-    std::set<std::string> bad_items = {"SNOMED",       "NDC",
-                                       "ICD10CN",      "ICD10",
-                                       "ICD9ProcCN",   "STANFORD_CONDITION",
-                                       "STANFORD_MEAS"};
+                                        "CMS Place of Service",
+                                        "SNOMED"};
+    std::set<std::string> bad_items = {"SNOMED", "NDC", "ICD10CN", "ICD10",
+                                       "ICD9ProcCN"};
 
     std::vector<std::string> results;
 
@@ -936,6 +954,26 @@ std::vector<std::string> normalize(std::string input_code,
     }
 
     ConceptInfo info = *info_ptr;
+
+    if (info.vocabulary_id.rfind("STANFORD_", 0) == 0) {
+        // Try to save the stanford concept
+        auto possib = table.get_custom_map(concept_id);
+
+        if (possib.has_value()) {
+            concept_id = *possib;
+            info_ptr = table.get_info(concept_id);
+            if (!info_ptr) {
+                std::cout << "Could not find the concept id " << concept_id
+                          << std::endl;
+                abort();
+            }
+            info = *info_ptr;
+        } else {
+            std::cout << "WAT " << concept_id << " " << info.vocabulary_id
+                      << std::endl;
+        }
+    }
+
     if (info.vocabulary_id == "RxNorm" || info.vocabulary_id == "NDC" ||
         info.vocabulary_id == "HCPCS") {
         // Need to map over to ATC to avoid painful issues
@@ -945,7 +983,7 @@ std::vector<std::string> normalize(std::string input_code,
             // If we fail to map to a drug, take it normally
             results.push_back(absl::Substitute("$0/$1", info.vocabulary_id,
                                                info.concept_code));
-        } else {
+        } else if (results.empty()) {
             std::cout << "Could not map ? " << info.vocabulary_id << " "
                       << info.concept_code << std::endl;
         }
@@ -1145,7 +1183,6 @@ class Cleaner {
 void create_extract(std::string omop_source_dir, std::string target_directory,
                     const ConceptTable& concepts, const GEMMapper& gem,
                     const RxNorm& rxnorm, char delimiter, bool use_quotes) {
-
     std::vector<std::pair<std::thread, std::shared_ptr<Queue>>>
         converter_threads;
 
@@ -1200,7 +1237,6 @@ void perform_omop_extraction(std::string omop_source_dir_str,
                              std::string umls_dir, std::string gem_dir,
                              std::string rxnorm_dir, std::string target_dir_str,
                              char delimiter, bool use_quotes) {
-
     struct rlimit current_limit;
 
     if (getrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
@@ -1209,18 +1245,17 @@ void perform_omop_extraction(std::string omop_source_dir_str,
     }
 
     current_limit.rlim_cur = current_limit.rlim_max;
-    
+
     if (setrlimit(RLIMIT_NOFILE, &current_limit) != 0) {
         perror("Could not set the limit on the number of files");
         abort();
     }
-    
+
     boost::filesystem::path omop_source_dir =
         boost::filesystem::canonical(omop_source_dir_str);
     boost::filesystem::path target_dir =
         boost::filesystem::weakly_canonical(target_dir_str);
 
-/*
     if (!boost::filesystem::create_directory(target_dir)) {
         std::cout << absl::Substitute(
             "Could not make result directory $0, got error $1\n",
@@ -1230,23 +1265,22 @@ void perform_omop_extraction(std::string omop_source_dir_str,
 
     boost::filesystem::path sorted_dir = target_dir / "sorted";
     boost::filesystem::create_directory(sorted_dir);
-    
+
     sort_csvs(omop_source_dir, sorted_dir, delimiter, use_quotes);
-    */
 
     ConceptTable concepts = construct_concept_table(omop_source_dir.string(),
                                                     delimiter, use_quotes);
 
     GEMMapper gem(gem_dir);
     RxNorm rxnorm(rxnorm_dir);
-/*
+
     create_extract(sorted_dir.string(), target_dir.string(), concepts, gem,
                    rxnorm, delimiter, use_quotes);
 
     boost::filesystem::remove_all(sorted_dir);
 
     create_index(target_dir.string());
-*/
+
     create_ontology(target_dir.string(), umls_dir, omop_source_dir.string(),
                     concepts);
 }

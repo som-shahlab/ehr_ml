@@ -61,7 +61,7 @@ class Dictionary {
     explicit Dictionary() { is_mutable = true; }
 
     explicit Dictionary(const char* begin, size_t size,
-                   bool should_be_mutable = false) {
+                        bool should_be_mutable = false) {
         is_mutable = should_be_mutable;
         nlohmann::json result = nlohmann::json::parse(begin, begin + size);
 
@@ -159,8 +159,7 @@ class Dictionary {
     bool is_mutable;
 };
 
-class TermDictionary : public Dictionary<uint32_t>
-{
+class TermDictionary : public Dictionary<uint32_t> {
    public:
     using Dictionary::Dictionary;
 
@@ -223,9 +222,7 @@ class TermDictionary : public Dictionary<uint32_t>
     }
 };
 
-
-class OntologyCodeDictionary : public Dictionary<std::string> 
-{
+class OntologyCodeDictionary : public Dictionary<std::string> {
    public:
     using Dictionary::Dictionary;
 
@@ -234,18 +231,19 @@ class OntologyCodeDictionary : public Dictionary<std::string>
             mapper.emplace(StringHolder(code), reverse_mapper.size());
 
         if (added) {
-            reverse_mapper.push_back(std::make_pair(std::string(code), std::string(definition)));
+            reverse_mapper.push_back(
+                std::make_pair(std::string(code), std::string(definition)));
             iter->first.make_copy();
 
             if (reverse_mapper.size() > std::numeric_limits<uint32_t>::max()) {
                 std::cout << "Adding a word to a dictionary that is too large "
-                        << reverse_mapper.size() << std::endl;
+                          << reverse_mapper.size() << std::endl;
                 abort();
             }
         } else {
-            std::cout << "Got duplicate definition for word " << code 
-                        << "Existing: " << reverse_mapper[iter->second].second
-                        << "New: " << definition << std::endl;
+            std::cout << "Got duplicate definition for word " << code
+                      << "Existing: " << reverse_mapper[iter->second].second
+                      << "New: " << definition << std::endl;
             abort();
         }
         return iter->second;
@@ -571,9 +569,12 @@ class OntologyReader {
 
     const OntologyCodeDictionary& get_text_description_dictionary() {
         if (!text_description_dictionary) {
-            auto [dict_start, dict_size] = reader.get_str("text_description_dictionary");
-            std::cout << "Got text description dictionary of size " << dict_size << std::endl;
-            text_description_dictionary = OntologyCodeDictionary(dict_start, dict_size);
+            auto [dict_start, dict_size] =
+                reader.get_str("text_description_dictionary");
+            std::cout << "Got text description dictionary of size " << dict_size
+                      << std::endl;
+            text_description_dictionary =
+                OntologyCodeDictionary(dict_start, dict_size);
         }
 
         return *text_description_dictionary;
