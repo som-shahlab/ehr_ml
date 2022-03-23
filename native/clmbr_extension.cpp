@@ -312,7 +312,20 @@ std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>> create_label_map(
 
     for (auto& iter : label_map) {
         std::sort(std::begin(iter.second), std::end(iter.second));
+
+        // Check for and remove duplicates
+        auto i = std::unique(std::begin(iter.second), std::end(iter.second), [](const std::pair<uint32_t, bool>& a, const std::pair<uint32_t, bool>& b) {
+           return a.first == a.first; 
+        });
+
+        if (i != std::end(iter.second)) {
+            std::cout<<"Had duplicates in the label map, this is almost certainly a bug" << std::endl;
+            std::cout<<"Got duplicate for patient id " << iter.first << std::endl;
+
+            abort();
+        }
     }
+
 
     return label_map;
 }
