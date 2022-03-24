@@ -941,7 +941,7 @@ std::vector<std::string> normalize(std::string input_code,
                                         "Visit",
                                         "CMS Place of Service",
                                         "SNOMED"};
-    std::set<std::string> bad_items = {"SNOMED", "NDC", "ICD10CN", "ICD10",
+    std::set<std::string> bad_items = {"NDC", "ICD10CN", "ICD10",
                                        "ICD9ProcCN"};
 
     std::vector<std::string> results;
