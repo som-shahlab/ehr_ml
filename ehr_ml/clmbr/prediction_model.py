@@ -7,6 +7,7 @@ import numpy as np
 from torch import nn
 from collections import defaultdict
 
+from .. import ontology
 from .dataset import DataLoader
 from .rnn_model import PatientRNN
 from .sequential_task import SequentialTask
@@ -17,7 +18,9 @@ from .utils import read_config, read_info, device_from_config
 from ..extension.clmbr import PatientTimelineDataset
 from ..labeler import SavedLabeler
 
-from typing import Union, List, Tuple, Optional
+from typing import Union, List, Tuple, Optional, Mapping
+
+from torch.nn import functional as F
 
 
 class CLMBR(nn.Module):
@@ -50,12 +53,6 @@ class CLMBR(nn.Module):
                     weight=self.timeline_model.input_code_embedding.weight,
                     weight1=self.timeline_model.input_code_embedding1.weight,
                 )
-
-    def compute_embedding(self, code_ontology, patient):
-        rnn_input = PatientRNN.convert_to_rnn_input(
-            self.info, code_ontology, [patient]
-        )
-        return self.compute_embedding_batch(rnn_input)[0, :, :]
 
     def compute_embedding_batch(self, rnn_input):
         with torch.no_grad():
@@ -168,6 +165,52 @@ class CLMBR(nn.Module):
     def unfreeze(self):
         for param in self.parameters():
             param.requires_grad = True
+    
+    def compute_code_probabilities(self, extract_dir: str, representations: np.array) -> Mapping[int, np.array]:
+        """
+        Compute the code probabilities for a given representation.
+        Output is in the form of log probabilities
+        Keys are entries in the ontology dictionary
+        """
+        ontology_reader = ontology.OntologyReader(os.path.join(extract_dir, 'ontology.db'))
+
+        weight = self.timeline_model.input_code_embedding.weight
+        weight1 = self.timeline_model.input_code_embedding1.weight
+        
+        representations = torch.tensor(representations, device=weight.device, dtype=weight.dtype)
+        
+        bias_tensor = torch.ones(
+            representations.shape[0], 1, device=representations.device
+        )
+
+        rnn_with_bias = torch.cat([representations, bias_tensor], dim=1)
+
+        small_size = (self.config["size"] // 4) + 1
+
+        smaller = rnn_with_bias[:, -small_size:]
+
+        with torch.no_grad():
+            probabilities = F.logsigmoid(F.linear(rnn_with_bias, weight)).cpu()
+            probabilties1 = F.logsigmoid(F.linear(smaller, weight1)).cpu()
+
+        result = {}
+
+        def get_val(code):
+            index = self.info['valid_code_map'].get(code)
+            if index == None:
+                return None
+            if index < self.config['num_first']:
+                return probabilities[:, index]
+            else:
+                return probabilties1[:, index - self.config['num_first']]
+
+        for code in self.info['valid_code_map'].keys():
+            parents = ontology_reader.get_all_parents(code)
+            vals = [get_val(p) for p in parents]
+            vals = [a for a in vals if a is not None]
+            result[code] = sum(vals)
+
+        return result
 
     @classmethod
     def from_pretrained(
