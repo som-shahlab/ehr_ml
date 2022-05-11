@@ -1,6 +1,13 @@
-from typing import Sequence
+from typing import Sequence, Mapping
 
 from . import timeline
+
+def create_ontology(
+    parent_timelines: str,
+    parent_map: Mapping[str, str],
+    recorded_date_codes: Sequence[str],
+    output_filename: str,
+) -> None: ...
 
 class OntologyReader:
     def __init__(self, filename: str): ...

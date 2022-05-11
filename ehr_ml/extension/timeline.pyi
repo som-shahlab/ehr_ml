@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import datetime
-from typing import Iterator, Literal, Optional, Sequence, Union
+from typing import Iterator, Literal, Optional, Sequence, Union, List, Tuple, NewType
+
+TextValue = NewType('TextValue', int)
 
 class TimelineReader:
     def __init__(self, filename: str, readall: bool = ...): ...
@@ -23,9 +25,9 @@ class TimelineReader:
     def get_value_dictionary(self) -> TermDictionary: ...
 
 class TermDictionary:
-    def map(self, term: str) -> Optional[int]: ...
-    def get_word(self, code: int) -> Optional[str]: ...
-    def get_items(self) -> List[Tuple[str, int]]: ...
+    def map(self, term: str) -> Optional[TextValue]: ...
+    def get_word(self, code: TextValue) -> Optional[str]: ...
+    def get_items(self) -> List[Tuple[str, TextValue]]: ...
 
 class Patient:
     patient_id: int
@@ -34,19 +36,24 @@ class Patient:
 class PatientDay:
     date: datetime.date
     age: int
-    observations: Sequence[int]
+    observations: Sequence[TextValue]
     observations_with_values: Sequence[ObservationWithValue]
-
-class NumericObservationWithValue:
-    code: int
-    is_text: Literal[False]
-    numeric_value: float
-
-class TextObservationWithValue:
-    code: int
-    is_text: Literal[True]
-    text_value: int
 
 ObservationWithValue = Union[
     NumericObservationWithValue, TextObservationWithValue
 ]
+
+class TextObservationWithValue:
+    code: TextValue
+    is_text: Literal[True]
+    text_value: TextValue
+
+class NumericObservationWithValue:
+    code: TextValue
+    is_text: Literal[False]
+    numeric_value: float
+
+def create_timeline(
+    event_dir: str,
+    output_filename: str,
+) -> None: ...
