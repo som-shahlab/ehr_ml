@@ -9,9 +9,10 @@ from .extension.timeline import (
     TimelineReader,
     Patient,
     PatientDay,
+    create_temporary_extract,
 )
 
-__all__ = ["ObservationWithValue", "TimelineReader", "Patient", "PatientDay"]
+__all__ = ["ObservationWithValue", "TimelineReader", "Patient", "PatientDay", "create_temporary_extract", ]
 
 
 def inspect_timelines() -> None:

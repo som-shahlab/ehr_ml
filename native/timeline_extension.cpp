@@ -6,10 +6,20 @@
 #include "absl/time/civil_time.h"
 #include "civil_day_caster.h"
 #include "reader.h"
+#include "writer.h"
+#include <boost/filesystem.hpp>
 
 namespace py = pybind11;
 
 struct PatientDay {
+    PatientDay(absl::CivilDay _date, uint32_t _age, std::vector<uint32_t> _observations, std::vector<ObservationWithValue> _observations_with_values) {
+        date = _date;
+        age = _age;
+        observations = _observations;
+        observations_with_values = _observations_with_values;
+    }
+
+
     absl::CivilDay date;
     uint32_t age;
     std::vector<uint32_t> observations;
@@ -24,6 +34,11 @@ struct PatientDay {
 };
 
 struct Patient {
+    Patient(uint32_t _patient_id, std::vector<PatientDay> _days) {
+        patient_id = _patient_id;
+        days = _days;
+    }
+
     uint32_t patient_id;
     std::vector<PatientDay> days;
 
@@ -74,8 +89,7 @@ class TimelineReader {
     Patient get_patient(uint32_t patient_id,
                         std::optional<absl::CivilDay> start_date,
                         std::optional<absl::CivilDay> end_date) {
-        Patient patient;
-        patient.patient_id = patient_id;
+        Patient patient(patient_id, {});
 
         iter.process_patient(
             patient_id, [&start_date, &end_date, &patient](
@@ -83,20 +97,18 @@ class TimelineReader {
                             const std::vector<uint32_t>& observations,
                             const std::vector<ObservationWithValue>&
                                 observations_with_values) {
-                PatientDay day;
-                day.date = birth_date + age;
+                absl::CivilDay date = birth_date + age;
 
-                if (start_date && day.date < *start_date) {
+                if (start_date && date < *start_date) {
                     return;
                 }
 
-                if (end_date && day.date >= *end_date) {
+                if (end_date && date >= *end_date) {
                     return;
                 }
+                
+                PatientDay day(date, age, observations, observations_with_values);
 
-                day.age = age;
-                day.observations = observations;
-                day.observations_with_values = observations_with_values;
                 patient.days.push_back(std::move(day));
             });
 
@@ -207,6 +219,55 @@ void register_iterable(py::module& m) {
         });
 }
 
+void create_temporary(std::string target_folder, std::string source_extract, std::vector<Patient> patients) {
+
+    boost::filesystem::create_directories(target_folder);
+    
+    std::string final_extract =
+        absl::Substitute("$0/extract.db", target_folder);
+    
+    std::string source_timelines =
+        absl::Substitute("$0/extract.db", source_extract);
+    
+    boost::filesystem::copy_file(absl::Substitute("$0/ontology.db", source_extract), absl::Substitute("$0/ontology.db", target_folder));
+    
+    auto iter = std::begin(patients);
+
+    TimelineReader reader(source_timelines.c_str(), false);
+
+    auto get_next = [&](){
+        WriterItem result;
+        if (iter == std::end(patients)) {
+            Metadata meta;
+            meta.dictionary = *reader.get_dictionary();
+            meta.value_dictionary = *reader.get_value_dictionary();
+            result = meta;
+        } else {
+            Patient p = *iter++;
+
+            PatientRecord record;
+            record.person_id = p.patient_id;
+            record.birth_date = p.days[0].date;
+
+            for (const auto& day : p.days) {
+                for (const auto& observation : day.observations) {
+                    record.observations.push_back(std::make_pair(day.age, observation));
+                }
+                for (const auto& observation_with_value : day.observations_with_values) {
+                    record.observations_with_values.push_back(std::make_pair(day.age, observation_with_value.encode()));
+                }
+            }
+
+            result = record;
+        }
+        return result;
+    };
+
+    write_timeline(final_extract.c_str(), get_next);
+
+
+}
+
 void register_timeline_extension(py::module& root) {
     register_iterable<absl::Span<const uint32_t>>(root);
     register_iterable<absl::Span<const uint64_t>>(root);
@@ -214,6 +275,8 @@ void register_timeline_extension(py::module& root) {
     register_iterable<absl::Span<const ObservationWithValue>>(root);
 
     py::module m = root.def_submodule("timeline");
+
+    m.def("create_temporary_extract", create_temporary);
 
     py::class_<TimelineReader>(m, "TimelineReader")
         .def(py::init<const char*, bool>(), py::arg("filename"),
@@ -247,11 +310,13 @@ void register_timeline_extension(py::module& root) {
         .def("__next__", &TimelineReader::TimelineReaderIterator::next);
 
     py::class_<Patient>(m, "Patient")
+        .def(py::init<uint32_t, std::vector<PatientDay>>())
         .def_readonly("patient_id", &Patient::patient_id)
         .def_property_readonly("days", &Patient::get_days,
                                py::keep_alive<0, 1>());
 
     py::class_<PatientDay>(m, "PatientDay")
+        .def(py::init<absl::CivilDay, uint32_t, std::vector<uint32_t>, std::vector<ObservationWithValue>>())
         .def_readonly("date", &PatientDay::date)
         .def_readonly("age", &PatientDay::age)
         .def_property_readonly("observations", &PatientDay::get_observations,
@@ -261,6 +326,7 @@ void register_timeline_extension(py::module& root) {
                                py::keep_alive<0, 1>());
 
     py::class_<ObservationWithValue>(m, "ObservationWithValue")
+        .def(py::init<uint32_t, bool, uint32_t, float>())
         .def_readonly("code", &ObservationWithValue::code)
         .def_readonly("is_text", &ObservationWithValue::is_text)
         .def_readonly("text_value", &ObservationWithValue::text_value)

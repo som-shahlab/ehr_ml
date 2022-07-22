@@ -274,6 +274,16 @@ bit_cast(const From& src) noexcept {
 struct ObservationWithValue {
     ObservationWithValue() {}
 
+    ObservationWithValue(uint32_t _code, bool _is_text, uint32_t _text_value, float _numeric_value) {
+        code = _code;
+        is_text = _is_text;
+        if (is_text) {
+            text_value = _text_value;
+        } else {
+            numeric_value = _numeric_value;
+        }
+    }
+
     ObservationWithValue(uint32_t source_code, uint32_t value) {
         code = source_code >> 2;
         uint32_t code_type = source_code & 3;
