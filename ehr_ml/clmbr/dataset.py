@@ -134,7 +134,6 @@ class DataLoader:
     def __init__(
         self,
         dataset: PatientTimelineDataset,
-        threshold: int,
         is_val: bool = False,
         batch_size: int = 2000,
         seed: int = 0,
@@ -152,7 +151,7 @@ class DataLoader:
         self.stop_event = threading.Event()
         self.num_batches = dataset.num_batches(batch_size, is_val)
 
-        args = (is_val, batch_size, seed, threshold, day_dropout, code_dropout)
+        args = (is_val, batch_size, seed, day_dropout, code_dropout)
 
         self.data_thread = threading.Thread(
             target=prepare_batch_thread,

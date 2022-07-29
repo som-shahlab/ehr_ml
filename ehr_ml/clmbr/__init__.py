@@ -182,8 +182,17 @@ def create_info_program() -> None:
     result["seed"] = args.seed
     result["min_patient_count"] = args.min_patient_count
     
-    print('Starting point', len(result['val_patient_ids_with_length']))
+    first_too_small_index = float("inf")
+    for code, index in result["valid_code_map"].items():
+        if result["code_counts"][code] < 10 * result["min_patient_count"]:
+            first_too_small_index = min(first_too_small_index, index)
 
+    result["threshold"] = first_too_small_index
+
+    print(
+        f'The first bin consists of {first_too_small_index} codes with {len(result["valid_code_map"]) - first_too_small_index} remaining'
+    )
+    
     def remove_pids(a, x):
         return [(p, c) for p, c in a if p not in x]
     
@@ -232,8 +241,6 @@ def create_info_program() -> None:
             % (len(excluded_pids), args.exclude_patient_ratio)
         )
     
-    print('After exclusion', len(result['val_patient_ids_with_length']))
-
     if args.train_patient_file is not None:
         with open(args.train_patient_file) as f:
             pids = {int(a) for a in f}
@@ -250,8 +257,6 @@ def create_info_program() -> None:
                 result["val_patient_ids_with_length"], pids
             )
     
-    print('Final', len(result['val_patient_ids_with_length']))
-
     def count_frequent_items(counts: Mapping[Any, int], threshold: int) -> int:
         return len(
             {item for item, count in counts.items() if count >= threshold}
@@ -374,10 +379,8 @@ def train_model() -> None:
         default="cpu",
         help='Specify whether the model should be run on CPU or GPU. Can specify a specific GPU, e.g. "cuda:0" (default "cpu")',
     )
-    parser.add_argument("--code_dropout", type=float, default=0.2)
-    # Day dropout added in reference to Lawrence's comment,
-    # although Ethan mentioned it should be removed from the API
-    parser.add_argument("--day_dropout", type=float, default=0.2)
+    parser.add_argument("--code_dropout", type=float, default=0)
+    parser.add_argument("--day_dropout", type=float, default=0)
     args = parser.parse_args()
 
     model_dir = args.model_dir
@@ -399,19 +402,14 @@ def train_model() -> None:
         os.path.join(model_dir, "info.json"),
     )
 
-    first_too_small_index = float("inf")
-    for code, index in info["valid_code_map"].items():
-        if info["code_counts"][code] < 10 * info["min_patient_count"]:
-            first_too_small_index = min(first_too_small_index, index)
-
     print(len(info["valid_code_map"]), flush=True)
 
     # Create and save config dictionary
     config = {
         "batch_size": args.batch_size,
         "eval_batch_size": args.eval_batch_size,
-        "num_first": first_too_small_index,
-        "num_second": len(info["valid_code_map"]) - first_too_small_index,
+        "num_first": info["threshold"] + info["num_lab_codes"],
+        "num_second": len(info["valid_code_map"]) - info["threshold"],
         "size": args.size,
         "lr": args.lr,
         "dropout": args.dropout,
@@ -479,17 +477,42 @@ def debug_model() -> None:
     timelines = timeline.TimelineReader(
         os.path.join(info["extract_dir"], "extract.db")
     )
-
+    
     reverse_map = {}
+    reverse_map_backup = {}
+
     for b, a in info["valid_code_map"].items():
         word = ontologies.get_dictionary().get_word(b)
-        reverse_map[a] = word
+        if a < info["threshold"]:
+            reverse_map[a] = word
+        else:
+            reverse_map_backup[a - info["threshold"]] = "BACKUP/" + word
 
-    reverse_map[len(info["valid_code_map"])] = "None"
+    for a, b in info["lab_value_map"].items():
+        code = int(a)
+        word = timelines.get_dictionary().get_word(code)
+        if "numeric_indices" in b:
+            numeric_ranges = (
+                [float("-inf")] + b["numeric_ranges"] + [float("inf")]
+            )
+            numeric_indices = b["numeric_indices"]
 
+            for i, elem in enumerate(numeric_indices):
+                text_value = (
+                    f"{word}: ({numeric_ranges[i]}-{numeric_ranges[i+1]})"
+                )
+                reverse_map[info["threshold"] + elem] = text_value
+
+        if "text_indices" in b:
+            for k, elem in b["text_indices"].items():
+                value = b["text_values"][k]
+                text_value = f"{word}: {value}"
+                reverse_map[info["threshold"] + elem] = text_value
+
+    reverse_map[info["threshold"] + info["num_lab_codes"]] = "None"
+    reverse_map_backup[len(reverse_map_backup)] = "BACKUP/None"
     with DataLoader(
         loaded_data,
-        threshold=config["num_first"],
         is_val=True,
         batch_size=1,
         seed=info["seed"],
@@ -499,7 +522,8 @@ def debug_model() -> None:
         for batch in batches:
             if batch["task"][0].size()[0] == 0:
                 continue
-            values, non_text_loss = model(batch)
+            outputs = model(batch)
+            values = outputs['values'] 
             values = torch.sigmoid(values)
 
             patient_id = int(batch["pid"][0])
@@ -524,6 +548,9 @@ def debug_model() -> None:
             all_non_text_offsets = list(all_non_text_offsets) + [
                 len(all_non_text_codes)
             ]
+            all_non_text_offsets1 = list(all_non_text_offsets1) + [
+                len(all_non_text_codes1)
+            ]
 
             print(patient_id, batch["pid"], original_day_indices)
 
@@ -546,11 +573,18 @@ def debug_model() -> None:
 
                 wordsA = set()
 
+                print(i, len(all_non_text_offsets), len(all_non_text_offsets1), len(all_non_text_codes), len(all_non_text_codes1))
+
                 if (i + 1) < len(all_non_text_offsets):
                     for code in all_non_text_codes[
                         all_non_text_offsets[i] : all_non_text_offsets[i + 1]
                     ]:
                         wordsA.add(reverse_map[code.item()])
+                
+                    for code_value in all_non_text_codes1[
+                        all_non_text_offsets1[i] : all_non_text_offsets1[i + 1]
+                    ]:
+                        wordsA.add(reverse_map_backup[code_value.item()])
 
                 print("Given", wordsA)
 
@@ -559,7 +593,6 @@ def debug_model() -> None:
                 w = word_indices[day_mask]
                 p = values[day_mask]
                 t = targets[day_mask]
-                f = seen_before[day_mask]
 
                 items = [
                     (
@@ -568,9 +601,8 @@ def debug_model() -> None:
                         p_i.item(),
                         reverse_map[w_i.item()] in all_seen,
                         w_i.item(),
-                        f_i.item(),
                     )
-                    for p_i, t_i, w_i, f_i in zip(p, t, w, f)
+                    for p_i, t_i, w_i in zip(p, t, w)
                 ]
                 items.sort(key=lambda x: (-x[0], x[1]))
 

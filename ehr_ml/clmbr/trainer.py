@@ -59,7 +59,6 @@ class Trainer:
         config = self.model.config
         with DataLoader(
             dataset,
-            threshold=config["num_first"],
             is_val=False,
             batch_size=config["batch_size"],
             seed=random.randint(0, 100000),
@@ -154,7 +153,6 @@ class Trainer:
         total_loss = 0
         with DataLoader(
             dataset,
-            threshold=config["num_first"],
             is_val=is_val,
             batch_size=config["eval_batch_size"],
             seed=0,

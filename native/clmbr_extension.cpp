@@ -8,6 +8,7 @@
 #include "blockingconcurrentqueue.h"
 #include "civil_day_caster.h"
 #include "reader.h"
+#include "flatmap.h"
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "absl/container/flat_hash_map.h"
@@ -50,6 +51,101 @@ class OnlineStatistics {
     double variance;
 };
 
+template <typename T>
+struct ReservoirSampler {
+   public:
+    ReservoirSampler(size_t _max_samples)
+        : max_samples(_max_samples),
+          num_samples_seen(0),
+          next_sample(max_samples) {}
+
+    void add(T value) {
+        num_samples_seen++;
+
+        if (num_samples_seen <= max_samples) {
+            current_sample.push_back(std::move(value));
+        } else if (next_sample == num_samples_seen) {
+            std::uniform_int_distribution<> index_distribution(0,
+                                                               max_samples - 1);
+            size_t index_to_store = index_distribution(rng);
+            current_sample[index_to_store] = std::move(value);
+        }
+
+        if (next_sample == num_samples_seen) {
+            double prob_add = (double)max_samples / (1 + num_samples_seen);
+            std::geometric_distribution<> gap_distribution(prob_add);
+            next_sample += 1 + prob_add;
+        }
+    }
+
+    absl::Span<const T> sample() const { return current_sample; }
+
+   private:
+    std::vector<T> current_sample;
+    size_t max_samples;
+    size_t num_samples_seen;
+    size_t next_sample;
+    std::mt19937_64 rng;
+};
+
+absl::flat_hash_set<std::string> bad_lab_values = {
+    "not applicable",
+    "see below:",
+    "see below",
+    "see report",
+    "see note",
+    "note:",
+    "note",
+    "null",
+    "cancelled",
+    "dnr",
+    "dnrtnp",
+    "qns",
+    "nt",
+    "nolav",
+    "performed",
+    "n/a",
+    "sprcs",
+    "prc",
+};
+
+std::string normalize_lab_value(std::string lab_value) {
+    std::transform(lab_value.begin(), lab_value.end(), lab_value.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    if (lab_value == "n" || lab_value == "neg" || lab_value == "neg." ||
+        lab_value == "not detected" || lab_value == "none" ||
+        lab_value == "none seen" || lab_value == "nosee" || lab_value == "nr" ||
+        lab_value == "non reactive" || lab_value == "non-reactive") {
+        lab_value = "negative";
+    }
+
+    if (lab_value == "p" || lab_value == "pos" || lab_value == "pos." ||
+        lab_value == "reactive") {
+        lab_value = "positive";
+    }
+
+    if (bad_lab_values.find(lab_value) != std::end(bad_lab_values)) {
+        lab_value = "";
+    }
+
+    if (lab_value.find("tnp/", 0) == 0) {
+        lab_value = "";
+    }
+
+    std::string_view lab_view = lab_value;
+
+    if (lab_value.find("<", 0) == 0) {
+        float value;
+        bool converted = absl::SimpleAtof(lab_view.substr(1), &value);
+        if (converted) {
+            lab_value = absl::Substitute("<$0", value);
+        }
+    }
+
+    return lab_value;
+}
+
 std::string create_info(const char* timeline_path, const char* ontology_path,
                         absl::CivilDay train_start_date,
                         absl::CivilDay train_end_date,
@@ -78,6 +174,9 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
 
     std::vector<uint32_t> code_counts;
     std::vector<uint32_t> patient_code_set;
+    
+    FlatMap<ReservoirSampler<float>> numeric_lab_samples;
+    FlatMap<ReservoirSampler<uint32_t>> text_lab_samples;
 
     size_t num_patients = reader.get_patient_ids().size();
 
@@ -160,6 +259,18 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
                     for (const auto& obs_with_value :
                          observations_with_values) {
                         process_code(obs_with_value.code);
+
+                        if (obs_with_value.is_text) {
+                            auto sampler = text_lab_samples.find_or_insert(
+                                obs_with_value.code,
+                                ReservoirSampler<uint32_t>(10000));
+                            sampler->add(obs_with_value.text_value);
+                        } else {
+                            auto sampler = numeric_lab_samples.find_or_insert(
+                                obs_with_value.code,
+                                ReservoirSampler<float>(10000));
+                            sampler->add(obs_with_value.numeric_value);
+                        }
                     }
                 }
 
@@ -244,6 +355,134 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
 
         valid_codes.push_back(std::make_pair(-count, code));
     }
+    
+    std::vector<std::pair<uint32_t, std::vector<float>>> numeric_map;
+    for (uint32_t i = 0; i < numeric_lab_samples.size(); i++) {
+        auto* iter = numeric_lab_samples.find(i);
+        if (iter == nullptr) {
+            continue;
+        }
+        auto sample = iter->sample();
+        if (sample.size() == 0) {
+            continue;
+        }
+        numeric_map.push_back(std::make_pair(
+            i, std::vector<float>(std::begin(sample), std::end(sample))));
+    }
+
+    std::vector<std::pair<uint32_t, std::vector<uint32_t>>> text_map;
+    for (uint32_t i = 0; i < text_lab_samples.size(); i++) {
+        auto* iter = text_lab_samples.find(i);
+        if (iter == nullptr) {
+            continue;
+        }
+        auto sample = iter->sample();
+        if (sample.size() == 0) {
+            continue;
+        }
+        text_map.push_back(std::make_pair(
+            i, std::vector<uint32_t>(std::begin(sample), std::end(sample))));
+    }
+    nlohmann::json result;
+
+    result["numeric_lab_map"] = numeric_map;
+    result["text_lab_map"] = text_map;
+
+    uint32_t next_lab_code = 0;
+
+    nlohmann::json serialized;
+
+    for (auto& item : numeric_map) {
+        int num_splits = item.second.size() / 500;
+        if (num_splits <= 1) {
+            continue;
+        }
+
+        std::sort(std::begin(item.second), std::end(item.second));
+
+        std::deque<float> numeric_ranges;
+        std::vector<uint32_t> numeric_indices;
+
+        float previous_value = std::numeric_limits<float>::quiet_NaN();
+
+        for (int i = 0; i <= num_splits; i++) {
+            float current_value;
+
+            if (i == 0) {
+                current_value = item.second[0];
+            } else if (i == num_splits) {
+                current_value = item.second[item.second.size() - 1];
+            } else {
+                current_value =
+                    item.second[(item.second.size() * i) / num_splits];
+            }
+
+            if (current_value != previous_value) {
+                numeric_indices.push_back(next_lab_code++);
+                numeric_ranges.push_back(current_value);
+            }
+            previous_value = current_value;
+        }
+
+        if (numeric_ranges.size() > 2) {
+            numeric_ranges.pop_back();
+            numeric_ranges.pop_front();
+            numeric_indices.pop_back();
+
+            next_lab_code--;
+
+            serialized[std::to_string(item.first)]["numeric_ranges"] =
+                numeric_ranges;
+            serialized[std::to_string(item.first)]["numeric_indices"] =
+                numeric_indices;
+        } else {
+            next_lab_code -= numeric_indices.size();
+        }
+    }
+
+    for (auto& item : text_map) {
+        std::map<std::string, std::set<uint32_t>> mapping;
+        std::map<std::string, int> count_map;
+
+        for (uint32_t text_value : item.second) {
+            std::string normalized = normalize_lab_value(std::string(
+                *reader.get_value_dictionary().get_word(text_value)));
+            if (normalized == "") {
+                continue;
+            }
+            mapping[normalized].insert(text_value);
+            count_map[normalized] += 1;
+        }
+
+        uint32_t valid_found = 0;
+
+        for (auto& iter : count_map) {
+            if (iter.second > 100) {
+                valid_found++;
+            }
+        }
+
+        if (valid_found <= 1) {
+            continue;
+        }
+
+        for (auto& iter : count_map) {
+            if (iter.second > 100) {
+                uint32_t index = next_lab_code++;
+                for (uint32_t token : mapping[iter.first]) {
+                    serialized[std::to_string(item.first)]["text_indices"]
+                              [std::to_string(token)] = index;
+                    serialized[std::to_string(item.first)]["text_values"]
+                              [std::to_string(token)] = iter.first;
+                }
+            }
+        }
+    }
+
+    result["lab_value_map"] = serialized;
+    result["num_lab_codes"] = next_lab_code;
+
+    std::cout << "Got " << next_lab_code << " lab codes " << std::endl;
 
     std::cout << "Removed " << codes_with_no_siblings
               << " due to lack of siblings" << std::endl;
@@ -261,7 +500,6 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
         valid_code_map[std::to_string(code)] = i;
     }
 
-    nlohmann::json result;
 
     result["code_counts"] = final_code_counts;
     result["valid_code_map"] = valid_code_map;
@@ -347,6 +585,70 @@ std::vector<std::pair<uint32_t, uint32_t>> create_lengths(
     return result;
 }
 
+class LabData {
+   public:
+    LabData(uint32_t index_offset, const nlohmann::json& json_data) {
+        auto number_ptr = json_data.find("numeric_indices");
+
+        if (number_ptr != std::end(json_data)) {
+            for (const auto& value : *number_ptr) {
+                uint32_t correct_value = (uint32_t)value + index_offset;
+                numeric_indices.push_back(correct_value);
+                all_codes.push_back(correct_value);
+            }
+
+            for (const auto& value : json_data["numeric_ranges"]) {
+                numeric_dividers.push_back((float)value);
+            }
+        }
+
+        auto string_ptr = json_data.find("text_indices");
+
+        if (string_ptr != std::end(json_data)) {
+            for (const auto& entry : string_ptr->items()) {
+                uint32_t key = std::stoi(entry.key());
+                uint32_t value = ((uint32_t)entry.value()) + index_offset;
+
+                string_values.insert(std::make_pair(key, value));
+                all_codes.push_back(value);
+            }
+        }
+    }
+
+    const std::vector<uint32_t>& get_all_codes() const { return all_codes; }
+
+    std::optional<uint32_t> get_index(float value) const {
+        if (numeric_dividers.size() == 0) {
+            return std::nullopt;
+        }
+
+        size_t index;
+
+        for (index = 0; index < numeric_dividers.size(); index++) {
+            if (value <= numeric_dividers[index]) {
+                break;
+            }
+        }
+
+        return numeric_indices[index];
+    }
+
+    std::optional<uint32_t> get_index(uint32_t string_value) const {
+        auto iter = string_values.find(string_value);
+        if (iter == std::end(string_values)) {
+            return std::nullopt;
+        } else {
+            return {iter->second};
+        }
+    }
+
+   private:
+    std::vector<uint32_t> all_codes;
+    absl::flat_hash_map<uint32_t, uint32_t> string_values;
+    std::vector<uint32_t> numeric_indices;
+    std::vector<float> numeric_dividers;
+};
+
 class PTDatasetIterator;
 class PatientTimelineDataset {
    public:
@@ -367,6 +669,8 @@ class PatientTimelineDataset {
                              return first.second > second.second;
                          });
     }
+    
+    int32_t threshold;
 
     PatientTimelineDataset(const char* timelines_path,
                            const char* ontology_path, const char* info_path)
@@ -382,6 +686,8 @@ class PatientTimelineDataset {
             nlohmann::json info;
             std::ifstream info_file(info_path);
             info_file >> info;
+
+            threshold = info["threshold"];
 
             age_mean = info["age_mean"];
             age_std = info["age_std"];
@@ -426,6 +732,12 @@ class PatientTimelineDataset {
 
                 return result;
             };
+            num_lab_codes = info["num_lab_codes"];
+            for (const auto& entry : info["lab_value_map"].items()) {
+                uint32_t key = std::stoi(entry.key());
+                LabData value(threshold, entry.value());
+                lab_data_map.insert(key, std::move(value));
+            }
 
             train_dates = std::make_pair(decode_date(info["train_start_date"]),
                                          decode_date(info["train_end_date"]));
@@ -447,10 +759,10 @@ class PatientTimelineDataset {
     }
 
     std::unique_ptr<PTDatasetIterator> get_iterator(
-        bool is_val, int batch_size, uint64_t seed, int threshold,
+        bool is_val, int batch_size, uint64_t seed,
         float day_dropout = 0, float code_dropout = 0) const {
         return std::make_unique<PTDatasetIterator>(*this, is_val, batch_size,
-                                                   seed, threshold, day_dropout,
+                                                   seed, day_dropout,
                                                    code_dropout);
     }
 
@@ -476,6 +788,7 @@ class PatientTimelineDataset {
     }
 
     int num_valid_codes;
+    uint32_t num_lab_codes;
 
    private:
     std::map<uint32_t, std::vector<std::pair<uint32_t, bool>>> train_map;
@@ -504,6 +817,8 @@ class PatientTimelineDataset {
 
     std::vector<std::optional<uint32_t>> valid_code_map;
     std::vector<bool> valid_recorded_date_code;
+    
+    FlatMap<LabData> lab_data_map;
 
     std::vector<std::pair<uint32_t, uint32_t>> train_lengths;
     std::vector<std::pair<uint32_t, uint32_t>> val_lengths;
@@ -544,6 +859,10 @@ struct PTDatasetBatch {
 
     std::vector<uint32_t> buffer;
 
+
+    std::vector<int64_t> positive_lab_codes;
+    std::vector<int64_t> negative_lab_codes;
+
     std::vector<int64_t> patient_ids;
     std::vector<int64_t> codes;
     std::vector<int64_t> offsets;
@@ -574,12 +893,11 @@ struct PTDatasetBatch {
 class PTDatasetIterator {
    public:
     PTDatasetIterator(const PatientTimelineDataset& p, bool is_val_,
-                      int batch_size, uint64_t seed, int threshold_,
+                      int batch_size, uint64_t seed,
                       float day_dropout_ = 0, float code_dropout_ = 0)
         : rng(seed),
           parent(p),
           is_val(is_val_),
-          threshold(threshold_),
           day_dropout(day_dropout_),
           code_dropout(code_dropout_) {
         if (is_val) {
@@ -798,6 +1116,8 @@ class PTDatasetIterator {
                     batch.positive_codes_per_day.clear();
                     batch.positive_codes_per_day_features.clear();
                     batch.negative_codes_per_day.clear();
+                    batch.positive_lab_codes.clear();
+                    batch.negative_lab_codes.clear();
 
                     for (uint32_t code : observations) {
                         if (!parent.is_valid_recorded_date_code(code)) {
@@ -839,6 +1159,27 @@ class PTDatasetIterator {
                                     subword);
                             }
                         }
+                        
+                        auto lab_data = parent.lab_data_map.find(code);
+                        if (lab_data != nullptr) {
+                            std::optional<uint32_t> value_token;
+                            if (code_with_value.is_text) {
+                                value_token = lab_data->get_index(
+                                    code_with_value.text_value);
+                            } else {
+                                value_token = lab_data->get_index(
+                                    code_with_value.numeric_value);
+                            }
+
+                            if (value_token) {
+                                batch.positive_lab_codes.push_back(*value_token);
+                                for (const auto neg_code : lab_data->get_all_codes()) {
+                                    if (neg_code != *value_token) {
+                                        batch.negative_lab_codes.push_back(neg_code);
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     std::sort(std::begin(batch.positive_codes_per_day),
@@ -848,7 +1189,21 @@ class PTDatasetIterator {
                                     std::end(batch.positive_codes_per_day));
                     batch.positive_codes_per_day.erase(
                         last, std::end(batch.positive_codes_per_day));
-
+                    
+                    {
+                    std::sort(std::begin(batch.positive_lab_codes),
+                              std::end(batch.positive_lab_codes));
+                    auto last = std::unique(std::begin(batch.positive_lab_codes),
+                                       std::end(batch.positive_lab_codes));
+                    batch.positive_lab_codes.erase(last, std::end(batch.positive_lab_codes));
+                    }
+                    {
+                    std::sort(std::begin(batch.negative_lab_codes),
+                              std::end(batch.negative_lab_codes));
+                    auto last = std::unique(std::begin(batch.negative_lab_codes),
+                                       std::end(batch.negative_lab_codes));
+                    batch.negative_lab_codes.erase(last, std::end(batch.negative_lab_codes));
+                    }
                     if (code_dropout != 0) {
                         std::sort(
                             std::begin(batch.positive_codes_per_day_features),
@@ -922,9 +1277,9 @@ class PTDatasetIterator {
                                  batch.positive_codes_per_day_features) {
                                 if (auto valid_code =
                                         parent.get_valid_code(code)) {
-                                    if (*valid_code >= threshold) {
+                                    if (*valid_code >= parent.threshold) {
                                         batch.codes1.push_back(*valid_code -
-                                                               threshold);
+                                                               parent.threshold);
                                         added_one1 = true;
                                     } else {
                                         batch.codes.push_back(*valid_code);
@@ -936,9 +1291,9 @@ class PTDatasetIterator {
                             for (uint32_t code : batch.positive_codes_per_day) {
                                 if (auto valid_code =
                                         parent.get_valid_code(code)) {
-                                    if (*valid_code >= threshold) {
+                                    if (*valid_code >= parent.threshold) {
                                         batch.codes1.push_back(*valid_code -
-                                                               threshold);
+                                                               parent.threshold);
                                         added_one1 = true;
                                     } else {
                                         batch.codes.push_back(*valid_code);
@@ -947,14 +1302,22 @@ class PTDatasetIterator {
                                 }
                             }
                         }
+                        
+                        for (uint32_t code : batch.positive_lab_codes) {
+                            if (code_dropout == 0 ||
+                                !code_dropout_distribution(batch_rng)) {
+                                batch.codes.push_back(code);
+                                added_one = true;
+                            }
+                        }
 
                         if (!added_one) {
-                            batch.codes.push_back(threshold);
+                            batch.codes.push_back(parent.threshold + parent.num_lab_codes);
                         }
 
                         if (!added_one1) {
                             batch.codes1.push_back(parent.num_valid_codes -
-                                                   threshold);
+                                                   parent.threshold);
                         }
 
                         last_age = age;
@@ -984,10 +1347,10 @@ class PTDatasetIterator {
                                 float seen =
                                     batch.seen_codes.find(*valid_code) !=
                                     batch.seen_codes.end();
-                                if (*valid_code >= threshold) {
+                                if (*valid_code >= parent.threshold) {
                                     batch.target_indices1.push_back(
                                         {(current_offset - 2) + i * max_length,
-                                         *valid_code - threshold});
+                                         *valid_code - parent.threshold});
                                     batch.targets1.push_back(1);
                                     batch.target1_seen.push_back(seen);
                                 } else {
@@ -1009,10 +1372,10 @@ class PTDatasetIterator {
                                 float seen =
                                     batch.seen_codes.find(*valid_code) !=
                                     batch.seen_codes.end();
-                                if (*valid_code >= threshold) {
+                                if (*valid_code >= parent.threshold) {
                                     batch.target_indices1.push_back(
                                         {(current_offset - 2) + i * max_length,
-                                         *valid_code - threshold});
+                                         *valid_code - parent.threshold});
                                     batch.targets1.push_back(0);
                                     batch.target1_seen.push_back(seen);
                                 } else {
@@ -1023,6 +1386,18 @@ class PTDatasetIterator {
                                     batch.target_seen.push_back(seen);
                                 }
                             }
+                        }
+                        for (uint32_t code : batch.negative_lab_codes) {
+                                    batch.target_indices.push_back(
+                                        {(current_offset - 2) + i * max_length,
+                                         code});
+                                    batch.targets.push_back(0);
+                        }
+                        for (uint32_t code : batch.positive_lab_codes) {
+                                    batch.target_indices.push_back(
+                                        {(current_offset - 2) + i * max_length,
+                                         code});
+                                    batch.targets.push_back(1);
                         }
                     }
 
@@ -1248,7 +1623,6 @@ class PTDatasetIterator {
     std::mt19937_64 rng;
     const PatientTimelineDataset& parent;
     const bool is_val;
-    const uint32_t threshold;
     const float day_dropout;
     const float code_dropout;
 
