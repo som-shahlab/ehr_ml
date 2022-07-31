@@ -98,7 +98,6 @@ class Trainer:
 
         best_val_loss = None
         best_val_loss_epoch = None
-        last_val_loss = np.inf
         trigger_early_stopping = 0
 
         pbar = (
@@ -143,7 +142,7 @@ class Trainer:
                 logging.info("Saving best model to %s", best_path)
 
             # early stopping
-            if self.model.config["early_stopping"] and val_loss > last_val_loss:
+            if self.model.config["early_stopping"] and val_loss > best_val_loss:
                 trigger_early_stopping += 1
 
                 if trigger_early_stopping >= self.model.config["early_stopping_patience"]:
@@ -155,8 +154,6 @@ class Trainer:
                     break
             else:
                 trigger_early_stopping = 0
-
-            last_val_loss = val_loss
 
         if pbar is not None:
             pbar.close()
