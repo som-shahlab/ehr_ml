@@ -235,12 +235,12 @@ class PatientRNN(nn.Module):
             )
         else:
             self.model = Decoder(
-                n_layers=6,
+                n_layers=config["transformer_layers"],
                 n_head=8,
                 d_k=64,
                 d_v=64,
                 d_model=config["size"],
-                d_inner=2048,
+                d_inner=config["size"] * 4 if config["transformer_inner_size"] is None else config["transformer_inner_size"],
                 dropout=config["dropout"],
             )
 

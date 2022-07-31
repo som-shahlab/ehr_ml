@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import tqdm
 import torch
@@ -66,11 +67,27 @@ class Trainer:
             code_dropout=config["code_dropout"],
         ) as batches:
             for i, batch in enumerate(batches):
-                outputs = self.model(batch)
+                # train with mixed precision
+                if self.scaler is not None:
+                    # casts operations to mixed precision
+                    with torch.cuda.amp.autocast():
+                        outputs = self.model(batch)
 
-                self.optimizer.zero_grad()
-                outputs["loss"].backward()
-                self.optimizer.step()
+                    # scales the loss, and calls backward() to create scaled gradients
+                    self.scaler.scale(outputs["loss"]).backward()
+
+                    # unscales gradients and calls or skips optimizer.step()
+                    self.scaler.step(self.optimizer)
+
+                    # updates the scale for next iteration
+                    self.scaler.update()
+
+                else:
+                    outputs = self.model(batch)
+
+                    self.optimizer.zero_grad()
+                    outputs["loss"].backward()
+                    self.optimizer.step()
 
                 del outputs
                 del batch
@@ -89,11 +106,18 @@ class Trainer:
 
         self.optimizer = self._build_adam_optimizer(dataset)
 
+        if self.model.config["mixed_precision_training"]:
+            self.scaler = torch.cuda.amp.GradScaler()
+        else:
+            self.scaler = None
+
         checkpoint_dir = os.path.join(model_dir, "checkpoints")
         os.makedirs(checkpoint_dir, exist_ok=True)
 
         best_val_loss = None
         best_val_loss_epoch = None
+        last_val_loss = np.inf
+        trigger_early_stopping = 0
 
         pbar = (
             tqdm.tqdm(total=self.optimizer.defaults["t_total"])
@@ -124,6 +148,7 @@ class Trainer:
             loss_file.write("\n")
             loss_file.flush()
 
+            # checkpoint best model
             if best_val_loss is None or val_loss < best_val_loss:
                 best_val_loss = val_loss
                 best_val_loss_epoch = epoch
@@ -134,6 +159,22 @@ class Trainer:
 
                 torch.save(self.model.state_dict(), best_path)
                 logging.info("Saving best model to %s", best_path)
+
+            # early stopping
+            if self.model.config["early_stopping"] and val_loss > last_val_loss:
+                trigger_early_stopping += 1
+
+                if trigger_early_stopping >= self.model.config["early_stopping_patience"]:
+                    logging.info("Stopping early at epoch %s!", epoch)
+                    if pbar is not None:
+                        pbar.close()
+                    loss_file.close()
+                    logging.info("Training complete!")
+                    break
+            else:
+                trigger_early_stopping = 0
+
+            last_val_loss = val_loss
 
         if pbar is not None:
             pbar.close()

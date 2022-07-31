@@ -323,6 +323,12 @@ def train_model() -> None:
         help="Dimensionality of the output embeddings",
     )
     parser.add_argument(
+        "--transformer_inner_size",
+        default=None,
+        type=int,
+        help='Dimensionality of the inner feed-forward layers of the transformer (if encoder_type is "transformer"). None will set it to size * 4',
+    )
+    parser.add_argument(
         "--encoder_type",
         default="gru",
         choices=["gru", "lstm", "transformer"],
@@ -333,8 +339,13 @@ def train_model() -> None:
         "--rnn_layers",
         default=1,
         type=int,
-        help='number of recurrent layers to use if encoder_type is "gru" or '
-        '"lstm" (default 1), not used if encoder_type is "transformer"',
+        help='number of layers to use if encoder_type is "gru" or "lstm" (default 1), not used if encoder_type is "transformer"',
+    )
+    parser.add_argument(
+        "--transformer_layers",
+        default=6,
+        type=int,
+        help='number of layers to use if encoder_type is "transformer" (default 6), not used if encoder_type is "gru" or "lstm"',
     )
     parser.add_argument(
         "--dropout",
@@ -373,6 +384,15 @@ def train_model() -> None:
         default=0.01,
         type=float,
         help="l2 regularization strength (default 0.01)",
+    )
+    parser.add_argument(
+        "--early_stopping", action='store_true', help="train with early stopping. patience specified by early_stopping_patience"
+    )
+    parser.add_argument(
+        "--early_stopping_patience", type=int, default=5, help="early stopping patience (default 5)"
+    )
+    parser.add_argument(
+        "--mixed_precision_training", action='store_true', help="train with mixed precision. trains faster this way."
     )
     parser.add_argument(
         "--device",
@@ -415,6 +435,8 @@ def train_model() -> None:
         "dropout": args.dropout,
         "encoder_type": args.encoder_type,
         "rnn_layers": args.rnn_layers,
+        "transformer_layers": args.transformer_layers,
+        "transformer_inner_size": args.transformer_inner_size,
         "tied_weights": not args.no_tied_weights,
         "l2": args.l2,
         "b1": 0.9,
@@ -422,6 +444,9 @@ def train_model() -> None:
         "e": 1e-8,
         "epochs_per_cycle": args.epochs,
         "warmup_epochs": args.warmup_epochs,
+        "early_stopping": args.early_stopping,
+        "early_stopping_patience": args.early_stopping_patience,
+        "mixed_precision_training": args.mixed_precision_training,
         "code_dropout": args.code_dropout,
         "day_dropout": args.day_dropout,
         "model_dir": os.path.abspath(model_dir),
