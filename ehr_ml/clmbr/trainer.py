@@ -67,27 +67,13 @@ class Trainer:
             code_dropout=config["code_dropout"],
         ) as batches:
             for i, batch in enumerate(batches):
-                # train with mixed precision
-                if self.scaler is not None:
-                    # casts operations to mixed precision
-                    with torch.cuda.amp.autocast():
-                        outputs = self.model(batch)
-
-                    # scales the loss, and calls backward() to create scaled gradients
-                    self.scaler.scale(outputs["loss"]).backward()
-
-                    # unscales gradients and calls or skips optimizer.step()
-                    self.scaler.step(self.optimizer)
-
-                    # updates the scale for next iteration
-                    self.scaler.update()
-
-                else:
+                # train with mixed precision only if config["mixed_precision_training"], otherwise scaler is a no-op
+                with torch.cuda.amp.autocast(enabled=config["mixed_precision_training"]):
                     outputs = self.model(batch)
-
-                    self.optimizer.zero_grad()
-                    outputs["loss"].backward()
-                    self.optimizer.step()
+                self.scaler.scale(outputs["loss"]).backward()
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                self.optimizer.zero_grad()
 
                 del outputs
                 del batch
@@ -105,11 +91,7 @@ class Trainer:
         num_epochs = self.model.config["epochs_per_cycle"]
 
         self.optimizer = self._build_adam_optimizer(dataset)
-
-        if self.model.config["mixed_precision_training"]:
-            self.scaler = torch.cuda.amp.GradScaler()
-        else:
-            self.scaler = None
+        self.scaler = torch.cuda.amp.GradScaler(enabled=self.model.config["mixed_precision_training"])
 
         checkpoint_dir = os.path.join(model_dir, "checkpoints")
         os.makedirs(checkpoint_dir, exist_ok=True)
