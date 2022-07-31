@@ -389,7 +389,7 @@ def train_model() -> None:
         "--early_stopping", action='store_true', help="train with early stopping. patience specified by early_stopping_patience"
     )
     parser.add_argument(
-        "--early_stopping_patience", type=int, default=5, help="early stopping patience (default 5)"
+        "--early_stopping_patience", type=int, default=10, help="early stopping patience (default 10)"
     )
     parser.add_argument(
         "--mixed_precision_training", action='store_true', help="train with mixed precision. trains faster this way."
