@@ -23,7 +23,7 @@ numpy = "1.21"
 scipy = "^1.6"
 scikit-learn = "^0.24"
 tqdm = "^4.60.0"
-embedding-dot = {git = "https://github.com/Lalaland/embedding_dot.git@cu113"}
+embedding-dot = {git = "https://github.com/Lalaland/embedding_dot.git" branch = "cu113"}
 torch = "^1.12"
 pandas = "^1.4.2"
 pyarrow = "^7.0.0"
