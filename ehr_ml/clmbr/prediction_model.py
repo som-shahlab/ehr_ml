@@ -115,7 +115,6 @@ class CLMBR(nn.Module):
         patient_representations = np.zeros((len(patient_ids), config["size"]))
         with DataLoader(
             dataset,
-            threshold=config["num_first"],
             is_val=True,
             batch_size=config["eval_batch_size"],
             seed=random.randint(0, 100000),
