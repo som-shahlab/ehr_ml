@@ -77,6 +77,12 @@ def create_info_program() -> None:
         help="Only keep statistics on codes/terms that appear for this many patients (default 100)",
     )
     parser.add_argument(
+        "--num_lab_buckets",
+        type=int,
+        default=20,
+        help="Only keep statistics on codes/terms that appear for this many patients (default 100)",
+    )
+    parser.add_argument(
         "--excluded_patient_file",
         type=str,
         help="A file containing a list of patients to exclude from training. "
@@ -168,6 +174,7 @@ def create_info_program() -> None:
             val_start_date,
             val_end_date,
             args.min_patient_count,
+            args.num_lab_buckets,
         )
     )
     result["extract_dir"] = args.input_data_dir
