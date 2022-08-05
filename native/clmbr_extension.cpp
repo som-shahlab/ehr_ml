@@ -4,6 +4,7 @@
 
 #include <optional>
 #include <random>
+#include <cmath>
 
 #include "blockingconcurrentqueue.h"
 #include "civil_day_caster.h"
@@ -150,7 +151,7 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
                         absl::CivilDay train_start_date,
                         absl::CivilDay train_end_date,
                         absl::CivilDay val_start_date,
-                        absl::CivilDay val_end_date, int min_patient_count) {
+                        absl::CivilDay val_end_date, int min_patient_count, int num_lab_buckets) {
     ExtractReader reader(timeline_path, true);
     OntologyReader ontologies(ontology_path);
 
@@ -393,7 +394,7 @@ std::string create_info(const char* timeline_path, const char* ontology_path,
     nlohmann::json serialized;
 
     for (auto& item : numeric_map) {
-        int num_splits = item.second.size() / 500;
+        int num_splits = std::min((int)(item.second.size() / 500), num_lab_buckets);
         if (num_splits <= 1) {
             continue;
         }
