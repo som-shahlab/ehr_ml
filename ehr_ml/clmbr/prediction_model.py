@@ -166,7 +166,7 @@ class CLMBR(nn.Module):
         for param in self.parameters():
             param.requires_grad = True
     
-    def compute_code_probabilities(self, extract_dir: str, representations: np.array) -> Mapping[int, np.array]:
+    def compute_code_probabilities(self, extract_dir: str, representations: np.array) -> Tuple[Mapping[int, np.array], np.array]:
         """
         Compute the code probabilities for a given representation.
         Output is in the form of log probabilities
@@ -199,10 +199,10 @@ class CLMBR(nn.Module):
             index = self.info['valid_code_map'].get(code)
             if index == None:
                 return None
-            if index < self.config['num_first']:
+            if index < self.info['threshold']:
                 return probabilities[:, index]
             else:
-                return probabilties1[:, index - self.config['num_first']]
+                return probabilties1[:, index - self.info['threshold']]
 
         for code in self.info['valid_code_map'].keys():
             parents = ontology_reader.get_all_parents(code)
@@ -210,7 +210,9 @@ class CLMBR(nn.Module):
             vals = [a for a in vals if a is not None]
             result[code] = sum(vals)
 
-        return result
+        lab_section = probabilities[:, self.info['threshold']:].transpose(0, 1)
+
+        return (result, lab_section)
 
     @classmethod
     def from_pretrained(
