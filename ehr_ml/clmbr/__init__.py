@@ -499,7 +499,8 @@ def debug_model() -> None:
         for batch in batches:
             if batch["task"][0].size()[0] == 0:
                 continue
-            values, non_text_loss = model(batch)
+            total = model(batch)
+            values = total["values"]
             values = torch.sigmoid(values)
 
             patient_id = int(batch["pid"][0])

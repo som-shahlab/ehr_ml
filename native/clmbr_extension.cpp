@@ -917,9 +917,16 @@ class PTDatasetIterator {
                         bool added_one = false;
                         bool added_one1 = false;
 
+                        auto use_for_feature = [&](uint32_t code) -> bool {
+                            return parent.ontologies.get_children(code).size() == 0;
+                        };
+
                         if (code_dropout != 0) {
                             for (uint32_t code :
                                  batch.positive_codes_per_day_features) {
+                                if (!use_for_feature(code)) {
+                                    continue;
+                                }
                                 if (auto valid_code =
                                         parent.get_valid_code(code)) {
                                     if (*valid_code >= threshold) {
@@ -934,6 +941,9 @@ class PTDatasetIterator {
                             }
                         } else {
                             for (uint32_t code : batch.positive_codes_per_day) {
+                                if (!use_for_feature(code)) {
+                                    continue;
+                                }
                                 if (auto valid_code =
                                         parent.get_valid_code(code)) {
                                     if (*valid_code >= threshold) {
