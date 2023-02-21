@@ -15,18 +15,20 @@ ehr_ml can be installed by cloning the repository and using poetry install. As o
 
 Note that there are several main build depencies for ehr_ml:
    1. Python 3.8+
-   2. Bazel 3.x (https://bazel.build/)
+   2. Bazel 4.x / 5.x (https://bazel.build/)
    3. A C++ compiler that supports C++14
 
 If you are using Anaconda, the following commands should install those dependencies:
 
 .. code-block:: console
 
-   conda create -n env_name python=3.9 bazel gxx_linux-64=8 -c conda-forge
+   conda create -n env_name python=3.9 bazel=5.3 gxx_linux-64=8 poetry=1.1.15 -c conda-forge
    conda activate env_name
-   pip install git+https://github.com/som-shahlab/ehr_ml.git
+   git clone https://github.com/som-shahlab/ehr_ml.git
+   cd ehr_ml 
+   poetry install
 
-Once the :code:`pip install` command completes, your installation is done! The instructions below guide you through creating an :code:`ehr_ml`-compatible extract from an OMOP dataset.
+Once the :code:`poetry install` command completes, your installation is done! The instructions below guide you through creating an :code:`ehr_ml`-compatible extract from an OMOP dataset.
 
 *********************************************
 Existing Extracts
