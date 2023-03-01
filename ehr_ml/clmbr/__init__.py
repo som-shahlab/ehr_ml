@@ -485,7 +485,8 @@ def debug_model() -> None:
         word = ontologies.get_dictionary().get_word(b)
         reverse_map[a] = word
 
-    reverse_map[len(info["valid_code_map"])] = "None"
+    reverse_map[config["num_first"]] = "None"
+    reverse_map[len(info["valid_code_map"])] = "SecondaryNone"
 
     with DataLoader(
         loaded_data,
@@ -537,11 +538,10 @@ def debug_model() -> None:
 
                 words = set()
                 for code in day.observations:
-                    for subword in ontologies.get_subwords(code):
-                        words.add(ontologies.get_dictionary().get_word(subword))
-                        all_seen.add(
-                            ontologies.get_dictionary().get_word(subword)
-                        )
+                    words.add(timelines.get_dictionary().get_word(code))
+
+                for obs_with_value in day.observations_with_values:
+                    words.add(timelines.get_dictionary().get_word(obs_with_value.code))
 
                 print("Source", words)
 
